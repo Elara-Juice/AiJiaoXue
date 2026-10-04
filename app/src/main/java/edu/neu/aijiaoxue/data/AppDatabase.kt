@@ -4,6 +4,9 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import edu.neu.aijiaoxue.data.dao.AiAnalysisDao
+import edu.neu.aijiaoxue.data.dao.AiCorrectionDao
+import edu.neu.aijiaoxue.data.dao.AiEvidenceDao
 import edu.neu.aijiaoxue.data.dao.ArrangementDao
 import edu.neu.aijiaoxue.data.dao.CaptureDao
 import edu.neu.aijiaoxue.data.dao.CourseDao
@@ -11,6 +14,9 @@ import edu.neu.aijiaoxue.data.dao.EvaluationDao
 import edu.neu.aijiaoxue.data.dao.ImprovementDao
 import edu.neu.aijiaoxue.data.dao.TaskDao
 import edu.neu.aijiaoxue.data.dao.UserDao
+import edu.neu.aijiaoxue.data.entity.AiAnalysisResult
+import edu.neu.aijiaoxue.data.entity.AiCorrection
+import edu.neu.aijiaoxue.data.entity.AiEvidence
 import edu.neu.aijiaoxue.data.entity.Arrangement
 import edu.neu.aijiaoxue.data.entity.Course
 import edu.neu.aijiaoxue.data.entity.EngagementRecord
@@ -34,8 +40,10 @@ import edu.neu.aijiaoxue.data.entity.User
         Material::class, InteractionEvent::class, EngagementRecord::class,
         Evaluation::class, EvaluationIssue::class,
         ImprovementPlan::class, ImprovementItem::class, ImprovementMeasure::class,
+        // Sprint 2 AI 分析、证据追溯、人工审核
+        AiAnalysisResult::class, AiEvidence::class, AiCorrection::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -46,6 +54,9 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun captureDao(): CaptureDao
     abstract fun evaluationDao(): EvaluationDao
     abstract fun improvementDao(): ImprovementDao
+    abstract fun aiAnalysisDao(): AiAnalysisDao
+    abstract fun aiEvidenceDao(): AiEvidenceDao
+    abstract fun aiCorrectionDao(): AiCorrectionDao
 
     companion object {
         const val NAME = "aijiaoxue.db"

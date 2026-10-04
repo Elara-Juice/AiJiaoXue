@@ -50,8 +50,16 @@ object Routes {
     fun improvePlan(taskId: Long) = "improve/$taskId/plan"
     const val IMPROVE_TODO = "improve/todo"
 
+    // ui/analysis、ui/evidence（孙浩然，Sprint 2）
+    const val ANALYSIS = "analysis/{taskId}"
+    fun analysis(taskId: Long) = "analysis/$taskId"
+    // US27：AI 结果人工审核
+    const val AI_REVIEW = "ai_review/{analysisId}"
+    fun aiReview(analysisId: Long) = "ai_review/$analysisId"
+
     const val ARG_TASK_ID = "taskId"
     const val ARG_COURSE_ID = "courseId"
+    const val ARG_ANALYSIS_ID = "analysisId"
 
     /** F0：登录后按角色进入对应首页；越权访问时也回到这里。 */
     fun homeOf(role: Role) = when (role) {
