@@ -47,6 +47,23 @@ object EvalRules {
     }
 }
 
+/** US13 参与状态录入校验，返回错误提示；null 表示可以保存。 */
+object EngagementRules {
+    fun validate(presentCount: Int?, engagedCount: Int?, engagedPercent: Int?): String? = when {
+        engagedCount != null && engagedPercent != null -> "参与人数与参与比例只能填写一项"
+        presentCount != null && presentCount < 0 -> "实到人数不能为负数"
+        engagedCount != null && engagedCount < 0 -> "参与人数不能为负数"
+        engagedCount != null && presentCount != null && engagedCount > presentCount -> "参与人数不能大于实到人数"
+        engagedPercent != null && engagedPercent !in 0..100 -> "参与比例应在 0–100% 之间"
+        else -> null
+    }
+}
+
+/** 本学期开始日期，用于 US05“本学期未督导”判断。换学期时只改这里。 */
+object Semester {
+    const val START_DATE = "2026-09-01"
+}
+
 /** 任务编号：DD + 督导日期 + 当日序号，例如 DD20261003-001。 */
 object TaskCode {
     fun of(supervisionDate: String, seq: Int): String =
