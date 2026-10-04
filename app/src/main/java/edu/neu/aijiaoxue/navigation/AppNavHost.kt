@@ -23,6 +23,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import edu.neu.aijiaoxue.data.Session
 import edu.neu.aijiaoxue.data.model.Role
+import edu.neu.aijiaoxue.ui.capture.CaptureScreen
 import edu.neu.aijiaoxue.ui.login.LoginScreen
 import edu.neu.aijiaoxue.ui.login.ProfileScreen
 
@@ -86,7 +87,9 @@ fun AppNavHost() {
             guarded(navController, Routes.TASK_PROGRESS, ADMIN) { pending(navController, "任务进度 US06") }
 
             // ui/capture、ui/engagement（李奕萱、孙浩然）
-            guarded(navController, Routes.CAPTURE, SUPERVISOR, taskIdArg) { pending(navController, "课堂采集 US08/09/12") }
+            guarded(navController, Routes.CAPTURE, SUPERVISOR, taskIdArg) {
+                CaptureScreen(onBack = { navController.popBackStack() })
+            }
 
             // ui/evaluation（于卓君）
             guarded(navController, Routes.EVALUATION, SUPERVISOR, taskIdArg) { pending(navController, "督导评价 US29/30") }
