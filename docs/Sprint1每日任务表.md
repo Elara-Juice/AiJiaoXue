@@ -26,7 +26,7 @@
 
 | 成员 | 任务 | 文件 |
 |---|---|---|
-| 李奕萱 | 1. 建 Git 仓库，推送骨架到 `main` ✅<br>2. 采集页：录音开始 / 暂停 / 继续 / 结束（US08）<br>3. 采集页：拍照归集（US09） | 1. —<br>2. `ui/capture/CaptureScreen.kt`、`CaptureViewModel.kt`、`AudioRecorder.kt`<br>3. `ui/capture/PhotoCapture.kt`、`AndroidManifest.xml`、`res/xml/file_paths.xml` |
+| 李奕萱 | 1. 建 Git 仓库，推送骨架到 `main` ✅<br>2. 采集页：录音开始 / 暂停 / 继续 / 结束（US08）✅<br>3. 采集页：拍照归集（US09）✅ | 1. —<br>2. `ui/capture/CaptureScreen.kt`、`CaptureViewModel.kt`、`AudioRecorder.kt`、`RecordingService.kt`、`AudioPlayer.kt`<br>3. `ui/capture/PhotoCapture.kt`、`AndroidManifest.xml`、`res/xml/file_paths.xml` |
 | 王博田 | 1. 安装开发环境；画页面草图<br>2. 课程检索（US01）<br>3. 课程详情（US02）<br>4. 创建督导任务（US04） | 1. —<br>2. `ui/course/CourseSearchScreen.kt`、`CourseSearchViewModel.kt`<br>3. `ui/course/CourseDetailScreen.kt`、`CourseDetailViewModel.kt`<br>4. `ui/course/TaskCreateScreen.kt`、`TaskCreateViewModel.kt` |
 | 于卓君 | 1. 安装开发环境；读需求 US29/30/32/36/41/42；画页面草图<br>2. 结构化评价表单与总分计算（US29）<br>3. 综合意见与问题条目（US30）<br>4. 提交评价，状态改为“已完成” | 1. —<br>2. `ui/evaluation/EvaluationScreen.kt`、`EvaluationViewModel.kt`、`ScoreSection.kt`<br>3. `ui/evaluation/IssueEditor.kt`<br>4. `ui/evaluation/EvaluationViewModel.kt` |
 | 孙浩然 | 1. 确认设备情况<br>2. 参与状态记录（US13）<br>3. 开始写测试用例 | 1. —<br>2. `ui/engagement/EngagementPanel.kt`、`EngagementViewModel.kt`<br>3. `docs/Sprint1测试用例.md` |
@@ -39,7 +39,7 @@
 |---|---|---|
 | 李奕萱 | 1. 互动事件一键标注、撤销、计数（US12）<br>2. 结束课堂采集，状态改为“待评价”<br>3. 任务恢复（US07，原王博田）：我的督导任务列表，“继续”回到采集或评价，恢复已采集材料 | 1. `ui/capture/InteractionPanel.kt`<br>2. `ui/capture/CaptureViewModel.kt`<br>3. `ui/course/MyTasksScreen.kt`、`MyTasksViewModel.kt`；材料恢复写在 `ui/capture/CaptureViewModel.kt` |
 | 王博田 | 1. 督导安排（US05）<br>2. 任务进度跟踪（US06） | 1. `ui/arrange/ArrangementScreen.kt`、`ArrangementViewModel.kt`<br>2. `ui/arrange/TaskProgressScreen.kt`、`TaskProgressViewModel.kt` |
-| 于卓君 | 1. 历史归档与检索（US32）<br>2. 改进重点选择（US36）<br>3. 改进计划确认（US41） | 1. `ui/evaluation/HistoryScreen.kt`、`HistoryViewModel.kt`、`HistoryDetailScreen.kt`、`HistoryDetailViewModel.kt`<br>2. `ui/improve/ImproveFocusScreen.kt`、`ImproveFocusViewModel.kt`<br>3. `ui/improve/ImprovePlanScreen.kt`、`ImprovePlanViewModel.kt` |
+| 于卓君 | 1. 历史归档与检索（US32）：详情页顶部显示督导人和这堂课的信息（课程、教师、班级、地点、日期节次、章节、采集时段），用 `taskDao.observeHistoryDetail`（管理人员）/ `observeHistoryDetailForSupervisor`（督导）<br>2. 改进重点选择（US36）<br>3. 改进计划确认（US41） | 1. `ui/evaluation/HistoryScreen.kt`、`HistoryViewModel.kt`、`HistoryDetailScreen.kt`、`HistoryDetailViewModel.kt`<br>2. `ui/improve/ImproveFocusScreen.kt`、`ImproveFocusViewModel.kt`<br>3. `ui/improve/ImprovePlanScreen.kt`、`ImprovePlanViewModel.kt` |
 | 孙浩然 | 1. 材料删除重采（US11）<br>2. 测试用例定稿，交给于卓君 | 1. `ui/engagement/MaterialList.kt`<br>2. `docs/Sprint1测试用例.md` |
 
 当天完成标志：各模块自测通过并合并到 `main`。**21:00 检查点**：主链未打通则启动降级。
