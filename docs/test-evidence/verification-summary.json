@@ -1,0 +1,10 @@
+{
+  "instrumentationUniqueCases": 114,
+  "instrumentationLatestPassed": 114,
+  "unitCases": 19,
+  "unitPassed": 19,
+  "explanation": "Latest result per classname + testcase: full 114 run (113 pass, 1 test synchronization failure), then all 4 Sprint2 UI cases rerun after fixing test synchronization only. Raw XML is preserved; this is not a claim that the full run had zero failures.",
+  "sourceSetSha256": "8e2386339e11d5674a2732b54f1f744addc9775b7511731cb0e166819ac6b8b0",
+  "apkSha256": "5d53da4f0645f8d7b3b5d418a9f8d70c6f2941d6f35087d55f09ac241b1bbf15",
+  "implementationCommit": "0627420da6c63d61c353c248374a18bbc62cabfa"
+}

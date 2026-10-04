@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="edu.neu.aijiaoxue.Sprint1ValidationTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-24T07:43:26.046Z" hostname="LAPTOP-904CKOOQ" time="0.04">
+  <properties/>
+  <testcase name="missingScoreNamesTheDimension" classname="edu.neu.aijiaoxue.Sprint1ValidationTest" time="0.011"/>
+  <testcase name="planRejectsBlankContentAndMissingOrInvalidDate" classname="edu.neu.aijiaoxue.Sprint1ValidationTest" time="0.018"/>
+  <testcase name="blankAndMissingIssuesCannotSubmit" classname="edu.neu.aijiaoxue.Sprint1ValidationTest" time="0.001"/>
+  <testcase name="teacherAddedMeasureCanConfirmWithoutReferenceSuggestion" classname="edu.neu.aijiaoxue.Sprint1ValidationTest" time="0.001"/>
+  <testcase name="whitespaceOpinionCannotSubmit" classname="edu.neu.aijiaoxue.Sprint1ValidationTest" time="0.0"/>
+  <testcase name="eachFocusNeedsAMeasure" classname="edu.neu.aijiaoxue.Sprint1ValidationTest" time="0.007"/>
+  <testcase name="validEvaluationHasNoValidationError" classname="edu.neu.aijiaoxue.Sprint1ValidationTest" time="0.0"/>
+  <testcase name="dateMustBeRealAndCanonical" classname="edu.neu.aijiaoxue.Sprint1ValidationTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
