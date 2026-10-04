@@ -73,6 +73,21 @@ private const val HISTORY_ROW_SELECT = """
       AND (:toDate = '' OR t.supervisionDate <= :toDate)
     """
 
+private const val HISTORY_DETAIL_SELECT = """
+    SELECT t.id AS taskId, t.code, t.type,
+           t.supervisorId, su.name AS supervisorName, su.account AS supervisorAccount,
+           c.id AS courseId, c.code AS courseCode, c.name AS courseName, tu.name AS teacherName,
+           c.className, c.schedule, c.location,
+           t.supervisionDate, t.period, t.chapter, t.classStartAt, t.classEndAt,
+           e.totalScore, e.grade, e.submittedAt
+    FROM supervision_tasks t
+    JOIN courses c ON c.id = t.courseId
+    JOIN users tu ON tu.id = c.teacherId
+    JOIN users su ON su.id = t.supervisorId
+    LEFT JOIN evaluations e ON e.taskId = t.id
+    WHERE t.status = 'COMPLETED' AND t.id = :taskId
+    """
+
 @Dao
 interface UserDao {
     @Query("SELECT * FROM users WHERE account = :account LIMIT 1")
@@ -240,6 +255,14 @@ interface TaskDao {
     /** US32 管理人员可查看全部历史记录。 */
     @Query(HISTORY_ROW_SELECT + " ORDER BY t.supervisionDate DESC")
     fun observeHistoryAll(keyword: String, fromDate: String, toDate: String): Flow<List<HistoryRow>>
+
+    /** US32 历史详情（管理人员）：任意督导的已完成任务，带督导人和这堂课的完整信息。未完成或不存在返回 null。 */
+    @Query(HISTORY_DETAIL_SELECT)
+    fun observeHistoryDetail(taskId: Long): Flow<HistoryDetailRow?>
+
+    /** US32 历史详情（督导）：只能看本人的记录，不是本人返回 null，界面提示无权限。 */
+    @Query(HISTORY_DETAIL_SELECT + " AND t.supervisorId = :supervisorId")
+    fun observeHistoryDetailForSupervisor(taskId: Long, supervisorId: Long): Flow<HistoryDetailRow?>
 
     /** 权限校验用：任务所属课程的任课教师。 */
     @Query("SELECT c.teacherId FROM supervision_tasks t JOIN courses c ON c.id = t.courseId WHERE t.id = :taskId")

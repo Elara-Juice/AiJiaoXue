@@ -59,6 +59,35 @@ data class HistoryRow(
     val grade: EvalGrade?,
 )
 
+/**
+ * US32 历史详情页顶部的“督导人 + 这堂课”信息。管理人员能看到全部督导的记录，
+ * 所以必须显示是哪位督导、哪门课的哪一次课（课程、班级、地点、日期节次、章节、实际上课时段）。
+ */
+data class HistoryDetailRow(
+    val taskId: Long,
+    val code: String,
+    val type: SupervisionType,
+    val supervisorId: Long,
+    val supervisorName: String,
+    val supervisorAccount: String,
+    val courseId: Long,
+    val courseCode: String,
+    val courseName: String,
+    val teacherName: String,
+    val className: String?,
+    val schedule: String?,
+    val location: String?,
+    val supervisionDate: String,
+    val period: String,
+    val chapter: String?,
+    /** 采集开始、结束时间（epoch 毫秒）；预置的历史任务没有采集过，为 null。 */
+    val classStartAt: Long?,
+    val classEndAt: Long?,
+    val totalScore: Int?,
+    val grade: EvalGrade?,
+    val submittedAt: Long?,
+)
+
 /** 教师督导反馈列表行（US33），teacherReadAt 为 null 显示红点。 */
 data class FeedbackRow(
     val evaluationId: Long,
