@@ -1,5 +1,7 @@
 package edu.neu.aijiaoxue.navigation
 
+import edu.neu.aijiaoxue.data.model.Role
+
 /**
  * 全部路由集中定义。模块之间跳转只传 ID（taskId、courseId 等），不传对象。
  * 新增路由在此追加，并在群里说一声。带参数的路由用 xxx(id) 生成实际地址。
@@ -50,4 +52,11 @@ object Routes {
 
     const val ARG_TASK_ID = "taskId"
     const val ARG_COURSE_ID = "courseId"
+
+    /** F0：登录后按角色进入对应首页；越权访问时也回到这里。 */
+    fun homeOf(role: Role) = when (role) {
+        Role.ADMIN -> HOME_ADMIN
+        Role.SUPERVISOR -> HOME_SUPERVISOR
+        Role.TEACHER -> HOME_TEACHER
+    }
 }
