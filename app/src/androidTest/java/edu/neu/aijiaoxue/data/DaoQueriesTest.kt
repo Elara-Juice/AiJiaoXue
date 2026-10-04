@@ -143,6 +143,48 @@ class DaoQueriesTest {
     }
 
     @Test
+    fun historyDetail_showsSupervisorAndClass_andChecksOwnership() = runBlocking {
+        val otherSupervisor = db.userDao().insertAll(
+            listOf(User(account = "s2", passwordHash = "x", name = "赵督导", role = Role.SUPERVISOR)),
+        )[0]
+        val done = db.taskDao().insert(
+            SupervisionTask(
+                code = "DD20260925-001", courseId = courseB, supervisorId = supervisor,
+                supervisionDate = "2026-09-25", period = "3-4", chapter = "第3章 进程调度",
+                type = SupervisionType.SPECIAL, status = TaskStatus.COMPLETED,
+                classStartAt = 1_000L, classEndAt = 2_000L,
+            )
+        )
+        db.evaluationDao().upsert(
+            Evaluation(taskId = done, status = EvalStatus.SUBMITTED, totalScore = 88, grade = EvalGrade.GOOD, submittedAt = 3_000L)
+        )
+        val pending = task(courseA, "2026-10-01", TaskStatus.PENDING_EVALUATION)
+        val dao = db.taskDao()
+
+        // 管理人员：能看到是哪位督导、哪门课的哪一次课
+        val row = dao.observeHistoryDetail(done).first()!!
+        assertEquals("王督导", row.supervisorName)
+        assertEquals("s1", row.supervisorAccount)
+        assertEquals("C02", row.courseCode)
+        assertEquals("操作系统", row.courseName)
+        assertEquals("李老师", row.teacherName)
+        assertEquals("2026-09-25", row.supervisionDate)
+        assertEquals("3-4", row.period)
+        assertEquals("第3章 进程调度", row.chapter)
+        assertEquals(SupervisionType.SPECIAL, row.type)
+        assertEquals(1_000L, row.classStartAt)
+        assertEquals(2_000L, row.classEndAt)
+        assertEquals(88, row.totalScore)
+        assertEquals(3_000L, row.submittedAt)
+        // 未完成的任务不进历史
+        assertNull(dao.observeHistoryDetail(pending).first())
+
+        // 督导：只能看本人的
+        assertEquals(done, dao.observeHistoryDetailForSupervisor(done, supervisor).first()!!.taskId)
+        assertNull(dao.observeHistoryDetailForSupervisor(done, otherSupervisor).first())
+    }
+
+    @Test
     fun feedback_onlyOwnSubmitted() = runBlocking {
         val t1 = task(courseA, "2026-10-01", TaskStatus.COMPLETED)
         val t2 = task(courseA, "2026-10-02", TaskStatus.PENDING_EVALUATION)
