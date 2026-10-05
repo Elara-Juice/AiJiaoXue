@@ -24,6 +24,7 @@ import androidx.navigation.navArgument
 import edu.neu.aijiaoxue.data.Session
 import edu.neu.aijiaoxue.data.model.Role
 import edu.neu.aijiaoxue.ui.capture.CaptureScreen
+import edu.neu.aijiaoxue.ui.course.MyTasksScreen
 import edu.neu.aijiaoxue.ui.login.LoginScreen
 import edu.neu.aijiaoxue.ui.login.ProfileScreen
 
@@ -80,7 +81,10 @@ fun AppNavHost() {
             // US02 前置条件：从检索结果（督导）或督导安排（管理人员）进入
             guarded(navController, Routes.COURSE_DETAIL, ADMIN_SUPERVISOR, courseIdArg) { pending(navController, "课程详情 US02") }
             guarded(navController, Routes.TASK_CREATE, SUPERVISOR, courseIdArg) { pending(navController, "创建督导任务 US04") }
-            guarded(navController, Routes.MY_TASKS, SUPERVISOR) { pending(navController, "我的督导任务 US07") }
+            // US07（10/4 由王博田转给李奕萱）
+            guarded(navController, Routes.MY_TASKS, SUPERVISOR) {
+                MyTasksScreen(onBack = { navController.popBackStack() }, onNavigate = navController::navigate)
+            }
 
             // ui/arrange（王博田）
             guarded(navController, Routes.ARRANGEMENT, ADMIN) { pending(navController, "督导安排 US05") }
