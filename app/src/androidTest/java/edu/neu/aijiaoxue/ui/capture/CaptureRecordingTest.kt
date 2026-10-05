@@ -3,10 +3,17 @@ package edu.neu.aijiaoxue.ui.capture
 import android.Manifest
 import android.os.Build
 import androidx.activity.ComponentActivity
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -18,8 +25,10 @@ import edu.neu.aijiaoxue.data.AppDatabase
 import edu.neu.aijiaoxue.data.DemoData
 import edu.neu.aijiaoxue.data.FileStore
 import edu.neu.aijiaoxue.data.Session
+import edu.neu.aijiaoxue.data.entity.InteractionEvent
 import edu.neu.aijiaoxue.data.entity.Material
 import edu.neu.aijiaoxue.data.entity.SupervisionTask
+import edu.neu.aijiaoxue.data.model.InteractionType
 import edu.neu.aijiaoxue.data.model.MaterialType
 import edu.neu.aijiaoxue.data.model.SupervisionType
 import edu.neu.aijiaoxue.data.model.TaskStatus
@@ -79,20 +88,25 @@ class CaptureRecordingTest {
         Session.signOut(context)
     }
 
-    private fun showCapture() {
+    private fun showCapture(onClassEnded: () -> Unit = {}) {
         rule.setContent {
             val nav = rememberNavController()
             NavHost(nav, startDestination = Routes.CAPTURE) {
                 composable(
                     Routes.CAPTURE,
                     listOf(navArgument(Routes.ARG_TASK_ID) { type = NavType.LongType; defaultValue = taskId }),
-                ) { CaptureScreen(onBack = {}) }
+                ) { CaptureScreen(onBack = {}, onClassEnded = onClassEnded) }
             }
         }
     }
 
     private fun waitFor(text: String, timeout: Long = 10_000) =
         rule.waitUntil(timeout) { rule.onAllNodesWithText(text, substring = true).fetchSemanticsNodes().isNotEmpty() }
+
+    /** 材料列表在互动标注和互动记录下面，可能在屏幕外，LazyColumn 不会组合屏幕外的项。 */
+    private fun scrollPageTo(text: String) {
+        rule.onNodeWithTag(CAPTURE_PAGE_TAG).performScrollToNode(hasText(text, substring = true))
+    }
 
     @Test
     fun record_pause_resume_stop_savesAudioForTask() = runBlocking {
@@ -120,6 +134,8 @@ class CaptureRecordingTest {
 
         rule.onNodeWithText("结束录音").performClick()
         waitFor("录音已保存")
+        rule.waitUntil(10_000) { runBlocking { db.captureDao().getMaterials(taskId).single().endedAt != null } }
+        scrollPageTo("录音 1")
         waitFor("录音 1")
         rule.onNodeWithText("播放").assertExists()
 
@@ -135,13 +151,81 @@ class CaptureRecordingTest {
         assertTrue(audio.offsetMs >= 0)
 
         // 一个任务允许多段音频（US08 业务规则 2）
+        scrollPageTo("开始录音")
         rule.onNodeWithText("开始录音").performClick()
         waitFor("录音中")
         Thread.sleep(1_500)
         rule.onNodeWithText("结束录音").performClick()
-        waitFor("录音 2")
+        rule.waitUntil(10_000) { runBlocking { db.captureDao().getMaterials(taskId).count { it.endedAt != null } == 2 } }
+        scrollPageTo("录音 2")
+        rule.onNodeWithText("录音 2").assertExists()
         assertEquals(2, db.captureDao().getMaterials(taskId).size)
         assertEquals(TaskStatus.IN_PROGRESS, db.taskDao().getById(taskId)!!.status)
+    }
+
+    @Test
+    fun endClass_whileRecording_savesAudioAndMovesToPendingEvaluation() = runBlocking<Unit> {
+        var ended = 0
+        showCapture(onClassEnded = { ended++ })
+        waitFor("开始录音")
+        rule.onNodeWithText("开始录音").performClick()
+        waitFor("录音中")
+        Thread.sleep(1_500)
+
+        // 取消确认不做任何修改
+        rule.onNodeWithText("结束课堂采集").performClick()
+        waitFor("将先结束录音")
+        rule.onNodeWithText("继续采集").performClick()
+        assertEquals(TaskStatus.IN_PROGRESS, db.taskDao().getById(taskId)!!.status)
+        assertEquals(AudioRecorder.Status.RECORDING, AudioRecorder.state.value.status)
+
+        rule.onNodeWithText("结束课堂采集").performClick()
+        rule.onNodeWithText("结束并去评价").performClick()
+        rule.waitUntil(10_000) { ended == 1 }
+
+        // 需求 3.3：仍在录音时先自动结束录音
+        assertEquals(AudioRecorder.Status.IDLE, AudioRecorder.state.value.status)
+        val audio = db.captureDao().getMaterials(taskId).single()
+        assertNotNull(audio.endedAt)
+        // 规范第 4 节：IN_PROGRESS → PENDING_EVALUATION，写 classEndAt
+        val task = db.taskDao().getById(taskId)!!
+        assertEquals(TaskStatus.PENDING_EVALUATION, task.status)
+        assertNotNull(task.classEndAt)
+        assertTrue(task.classEndAt!! >= task.classStartAt!!)
+
+        // 待评价：不能再录音和标注，仍可补充拍照
+        waitFor("待评价")
+        rule.onNodeWithText("结束课堂采集").assertDoesNotExist()
+        rule.onNodeWithText("开始录音").assertIsNotEnabled()
+        rule.onNodeWithText("拍照").assertIsEnabled()
+        rule.onNodeWithText("相册导入").assertIsEnabled()
+    }
+
+    /** US12 主流程 4：记录多时在“互动记录”卡片内滑动，能看到本堂课的全部记录。 */
+    @Test
+    fun manyEvents_recordListScrollsToEveryEvent() = runBlocking<Unit> {
+        val start = System.currentTimeMillis() - 60_000
+        db.taskDao().startClass(taskId, start)
+        repeat(12) { i ->
+            db.captureDao().insertEvent(
+                InteractionEvent(
+                    taskId = taskId,
+                    type = InteractionType.TEACHER_QUESTION,
+                    occurredAt = start + i * 1_000L,
+                    offsetMs = i * 1_000L,
+                    note = "第${i + 1}问",
+                ),
+            )
+        }
+        showCapture()
+        waitFor("共 12 条")
+        val records = rule.onNodeWithTag(RECORD_LIST_TAG)
+        // 先把整页滚到记录卡片，再在卡片内滚到第一条和最后一条
+        rule.onNodeWithTag(CAPTURE_PAGE_TAG).performScrollToNode(hasTestTag(RECORD_LIST_TAG))
+        records.performScrollToNode(hasText("第1问"))
+        rule.onNodeWithText("第1问").assertIsDisplayed()
+        records.performScrollToNode(hasText("第12问"))
+        rule.onNodeWithText("第12问").assertIsDisplayed()
     }
 
     @Test
@@ -158,6 +242,8 @@ class CaptureRecordingTest {
             ),
         )
         showCapture()
+        waitFor("开始录音")
+        scrollPageTo("暂无材料")
         waitFor("暂无材料")
         assertTrue(db.captureDao().getUnfinishedAudios(taskId).isEmpty())
         assertTrue(db.captureDao().getMaterials(taskId).isEmpty())

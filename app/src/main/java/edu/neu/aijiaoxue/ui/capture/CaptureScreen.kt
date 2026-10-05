@@ -51,6 +51,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
@@ -59,7 +60,10 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import edu.neu.aijiaoxue.data.entity.InteractionEvent
+import edu.neu.aijiaoxue.data.model.InteractionType
 import edu.neu.aijiaoxue.data.model.MaterialType
+import edu.neu.aijiaoxue.data.model.TaskStatus
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -68,19 +72,27 @@ import java.util.Locale
 
 /**
  * 课堂督导采集页（Routes.capture(taskId)）。
- * NF-01：录音、拍照、互动标注、参与状态都在本页一步触达。已完成录音（US08）、拍照（US09），
- * 互动标注（US12）、参与状态（US13）、材料删除（US11）的组件做好后放在拍照卡片下面。
+ * NF-01：录音、拍照、互动标注、参与状态都在本页一步触达。已完成录音（US08）、拍照（US09）、
+ * 互动标注（US12），参与状态（US13）、材料删除（US11）的组件做好后放在互动标注卡片下面。
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CaptureScreen(onBack: () -> Unit, viewModel: CaptureViewModel = viewModel()) {
+fun CaptureScreen(
+    onBack: () -> Unit,
+    onClassEnded: () -> Unit = {},
+    viewModel: CaptureViewModel = viewModel(),
+) {
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var askLeave by rememberSaveable { mutableStateOf(false) }
+    var askEndClass by rememberSaveable { mutableStateOf(false) }
     var showMicRationale by rememberSaveable { mutableStateOf(false) }
     var viewingPhotoId by rememberSaveable { mutableStateOf(0L) }
+    var deletingEventId by rememberSaveable { mutableStateOf(0L) }
+    val editingEventId by viewModel.editingEventId.collectAsState()
+    val editingEventIsNew by viewModel.editingEventIsNew.collectAsState()
     val editingPhotoId by viewModel.editingPhotoId.collectAsState()
     val editingPhotoIsNew by viewModel.editingPhotoIsNew.collectAsState()
 
@@ -139,9 +151,37 @@ fun CaptureScreen(onBack: () -> Unit, viewModel: CaptureViewModel = viewModel())
                 onImport = viewModel::importPhoto,
                 onPhotoError = { msg -> scope.launch { snackbar.showSnackbar(msg) } },
                 onOpenPhoto = { viewingPhotoId = it.material.id },
+                onMarkEvent = viewModel::markEvent,
+                onUndoEvent = viewModel::undoLastEvent,
+                onEditEventNote = { viewModel.editEvent(it) },
+                onDeleteEvent = { deletingEventId = it.id },
+                onEndClass = { askEndClass = true },
                 modifier = modifier,
             )
         }
+    }
+
+    // 结束后状态不可退回（规范第 4 节），所以要二次确认
+    if (askEndClass) {
+        AlertDialog(
+            onDismissRequest = { askEndClass = false },
+            title = { Text("结束课堂采集") },
+            text = {
+                Text(
+                    buildString {
+                        if (state.isRecordingHere) append("正在录音，将先结束录音并保存。")
+                        append("结束后任务变为“待评价”，不能再录音和标注互动，仍可补充拍照。")
+                    },
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    askEndClass = false
+                    viewModel.endClass(onEnded = onClassEnded)
+                }) { Text("结束并去评价") }
+            },
+            dismissButton = { TextButton(onClick = { askEndClass = false }) { Text("继续采集") } },
+        )
     }
 
     if (askLeave) {
@@ -163,7 +203,7 @@ fun CaptureScreen(onBack: () -> Unit, viewModel: CaptureViewModel = viewModel())
     state.materials.firstOrNull { it.material.id == viewingPhotoId }?.let { item ->
         PhotoViewer(
             item = item,
-            editable = state.canCapture,
+            editable = state.canAddPhotos,
             onEdit = {
                 viewingPhotoId = 0L
                 viewModel.editPhoto(item.material.id)
@@ -179,6 +219,28 @@ fun CaptureScreen(onBack: () -> Unit, viewModel: CaptureViewModel = viewModel())
             isNew = editingPhotoIsNew,
             onSave = { type, note -> viewModel.savePhoto(item.material, type, note) },
             onDismiss = viewModel::dismissPhotoDialog,
+        )
+    }
+
+    // US12 主流程 3：填写备注；点“其他”后自动弹出
+    state.events.firstOrNull { it.id == editingEventId }?.takeIf { state.canEditEvents }?.let { event ->
+        InteractionNoteDialog(
+            event = event,
+            isNewOther = editingEventIsNew && event.type == InteractionType.OTHER,
+            onSave = { note -> viewModel.saveEventNote(event, note) },
+            onDismiss = viewModel::dismissEventDialog,
+        )
+    }
+
+    // US12 主流程 4：删除误标事件
+    state.events.firstOrNull { it.id == deletingEventId }?.takeIf { state.canEditEvents }?.let { event ->
+        DeleteEventDialog(
+            event = event,
+            onConfirm = {
+                deletingEventId = 0L
+                viewModel.deleteEvent(event)
+            },
+            onDismiss = { deletingEventId = 0L },
         )
     }
 
@@ -215,6 +277,11 @@ private fun CaptureContent(
     onImport: (Uri) -> Unit,
     onPhotoError: (String) -> Unit,
     onOpenPhoto: (MaterialItem) -> Unit,
+    onMarkEvent: (InteractionType) -> Unit,
+    onUndoEvent: () -> Unit,
+    onEditEventNote: (Long) -> Unit,
+    onDeleteEvent: (InteractionEvent) -> Unit,
+    onEndClass: () -> Unit,
     modifier: Modifier,
 ) {
     // 每秒刷新一次课堂计时和录音时长
@@ -229,12 +296,12 @@ private fun CaptureContent(
     }
 
     LazyColumn(
-        modifier = modifier,
+        modifier = modifier.testTag(CAPTURE_PAGE_TAG),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
-            ClassHeader(state, now)
+            ClassHeader(state, now, onEndClass)
         }
         item {
             RecordingCard(
@@ -248,11 +315,30 @@ private fun CaptureContent(
         }
         item {
             PhotoCaptureCard(
-                enabled = state.canCapture,
+                enabled = state.canAddPhotos,
                 onPreparePhoto = onPreparePhoto,
                 onPhotoTaken = onPhotoTaken,
                 onImport = onImport,
                 onError = onPhotoError,
+            )
+        }
+        item {
+            InteractionPanel(
+                enabled = state.canCapture,
+                counts = state.eventCounts,
+                undoable = state.undoableEvent,
+                onMark = onMarkEvent,
+                onUndo = onUndoEvent,
+                onAddNote = onEditEventNote,
+            )
+        }
+        // 紧挨着标注卡片，标完就能看到、改备注或删除
+        item {
+            InteractionRecordCard(
+                events = state.events,
+                editable = state.canEditEvents,
+                onEditNote = onEditEventNote,
+                onDelete = onDeleteEvent,
             )
         }
         item {
@@ -283,8 +369,10 @@ private fun CaptureContent(
     }
 }
 
+internal const val CAPTURE_PAGE_TAG = "capture-page"
+
 @Composable
-private fun ClassHeader(state: CaptureUiState, now: Long) {
+private fun ClassHeader(state: CaptureUiState, now: Long, onEndClass: () -> Unit) {
     val task = state.task ?: return
     Column {
         Text(
@@ -293,13 +381,28 @@ private fun ClassHeader(state: CaptureUiState, now: Long) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         state.classStartAt?.let { start ->
+            // 结束后计时停在结束时刻
             Text(
-                "课堂计时 ${formatDuration(now - start)}",
+                "课堂计时 ${formatDuration((state.classEndAt ?: now) - start)}",
                 style = MaterialTheme.typography.titleLarge,
                 fontFamily = FontFamily.Monospace,
             )
         }
-        if (!state.canCapture) {
+        if (state.status == TaskStatus.IN_PROGRESS) {
+            OutlinedButton(
+                onClick = onEndClass,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+                    .height(48.dp),
+            ) { Text("结束课堂采集") }
+        } else if (state.status == TaskStatus.PENDING_EVALUATION) {
+            Text(
+                "课堂采集已结束，待评价。仍可补充拍照",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        } else if (!state.canCapture) {
             Text(
                 "课堂采集已结束，只能查看和回放材料",
                 style = MaterialTheme.typography.bodyMedium,

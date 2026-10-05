@@ -2,6 +2,7 @@ package edu.neu.aijiaoxue.ui.capture
 
 import android.app.Application
 import android.net.Uri
+import android.os.SystemClock
 import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
@@ -10,13 +11,17 @@ import edu.neu.aijiaoxue.data.AppDatabase
 import edu.neu.aijiaoxue.data.FileStore
 import edu.neu.aijiaoxue.data.Session
 import edu.neu.aijiaoxue.data.dao.TaskRow
+import edu.neu.aijiaoxue.data.entity.InteractionEvent
 import edu.neu.aijiaoxue.data.entity.Material
 import edu.neu.aijiaoxue.data.entity.SupervisionTask
+import edu.neu.aijiaoxue.data.model.InteractionType
 import edu.neu.aijiaoxue.data.model.MaterialType
 import edu.neu.aijiaoxue.data.model.TaskStatus
 import edu.neu.aijiaoxue.navigation.Routes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.Flow
@@ -39,6 +44,13 @@ data class MaterialItem(
     val fileMissing: Boolean,
 )
 
+/** US12：刚标注、5 秒内仍可撤销的事件。 */
+data class UndoableEvent(
+    val eventId: Long,
+    val type: InteractionType,
+    val offsetMs: Long,
+)
+
 data class CaptureUiState(
     val isLoading: Boolean = true,
     /** 任务不存在或不是本人任务时的提示，页面只显示这句话。 */
@@ -46,10 +58,22 @@ data class CaptureUiState(
     val task: TaskRow? = null,
     /** 课堂计时 0 点，所有 offsetMs 以此为准。 */
     val classStartAt: Long? = null,
+    val status: TaskStatus? = null,
+    /** 结束课堂采集时写入；之后课堂计时停在这里。 */
+    val classEndAt: Long? = null,
     /** US08 前置条件：只有“待开始”“进行中”的任务可以采集。 */
     val canCapture: Boolean = false,
+    /** 需求 3.3：“待评价”状态下仍可补充材料（拍照、相册导入），但不再录音和标注互动。 */
+    val canAddPhotos: Boolean = false,
     val materials: List<MaterialItem> = emptyList(),
     val recorder: AudioRecorder.State = AudioRecorder.State(),
+    /** US12 主流程 4：课堂结束（待评价）后仍可编辑备注、删除误标事件；评价提交后只读。 */
+    val canEditEvents: Boolean = false,
+    /** 按发生时间升序。 */
+    val events: List<InteractionEvent> = emptyList(),
+    /** US12 业务规则 3：各类型实时计数，没有记录的类型不在表里。 */
+    val eventCounts: Map<InteractionType, Int> = emptyMap(),
+    val undoableEvent: UndoableEvent? = null,
 ) {
     /** 当前录音属于本任务。 */
     val isRecordingHere: Boolean
@@ -79,12 +103,26 @@ class CaptureViewModel(
     val editingPhotoId: StateFlow<Long> = savedStateHandle.getStateFlow(KEY_EDIT_PHOTO, 0L)
     val editingPhotoIsNew: StateFlow<Boolean> = savedStateHandle.getStateFlow(KEY_EDIT_PHOTO_NEW, false)
 
+    /**
+     * US12：正在填写备注的互动事件 id，0 表示没有。isNew 表示刚点了“其他”，需要补充具体内容。
+     * 和照片一样存在 SavedStateHandle 里，旋转屏幕或进程被回收后对话框不丢。
+     */
+    val editingEventId: StateFlow<Long> = savedStateHandle.getStateFlow(KEY_EDIT_EVENT, 0L)
+    val editingEventIsNew: StateFlow<Boolean> = savedStateHandle.getStateFlow(KEY_EDIT_EVENT_NEW, false)
+
     private val access = MutableStateFlow<Access>(Access.Checking)
 
     private val localMessages = MutableSharedFlow<String>(extraBufferCapacity = 4)
 
     /** 一次性提示（Snackbar），包括录音被动停止时 AudioRecorder 发出的提示。 */
     val messages: Flow<String> = merge(localMessages, AudioRecorder.messages)
+
+    private val undoableEvent = MutableStateFlow<UndoableEvent?>(null)
+    private var undoJob: Job? = null
+    private var undoDeadline = 0L
+
+    /** 防止连点“结束课堂采集”重复执行。 */
+    private var isEnding = false
 
     val uiState: StateFlow<CaptureUiState> = access.flatMapLatest { a ->
         when (a) {
@@ -93,16 +131,24 @@ class CaptureViewModel(
             Access.Granted -> combine(
                 taskDao.observeById(taskId),
                 taskDao.observeRow(taskId),
-                materialItems(),
+                capturedData(),
                 AudioRecorder.state,
-            ) { task, row, materials, recorder ->
+                undoableEvent,
+            ) { task, row, data, recorder, undoable ->
                 CaptureUiState(
                     isLoading = false,
                     task = row,
                     classStartAt = task?.classStartAt,
+                    status = task?.status,
+                    classEndAt = task?.classEndAt,
                     canCapture = task?.status in CAPTURABLE,
-                    materials = materials,
+                    canAddPhotos = task?.status in PHOTO_ADDABLE,
+                    materials = data.materials,
                     recorder = recorder,
+                    canEditEvents = task?.status in EVENT_EDITABLE,
+                    events = data.events,
+                    eventCounts = data.eventCounts,
+                    undoableEvent = undoable,
                 )
             }
         }
@@ -161,6 +207,15 @@ class CaptureViewModel(
         }
     }.flowOn(Dispatchers.IO)
 
+    // US12 业务规则 3：计数从同一份事件列表算出，不另查 observeEventCounts，
+    // 否则两条查询先后刷新时，删除后会短暂出现“列表已空、计数未减”
+    private fun capturedData() = combine(
+        materialItems(),
+        captureDao.observeEvents(taskId),
+    ) { materials, events ->
+        CapturedData(materials, events, events.groupingBy { it.type }.eachCount())
+    }
+
     fun startRecording() {
         val state = uiState.value
         val start = state.classStartAt ?: return
@@ -188,6 +243,34 @@ class CaptureViewModel(
         }
     }
 
+    /**
+     * 需求 3.3 课堂采集结束：仍在录音则先结束录音，再 IN_PROGRESS → PENDING_EVALUATION、写 classEndAt
+     * （规范第 4 节），成功后 [onEnded] 进入评价页。
+     */
+    fun endClass(onEnded: () -> Unit) {
+        if (uiState.value.status != TaskStatus.IN_PROGRESS || isEnding) return
+        isEnding = true
+        viewModelScope.launch {
+            try {
+                if (uiState.value.isRecordingHere) {
+                    AudioRecorder.stop()?.let { localMessages.emit(it) }
+                }
+                player.stop()
+                // 结束后不能再撤销：撤销入口只属于采集中
+                undoJob?.cancel()
+                undoableEvent.value = null
+                // 只有 IN_PROGRESS 的任务会被更新；重复点击或已被结束时返回 0
+                if (taskDao.endClass(taskId, System.currentTimeMillis()) > 0) {
+                    onEnded()
+                } else {
+                    localMessages.emit("课堂采集已结束")
+                }
+            } finally {
+                isEnding = false
+            }
+        }
+    }
+
     fun togglePlay(item: MaterialItem) {
         if (item.fileMissing) return
         val ok = player.toggle(item.material.id, FileStore.resolve(getApplication(), item.material.filePath))
@@ -199,7 +282,7 @@ class CaptureViewModel(
      * 返回 FileProvider Uri；不能采集时返回 null。
      */
     fun preparePhoto(): Uri? {
-        if (!uiState.value.canCapture) return null
+        if (!uiState.value.canAddPhotos) return null
         val ctx = getApplication<Application>()
         val (file, path) = FileStore.newPhotoFile(ctx, taskId)
         savedStateHandle[KEY_PENDING_PHOTO] = path
@@ -225,7 +308,7 @@ class CaptureViewModel(
 
     /** US09 业务规则 2：从相册补充导入，转存到任务目录，记录导入时间。 */
     fun importPhoto(uri: Uri) {
-        if (!uiState.value.canCapture) return
+        if (!uiState.value.canAddPhotos) return
         val ctx = getApplication<Application>()
         viewModelScope.launch {
             val now = System.currentTimeMillis()
@@ -273,9 +356,98 @@ class CaptureViewModel(
         }
     }
 
+    /**
+     * US12 主流程 1、2：一键标注，立即写库（NF-03），自动记录绝对时间和课堂偏移。
+     * 业务规则 2：标注本身不等待任何对话框，点击即入库。
+     * “其他”入库后再弹出填写具体内容的对话框，跳过也不影响已记录的事件和时间。
+     */
+    fun markEvent(type: InteractionType) {
+        val state = uiState.value
+        val start = state.classStartAt ?: return
+        if (!state.canCapture) return
+        // 取点击时刻，不取写库完成时刻
+        val now = System.currentTimeMillis()
+        viewModelScope.launch {
+            val id = captureDao.insertEvent(
+                InteractionEvent(taskId = taskId, type = type, occurredAt = now, offsetMs = now - start),
+            )
+            offerUndo(UndoableEvent(id, type, now - start))
+            if (type == InteractionType.OTHER) editEvent(id, isNew = true)
+        }
+    }
+
+    fun editEvent(eventId: Long, isNew: Boolean = false) {
+        if (!uiState.value.canEditEvents) return
+        savedStateHandle[KEY_EDIT_EVENT_NEW] = isNew
+        savedStateHandle[KEY_EDIT_EVENT] = eventId
+    }
+
+    fun dismissEventDialog() {
+        savedStateHandle[KEY_EDIT_EVENT] = 0L
+    }
+
+    /** 事件被撤销或删除时，关掉还开着的备注对话框。 */
+    private fun closeDialogFor(eventId: Long) {
+        if (editingEventId.value == eventId) dismissEventDialog()
+    }
+
+    /** 连续标注时只能撤销最近一条，每次标注重新计时 5 秒。 */
+    private fun offerUndo(event: UndoableEvent) {
+        undoJob?.cancel()
+        undoDeadline = SystemClock.elapsedRealtime() + UNDO_WINDOW_MS
+        undoableEvent.value = event
+        undoJob = viewModelScope.launch {
+            delay(UNDO_WINDOW_MS)
+            undoableEvent.value = null
+        }
+    }
+
+    /** US12 异常处理：误触 5 秒内可撤销；超时只能去互动记录里删除。 */
+    fun undoLastEvent() {
+        val event = undoableEvent.value ?: return
+        undoJob?.cancel()
+        undoableEvent.value = null
+        // 计时协程可能稍晚于截止时间才清掉入口，这里再按时钟校验一次
+        if (SystemClock.elapsedRealtime() > undoDeadline) return
+        closeDialogFor(event.eventId)
+        viewModelScope.launch {
+            captureDao.deleteEventById(event.eventId)
+            localMessages.emit("已撤销“${event.type.label}”")
+        }
+    }
+
+    /** US12 主流程 3、4：补充或修改备注。备注为空存 null（规范 2.2）。 */
+    fun saveEventNote(event: InteractionEvent, note: String) {
+        dismissEventDialog()
+        if (!uiState.value.canEditEvents) return
+        viewModelScope.launch {
+            captureDao.updateEvent(event.copy(note = note.trim().ifEmpty { null }))
+        }
+    }
+
+    /** US12 主流程 4：在互动记录中删除误标事件。 */
+    fun deleteEvent(event: InteractionEvent) {
+        if (!uiState.value.canEditEvents) return
+        if (undoableEvent.value?.eventId == event.id) {
+            undoJob?.cancel()
+            undoableEvent.value = null
+        }
+        closeDialogFor(event.id)
+        viewModelScope.launch {
+            captureDao.deleteEvent(event)
+            localMessages.emit("已删除该互动记录")
+        }
+    }
+
     override fun onCleared() {
         player.stop()
     }
+
+    private data class CapturedData(
+        val materials: List<MaterialItem>,
+        val events: List<InteractionEvent>,
+        val eventCounts: Map<InteractionType, Int>,
+    )
 
     private sealed interface Access {
         data object Checking : Access
@@ -285,8 +457,13 @@ class CaptureViewModel(
 
     private companion object {
         val CAPTURABLE = setOf(TaskStatus.NOT_STARTED, TaskStatus.IN_PROGRESS)
+        val EVENT_EDITABLE = CAPTURABLE + TaskStatus.PENDING_EVALUATION
+        val PHOTO_ADDABLE = CAPTURABLE + TaskStatus.PENDING_EVALUATION
+        const val UNDO_WINDOW_MS = 5_000L
         const val KEY_PENDING_PHOTO = "pendingPhotoPath"
         const val KEY_EDIT_PHOTO = "editPhotoId"
         const val KEY_EDIT_PHOTO_NEW = "editPhotoNew"
+        const val KEY_EDIT_EVENT = "editEventId"
+        const val KEY_EDIT_EVENT_NEW = "editEventNew"
     }
 }

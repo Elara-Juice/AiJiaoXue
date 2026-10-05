@@ -87,8 +87,12 @@ fun AppNavHost() {
             guarded(navController, Routes.TASK_PROGRESS, ADMIN) { pending(navController, "任务进度 US06") }
 
             // ui/capture、ui/engagement（李奕萱、孙浩然）
-            guarded(navController, Routes.CAPTURE, SUPERVISOR, taskIdArg) {
-                CaptureScreen(onBack = { navController.popBackStack() })
+            guarded(navController, Routes.CAPTURE, SUPERVISOR, taskIdArg) { entry ->
+                CaptureScreen(
+                    onBack = { navController.popBackStack() },
+                    // 需求 3.3：结束课堂采集后进入评价页；采集页留在返回栈里，返回后可继续补充拍照
+                    onClassEnded = { navController.navigate(Routes.evaluation(entry.taskId())) },
+                )
             }
 
             // ui/evaluation（于卓君）
