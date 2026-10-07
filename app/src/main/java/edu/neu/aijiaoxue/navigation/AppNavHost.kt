@@ -25,6 +25,8 @@ import edu.neu.aijiaoxue.data.Session
 import edu.neu.aijiaoxue.data.model.Role
 import edu.neu.aijiaoxue.ui.login.LoginScreen
 import edu.neu.aijiaoxue.ui.login.ProfileScreen
+import edu.neu.aijiaoxue.ui.evaluation.*
+import edu.neu.aijiaoxue.ui.improve.*
 
 private val ADMIN = setOf(Role.ADMIN)
 private val SUPERVISOR = setOf(Role.SUPERVISOR)
@@ -89,18 +91,49 @@ fun AppNavHost() {
             guarded(navController, Routes.CAPTURE, SUPERVISOR, taskIdArg) { pending(navController, "课堂采集 US08/09/12") }
 
             // ui/evaluation（于卓君）
-            guarded(navController, Routes.EVALUATION, SUPERVISOR, taskIdArg) { pending(navController, "督导评价 US29/30") }
-            guarded(navController, Routes.HISTORY, ADMIN_SUPERVISOR) { pending(navController, "历史记录 US32") }
-            guarded(navController, Routes.HISTORY_DETAIL, ADMIN_SUPERVISOR, taskIdArg) { pending(navController, "历史详情 US32") }
+            guarded(navController, Routes.EVALUATION, SUPERVISOR, taskIdArg) { entry ->
+                val model = moduleViewModel { db, actor -> EvaluationViewModel(EvaluationRepository(db), actor, entry.taskId()) }
+                EvaluationScreen(model, { navController.popBackStack() }, {
+                    navController.navigate(Routes.historyDetail(entry.taskId())) {
+                        popUpTo(Routes.evaluation(entry.taskId())) { inclusive = true }
+                    }
+                })
+            }
+            guarded(navController, Routes.HISTORY, ADMIN_SUPERVISOR) {
+                val model = moduleViewModel { db, actor -> HistoryViewModel(EvaluationRepository(db), actor) }
+                HistoryScreen(model, { navController.popBackStack() }, { navController.navigate(Routes.historyDetail(it)) })
+            }
+            guarded(navController, Routes.HISTORY_DETAIL, ADMIN_SUPERVISOR, taskIdArg) { entry ->
+                val model = moduleViewModel { db, actor -> HistoryDetailViewModel(EvaluationRepository(db), actor, entry.taskId()) }
+                HistoryDetailScreen(model, { navController.popBackStack() })
+            }
 
             // ui/feedback（王博田）
             guarded(navController, Routes.FEEDBACK_LIST, TEACHER) { pending(navController, "督导反馈 US33") }
             guarded(navController, Routes.FEEDBACK_DETAIL, TEACHER, taskIdArg) { pending(navController, "反馈详情 US33") }
 
             // ui/improve（于卓君）
-            guarded(navController, Routes.IMPROVE_FOCUS, TEACHER, taskIdArg) { pending(navController, "改进重点 US36") }
-            guarded(navController, Routes.IMPROVE_PLAN, TEACHER, taskIdArg) { pending(navController, "改进计划 US41") }
-            guarded(navController, Routes.IMPROVE_TODO, TEACHER) { pending(navController, "改进待办 US42") }
+            guarded(navController, Routes.IMPROVE_FOCUS, TEACHER, taskIdArg) { entry ->
+                val model = moduleViewModel { db, actor -> ImproveFocusViewModel(ImprovementRepository(db), actor, entry.taskId()) }
+                ImproveFocusScreen(model, { navController.popBackStack() }, {
+                    navController.navigate(Routes.improvePlan(entry.taskId())) {
+                        popUpTo(Routes.improveFocus(entry.taskId())) { inclusive = true }
+                    }
+                })
+            }
+            guarded(navController, Routes.IMPROVE_PLAN, TEACHER, taskIdArg) { entry ->
+                val model = moduleViewModel { db, actor -> ImprovePlanViewModel(ImprovementRepository(db), actor, entry.taskId()) }
+                ImprovePlanScreen(model, { navController.popBackStack() }, {
+                    navController.navigate(Routes.improveFocus(entry.taskId())) {
+                        popUpTo(Routes.improvePlan(entry.taskId())) { inclusive = true }
+                    }
+                }, { navController.navigate(Routes.IMPROVE_TODO) { launchSingleTop = true } })
+            }
+            guarded(navController, Routes.IMPROVE_TODO, TEACHER) {
+                val model = moduleViewModel { db, actor -> ImproveTodoViewModel(ImprovementRepository(db), actor) }
+                ImproveTodoScreen(model, { navController.popBackStack() },
+                    { navController.navigate(Routes.improvePlan(it)) }, { navController.navigate(Routes.feedbackDetail(it)) })
+            }
         }
     }
 }
