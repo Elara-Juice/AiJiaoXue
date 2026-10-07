@@ -23,6 +23,13 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import edu.neu.aijiaoxue.data.Session
 import edu.neu.aijiaoxue.data.model.Role
+import edu.neu.aijiaoxue.ui.arrange.ArrangementScreen
+import edu.neu.aijiaoxue.ui.arrange.TaskProgressScreen
+import edu.neu.aijiaoxue.ui.course.CourseDetailScreen
+import edu.neu.aijiaoxue.ui.course.CourseSearchScreen
+import edu.neu.aijiaoxue.ui.course.TaskCreateScreen
+import edu.neu.aijiaoxue.ui.feedback.FeedbackDetailScreen
+import edu.neu.aijiaoxue.ui.feedback.FeedbackListScreen
 import edu.neu.aijiaoxue.ui.login.LoginScreen
 import edu.neu.aijiaoxue.ui.login.ProfileScreen
 
@@ -75,15 +82,35 @@ fun AppNavHost() {
             guarded(navController, Routes.HOME_TEACHER, TEACHER) { TeacherHomeScreen(navController::navigate) }
 
             // ui/course（王博田）
-            guarded(navController, Routes.COURSE_SEARCH, SUPERVISOR) { pending(navController, "课程检索 US01") }
+            guarded(navController, Routes.COURSE_SEARCH, SUPERVISOR) {
+                CourseSearchScreen(
+                    onBack = { navController.popBackStack() },
+                    onCourseClick = { navController.navigate(Routes.courseDetail(it)) },
+                )
+            }
             // US02 前置条件：从检索结果（督导）或督导安排（管理人员）进入
-            guarded(navController, Routes.COURSE_DETAIL, ADMIN_SUPERVISOR, courseIdArg) { pending(navController, "课程详情 US02") }
-            guarded(navController, Routes.TASK_CREATE, SUPERVISOR, courseIdArg) { pending(navController, "创建督导任务 US04") }
+            guarded(navController, Routes.COURSE_DETAIL, ADMIN_SUPERVISOR, courseIdArg) { entry ->
+                CourseDetailScreen(
+                    courseId = entry.courseId(),
+                    onBack = { navController.popBackStack() },
+                    onCreateTask = { navController.navigate(Routes.taskCreate(it)) },
+                )
+            }
+            guarded(navController, Routes.TASK_CREATE, SUPERVISOR, courseIdArg) { entry ->
+                TaskCreateScreen(courseId = entry.courseId(), onBack = { navController.popBackStack() })
+            }
             guarded(navController, Routes.MY_TASKS, SUPERVISOR) { pending(navController, "我的督导任务 US07") }
 
             // ui/arrange（王博田）
-            guarded(navController, Routes.ARRANGEMENT, ADMIN) { pending(navController, "督导安排 US05") }
-            guarded(navController, Routes.TASK_PROGRESS, ADMIN) { pending(navController, "任务进度 US06") }
+            guarded(navController, Routes.ARRANGEMENT, ADMIN) {
+                ArrangementScreen(
+                    onBack = { navController.popBackStack() },
+                    onCourseClick = { navController.navigate(Routes.courseDetail(it)) },
+                )
+            }
+            guarded(navController, Routes.TASK_PROGRESS, ADMIN) {
+                TaskProgressScreen(onBack = { navController.popBackStack() })
+            }
 
             // ui/capture、ui/engagement（李奕萱、孙浩然）
             guarded(navController, Routes.CAPTURE, SUPERVISOR, taskIdArg) { pending(navController, "课堂采集 US08/09/12") }
@@ -94,8 +121,15 @@ fun AppNavHost() {
             guarded(navController, Routes.HISTORY_DETAIL, ADMIN_SUPERVISOR, taskIdArg) { pending(navController, "历史详情 US32") }
 
             // ui/feedback（王博田）
-            guarded(navController, Routes.FEEDBACK_LIST, TEACHER) { pending(navController, "督导反馈 US33") }
-            guarded(navController, Routes.FEEDBACK_DETAIL, TEACHER, taskIdArg) { pending(navController, "反馈详情 US33") }
+            guarded(navController, Routes.FEEDBACK_LIST, TEACHER) {
+                FeedbackListScreen(
+                    onBack = { navController.popBackStack() },
+                    onFeedbackClick = { navController.navigate(Routes.feedbackDetail(it)) },
+                )
+            }
+            guarded(navController, Routes.FEEDBACK_DETAIL, TEACHER, taskIdArg) { entry ->
+                FeedbackDetailScreen(taskId = entry.taskId(), onBack = { navController.popBackStack() })
+            }
 
             // ui/improve（于卓君）
             guarded(navController, Routes.IMPROVE_FOCUS, TEACHER, taskIdArg) { pending(navController, "改进重点 US36") }
