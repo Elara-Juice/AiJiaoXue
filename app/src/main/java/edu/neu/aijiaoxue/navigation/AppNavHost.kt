@@ -25,8 +25,10 @@ import edu.neu.aijiaoxue.data.Session
 import edu.neu.aijiaoxue.data.model.Role
 import edu.neu.aijiaoxue.ui.arrange.ArrangementScreen
 import edu.neu.aijiaoxue.ui.arrange.TaskProgressScreen
+import edu.neu.aijiaoxue.ui.capture.CaptureScreen
 import edu.neu.aijiaoxue.ui.course.CourseDetailScreen
 import edu.neu.aijiaoxue.ui.course.CourseSearchScreen
+import edu.neu.aijiaoxue.ui.course.MyTasksScreen
 import edu.neu.aijiaoxue.ui.course.TaskCreateScreen
 import edu.neu.aijiaoxue.ui.feedback.FeedbackDetailScreen
 import edu.neu.aijiaoxue.ui.feedback.FeedbackListScreen
@@ -101,7 +103,10 @@ fun AppNavHost() {
             guarded(navController, Routes.TASK_CREATE, SUPERVISOR, courseIdArg) { entry ->
                 TaskCreateScreen(courseId = entry.courseId(), onBack = { navController.popBackStack() })
             }
-            guarded(navController, Routes.MY_TASKS, SUPERVISOR) { pending(navController, "我的督导任务 US07") }
+            // US07（10/4 由王博田转给李奕萱）
+            guarded(navController, Routes.MY_TASKS, SUPERVISOR) {
+                MyTasksScreen(onBack = { navController.popBackStack() }, onNavigate = navController::navigate)
+            }
 
             // ui/arrange（王博田）
             guarded(navController, Routes.ARRANGEMENT, ADMIN) {
@@ -115,7 +120,13 @@ fun AppNavHost() {
             }
 
             // ui/capture、ui/engagement（李奕萱、孙浩然）
-            guarded(navController, Routes.CAPTURE, SUPERVISOR, taskIdArg) { pending(navController, "课堂采集 US08/09/12") }
+            guarded(navController, Routes.CAPTURE, SUPERVISOR, taskIdArg) { entry ->
+                CaptureScreen(
+                    onBack = { navController.popBackStack() },
+                    // 需求 3.3：结束课堂采集后进入评价页；采集页留在返回栈里，返回后可继续补充拍照
+                    onClassEnded = { navController.navigate(Routes.evaluation(entry.taskId())) },
+                )
+            }
 
             // ui/evaluation（于卓君）
             guarded(navController, Routes.EVALUATION, SUPERVISOR, taskIdArg) { entry ->
