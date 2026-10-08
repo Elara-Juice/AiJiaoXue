@@ -178,6 +178,25 @@ interface ArrangementDao {
 
 @Dao
 interface TaskDao {
+    /** US29/30：在查询边界核对真实角色和任务归属，包括首次尚无评价的情况。 */
+    @Query("""SELECT t.* FROM supervision_tasks t JOIN users u ON u.id = :actorId
+        WHERE t.id = :taskId AND t.supervisorId = u.id AND u.role = 'SUPERVISOR'""")
+    suspend fun getEvaluationTaskForActor(taskId: Long, actorId: Long): SupervisionTask?
+
+    /** US32：已完成且已提交；教师无权读取包含原始材料的历史。 */
+    @Query("""SELECT t.* FROM supervision_tasks t JOIN users u ON u.id = :actorId
+        JOIN evaluations e ON e.taskId = t.id
+        WHERE t.id = :taskId AND t.status = 'COMPLETED' AND e.status = 'SUBMITTED'
+        AND (u.role = 'ADMIN' OR (u.role = 'SUPERVISOR' AND t.supervisorId = u.id))""")
+    suspend fun getHistoryTaskForActor(taskId: Long, actorId: Long): SupervisionTask?
+
+    /** US36/41：限定本人课程的已提交反馈，不读取课堂原始材料。 */
+    @Query("""SELECT t.* FROM supervision_tasks t JOIN courses c ON c.id = t.courseId
+        JOIN users u ON u.id = :actorId JOIN evaluations e ON e.taskId = t.id
+        WHERE t.id = :taskId AND c.teacherId = u.id AND u.role = 'TEACHER'
+        AND t.status = 'COMPLETED' AND e.status = 'SUBMITTED'""")
+    suspend fun getImprovementTaskForActor(taskId: Long, actorId: Long): SupervisionTask?
+
     @Query("SELECT * FROM supervision_tasks WHERE id = :taskId")
     suspend fun getById(taskId: Long): SupervisionTask?
 
@@ -522,6 +541,27 @@ interface EvaluationDao {
 
 @Dao
 interface ImprovementDao {
+    @Query("""SELECT m.* FROM improvement_measures m
+        JOIN improvement_plans p ON p.id = m.planId
+        JOIN improvement_items i ON i.id = m.itemId AND i.planId = p.id
+        JOIN supervision_tasks t ON t.id = p.taskId JOIN courses c ON c.id = t.courseId
+        JOIN users u ON u.id = :actorId
+        WHERE m.id = :measureId AND p.teacherId = u.id AND c.teacherId = u.id
+        AND u.role = 'TEACHER' AND p.status = 'CONFIRMED'""")
+    suspend fun getMeasureForActor(measureId: Long, actorId: Long): ImprovementMeasure?
+
+    /** US42：身份、课程归属、计划归属与筛选均在SQL中限制。 */
+    @Query("""SELECT m.id AS measureId, m.planId, p.taskId, m.content, m.source, m.dueDate, m.status,
+        i.description AS itemDescription, i.priority, c.name AS courseName, t.supervisionDate
+        FROM improvement_measures m JOIN improvement_plans p ON p.id = m.planId
+        JOIN improvement_items i ON i.id = m.itemId AND i.planId = p.id
+        JOIN supervision_tasks t ON t.id = p.taskId JOIN courses c ON c.id = t.courseId
+        JOIN users u ON u.id = :actorId
+        WHERE p.teacherId = u.id AND c.teacherId = u.id AND u.role = 'TEACHER'
+        AND p.status = 'CONFIRMED' AND (:onlyOpen = 0 OR m.status != 'DONE')
+        AND (:status IS NULL OR m.status = :status) ORDER BY m.dueDate, m.id""")
+    fun observeAuthorizedTodos(actorId: Long, onlyOpen: Boolean, status: MeasureStatus?): Flow<List<TodoRow>>
+
     @Query("SELECT * FROM improvement_plans WHERE taskId = :taskId")
     suspend fun getPlanByTask(taskId: Long): ImprovementPlan?
 
