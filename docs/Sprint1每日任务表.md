@@ -48,7 +48,7 @@
 
 | 成员 | 任务 | 文件 |
 |---|---|---|
-| 李奕萱 | 1. 合并各分支，联调采集 → 评价<br>2. 补完采集页遗留问题；检查各页面数据归属校验<br>3. 主持全链路串联，修缺陷<br>4. 编写端到端自动化测试（主链 11 步），回归时直接跑 | 1. `navigation/AppNavHost.kt`<br>2. `ui/capture/`、各模块 ViewModel<br>3. `docs/Sprint1缺陷清单.md`<br>4. `app/src/androidTest/java/edu/neu/aijiaoxue/EndToEndTest.kt` |
+| 李奕萱 | 1. 合并各分支，联调采集 → 评价<br>2. 补完采集页遗留问题；检查各页面数据归属校验<br>3. 主持全链路串联，修缺陷<br>4. 编写端到端自动化测试（主链 11 步），回归时直接跑 ✅（10/8；第 4 步参与状态、第 6 步删除照片待 US11/US13 界面完成后改为页面操作） | 1. `navigation/AppNavHost.kt`<br>2. `ui/capture/`、各模块 ViewModel<br>3. `docs/Sprint1缺陷清单.md`<br>4. `app/src/androidTest/java/edu/neu/aijiaoxue/EndToEndTest.kt` |
 | 王博田 | 1. 教师查看反馈（US33）✅<br>2. 参与全链路串联，修缺陷 | 1. `ui/feedback/FeedbackListScreen.kt`、`FeedbackListViewModel.kt`、`FeedbackDetailScreen.kt`、`FeedbackDetailViewModel.kt`<br>2. 本人模块 |
 | 于卓君 | 1. 改进待办（US42）<br>2. 参与全链路串联，修缺陷 | 1. `ui/improve/ImproveTodoScreen.kt`、`ImproveTodoViewModel.kt`<br>2. 本人模块 |
 | 孙浩然 | 1. 线上跟进串联问题，修 US11 / US13 缺陷 | 1. `ui/engagement/` |
