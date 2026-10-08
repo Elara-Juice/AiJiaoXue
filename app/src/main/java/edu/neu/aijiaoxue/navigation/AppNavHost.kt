@@ -143,7 +143,12 @@ fun AppNavHost() {
                 )
             }
             guarded(navController, Routes.FEEDBACK_DETAIL, TEACHER, taskIdArg) { entry ->
-                FeedbackDetailScreen(taskId = entry.taskId(), onBack = { navController.popBackStack() })
+                FeedbackDetailScreen(
+                    taskId = entry.taskId(),
+                    onBack = { navController.popBackStack() },
+                    // US36 主流程 1：在反馈详情中点击“确定改进重点”
+                    onImproveFocus = { navController.navigate(Routes.improveFocus(entry.taskId())) },
+                )
             }
 
             // ui/improve（于卓君）

@@ -1,5 +1,6 @@
 package edu.neu.aijiaoxue.data
 
+import android.content.Context
 import androidx.room.withTransaction
 import edu.neu.aijiaoxue.data.entity.Arrangement
 import edu.neu.aijiaoxue.data.entity.Course
@@ -15,9 +16,12 @@ import edu.neu.aijiaoxue.data.model.Role
 import edu.neu.aijiaoxue.data.model.SupervisionType
 import edu.neu.aijiaoxue.data.model.TaskCode
 import edu.neu.aijiaoxue.data.model.TaskStatus
+import java.io.File
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * 演示数据，内容以 docs/演示数据.md 为准，改数据先改文档再改这里。
@@ -32,6 +36,18 @@ object DemoData {
             if (db.userDao().count() > 0) return@withTransaction
             seed(db)
         }
+    }
+
+    /**
+     * 10/7 演示数据重置：清空全部表和课堂材料文件（filesDir/tasks），再按文档重新写入。
+     * 用于 Sprint Review 前把模拟器 / 真机恢复到初始状态，可反复走端到端场景。
+     * 重置后用户 id 会变，调用方需要随后退出登录。
+     */
+    suspend fun reset(context: Context, db: AppDatabase) = withContext(Dispatchers.IO) {
+        // clearAllTables 自带事务，不能放进 withTransaction
+        db.clearAllTables()
+        File(context.filesDir, "tasks").deleteRecursively()
+        seedIfEmpty(db)
     }
 
     private suspend fun seed(db: AppDatabase) {

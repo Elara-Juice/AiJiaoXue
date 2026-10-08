@@ -1,5 +1,6 @@
 package edu.neu.aijiaoxue.ui.login
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,12 +20,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import edu.neu.aijiaoxue.data.AppDatabase
+import edu.neu.aijiaoxue.data.DemoData
 import edu.neu.aijiaoxue.data.Session
+import edu.neu.aijiaoxue.data.model.Role
+import kotlinx.coroutines.launch
 
 /** F0 主流程 3：“我的”页面，查看当前账号并退出登录。退出后 AppNavHost 自动回到登录页。 */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,6 +40,9 @@ fun ProfileScreen(onBack: () -> Unit) {
     val context = LocalContext.current
     val user by Session.user.collectAsState()
     var confirming by rememberSaveable { mutableStateOf(false) }
+    var resetting by rememberSaveable { mutableStateOf(false) }
+    var working by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -63,7 +73,39 @@ fun ProfileScreen(onBack: () -> Unit) {
                     .padding(horizontal = 16.dp)
                     .height(48.dp),
             ) { Text("退出登录") }
+            // Sprint Review 前恢复演示数据，只给管理人员
+            if (user?.role == Role.ADMIN) {
+                Spacer(Modifier.height(12.dp))
+                TextButton(
+                    onClick = { resetting = true },
+                    enabled = !working,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                ) { Text(if (working) "正在重置…" else "重置演示数据") }
+            }
         }
+    }
+
+    if (resetting) {
+        AlertDialog(
+            onDismissRequest = { resetting = false },
+            title = { Text("重置演示数据") },
+            text = { Text("将清空全部任务、评价、改进计划和已采集的录音照片，恢复为初始演示数据。此操作不可撤销，完成后需重新登录。") },
+            confirmButton = {
+                TextButton(onClick = {
+                    resetting = false
+                    working = true
+                    scope.launch {
+                        DemoData.reset(context, AppDatabase.get(context))
+                        Toast.makeText(context, "演示数据已重置", Toast.LENGTH_SHORT).show()
+                        // 重置后用户 id 已变，必须重新登录
+                        Session.signOut(context)
+                    }
+                }) { Text("重置") }
+            },
+            dismissButton = { TextButton(onClick = { resetting = false }) { Text("取消") } },
+        )
     }
 
     if (confirming) {

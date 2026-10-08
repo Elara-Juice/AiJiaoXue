@@ -1,17 +1,23 @@
 package edu.neu.aijiaoxue.data
 
+import android.content.ContextWrapper
 import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import edu.neu.aijiaoxue.data.entity.Arrangement
+import edu.neu.aijiaoxue.data.entity.SupervisionTask
 import edu.neu.aijiaoxue.data.model.EvalGrade
 import edu.neu.aijiaoxue.data.model.Role
 import edu.neu.aijiaoxue.data.model.Semester
+import edu.neu.aijiaoxue.data.model.SupervisionType
 import edu.neu.aijiaoxue.data.model.TaskStatus
 import edu.neu.aijiaoxue.data.model.isTaskOverdue
+import java.io.File
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -21,11 +27,11 @@ import org.junit.runner.RunWith
 /** 演示数据与 docs/演示数据.md 一致，且能支撑文档里写的演示用途。 */
 @RunWith(AndroidJUnit4::class)
 class DemoDataTest {
+    private val context = InstrumentationRegistry.getInstrumentation().targetContext
     private lateinit var db: AppDatabase
 
     @Before
     fun setUp() = runBlocking {
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
         db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
         DemoData.seedIfEmpty(db)
     }
@@ -40,6 +46,41 @@ class DemoDataTest {
         DemoData.seedIfEmpty(db)
         assertEquals(6, db.userDao().count())
         assertEquals(5, db.courseDao().observeRows("").first().size)
+    }
+
+    /** 10/7 演示数据重置：演示中新增的任务、安排、材料文件全部清掉，回到文档里的初始数据。 */
+    @Test
+    fun resetRestoresInitialData() = runBlocking {
+        // 用临时目录代替 filesDir，避免删掉模拟器上真实采集的材料
+        val tmp = File(context.cacheDir, "reset-test").apply { deleteRecursively(); mkdirs() }
+        val fake = object : ContextWrapper(context) {
+            override fun getFilesDir() = tmp
+        }
+        val photo = File(tmp, "tasks/99/photo/IMG_1.jpg").apply { parentFile!!.mkdirs(); writeText("x") }
+
+        val ds = db.courseDao().observeRows("").first().first { it.code == "FT2026-01" }
+        db.arrangementDao().insert(Arrangement(courseId = ds.id, isKeyFocus = true, note = "演示", createdBy = userId("admin")))
+        db.taskDao().create(
+            SupervisionTask(
+                code = "", courseId = ds.id, supervisorId = userId("sup01"),
+                supervisionDate = "2026-10-07", period = "1-2", type = SupervisionType.REGULAR,
+            ),
+        )!!
+        db.evaluationDao().markRead(db.evaluationDao().observeFeedbackRows(userId("tea01")).first().single().evaluationId, 1L)
+
+        DemoData.reset(fake, db)
+
+        assertFalse(photo.exists())
+        assertEquals(6, db.userDao().count())
+        assertEquals(3, db.taskDao().observeRowsFiltered(null, null, null).first().size)
+        assertEquals(1, db.arrangementDao().observeOpen().first().size)
+        val rows = db.courseDao().observeRows("").first().associateBy { it.code }
+        assertFalse(rows.getValue("FT2026-01").hasOpenArrangement)
+        assertEquals(1, db.evaluationDao().observeUnreadCount(userId("tea01")).first())
+        assertEquals(listOf("FT2026-01", "FT2026-03", "FT2026-04", "FT2026-05"),
+            db.courseDao().observeUncoveredRows(Semester.START_DATE).first().map { it.code })
+        tmp.deleteRecursively()
+        Unit
     }
 
     @Test

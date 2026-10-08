@@ -3,9 +3,11 @@ package edu.neu.aijiaoxue.ui.feedback
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -25,7 +27,7 @@ import edu.neu.aijiaoxue.data.model.EvalDimension
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FeedbackDetailScreen(taskId: Long, onBack: () -> Unit) {
+fun FeedbackDetailScreen(taskId: Long, onBack: () -> Unit, onImproveFocus: () -> Unit = {}) {
     val viewModel: FeedbackDetailViewModel = viewModel(
         key = "feedback-detail-$taskId",
         factory = viewModelFactory { initializer { FeedbackDetailViewModel(this[ androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]!!, taskId) } },
@@ -63,6 +65,7 @@ fun FeedbackDetailScreen(taskId: Long, onBack: () -> Unit) {
                     Text("主要问题", style = MaterialTheme.typography.titleMedium)
                     if (state.issues.isEmpty()) Text("未填写")
                     state.issues.forEachIndexed { index, issue -> Text("${index + 1}. ${issue.description}") }
+                    Button(onClick = onImproveFocus, modifier = Modifier.fillMaxWidth()) { Text("确定改进重点") }
                 }
             }
         }
