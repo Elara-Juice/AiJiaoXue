@@ -120,7 +120,9 @@ fun ClassroomReference(record: ClassroomRecord, initiallyExpanded: Boolean = fal
                     BitmapFactory.decodeFile(file.path, options)
                 }.getOrNull()
             }
-            value = false to decoded
+            // US32：组合协程的调度器不保证 withContext(IO) 之后回到主线程（Compose 测试环境下会留在 IO 线程，
+            // 后台线程写入的状态不会触发重组，对话框一直停在“正在加载图片…”），所以显式切回主线程再写。
+            withContext(Dispatchers.Main.immediate) { value = false to decoded }
         }
         Dialog(onDismissRequest = { photo = null }) {
             Surface(shape = MaterialTheme.shapes.large) {
