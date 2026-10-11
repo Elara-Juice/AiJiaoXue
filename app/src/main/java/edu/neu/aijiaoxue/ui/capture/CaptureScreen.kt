@@ -64,6 +64,10 @@ import edu.neu.aijiaoxue.data.entity.InteractionEvent
 import edu.neu.aijiaoxue.data.model.InteractionType
 import edu.neu.aijiaoxue.data.model.MaterialType
 import edu.neu.aijiaoxue.data.model.TaskStatus
+import edu.neu.aijiaoxue.ui.engagement.DeleteMaterialButton
+import edu.neu.aijiaoxue.ui.engagement.DeleteMaterialDialog
+import edu.neu.aijiaoxue.ui.engagement.EngagementCard
+import edu.neu.aijiaoxue.ui.engagement.EngagementDialog
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -72,8 +76,8 @@ import java.util.Locale
 
 /**
  * 课堂督导采集页（Routes.capture(taskId)）。
- * NF-01：录音、拍照、互动标注、参与状态都在本页一步触达。已完成录音（US08）、拍照（US09）、
- * 互动标注（US12），参与状态（US13）、材料删除（US11）的组件做好后放在互动标注卡片下面。
+ * NF-01：录音（US08）、拍照（US09）、互动标注（US12）、参与状态（US13）都在本页一步触达；
+ * 材料列表每行可删除无效材料（US11），组件在 ui/engagement。
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -91,6 +95,8 @@ fun CaptureScreen(
     var showMicRationale by rememberSaveable { mutableStateOf(false) }
     var viewingPhotoId by rememberSaveable { mutableStateOf(0L) }
     var deletingEventId by rememberSaveable { mutableStateOf(0L) }
+    var deletingMaterialId by rememberSaveable { mutableStateOf(0L) }
+    var recordingEngagement by rememberSaveable { mutableStateOf(false) }
     val editingEventId by viewModel.editingEventId.collectAsState()
     val editingEventIsNew by viewModel.editingEventIsNew.collectAsState()
     val editingPhotoId by viewModel.editingPhotoId.collectAsState()
@@ -156,6 +162,8 @@ fun CaptureScreen(
                 onEditEventNote = { viewModel.editEvent(it) },
                 onDeleteEvent = { deletingEventId = it.id },
                 onEndClass = { askEndClass = true },
+                onRecordEngagement = { recordingEngagement = true },
+                onDeleteMaterial = { deletingMaterialId = it.material.id },
                 modifier = modifier,
             )
         }
@@ -244,6 +252,29 @@ fun CaptureScreen(
         )
     }
 
+    // US13：采集结束后关掉还开着的对话框，不能再新增
+    if (recordingEngagement && state.canCapture) {
+        EngagementDialog(
+            onSave = { input ->
+                recordingEngagement = false
+                viewModel.recordEngagement(input)
+            },
+            onDismiss = { recordingEngagement = false },
+        )
+    }
+
+    // US11：删除前二次确认
+    state.materials.firstOrNull { it.material.id == deletingMaterialId }?.takeIf { state.canDeleteMaterials }?.let { item ->
+        DeleteMaterialDialog(
+            title = item.title,
+            onConfirm = {
+                deletingMaterialId = 0L
+                viewModel.deleteMaterial(item)
+            },
+            onDismiss = { deletingMaterialId = 0L },
+        )
+    }
+
     if (showMicRationale) {
         AlertDialog(
             onDismissRequest = { showMicRationale = false },
@@ -282,6 +313,8 @@ private fun CaptureContent(
     onEditEventNote: (Long) -> Unit,
     onDeleteEvent: (InteractionEvent) -> Unit,
     onEndClass: () -> Unit,
+    onRecordEngagement: () -> Unit,
+    onDeleteMaterial: (MaterialItem) -> Unit,
     modifier: Modifier,
 ) {
     // 每秒刷新一次课堂计时和录音时长
@@ -342,6 +375,9 @@ private fun CaptureContent(
             )
         }
         item {
+            EngagementCard(records = state.engagements, enabled = state.canCapture, onRecord = onRecordEngagement)
+        }
+        item {
             Text("课堂材料", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 8.dp))
         }
         if (state.materials.isEmpty()) {
@@ -354,15 +390,19 @@ private fun CaptureContent(
             }
         }
         items(state.materials, key = { it.material.id }) { item ->
+            val isActive = item.material.id == state.recorder.materialId
+            // 正在录制的那段不能删，先结束录音
+            val onDelete = if (state.canDeleteMaterials && !isActive) ({ onDeleteMaterial(item) }) else null
             if (item.material.type == MaterialType.AUDIO) {
                 MaterialRow(
                     item = item,
-                    isActive = item.material.id == state.recorder.materialId,
+                    isActive = isActive,
                     isPlaying = item.material.id == playingId,
                     onPlay = { onPlay(item) },
+                    onDelete = onDelete,
                 )
             } else {
-                PhotoRow(item = item, onOpen = { onOpenPhoto(item) })
+                PhotoRow(item = item, onOpen = { onOpenPhoto(item) }, onDelete = onDelete)
             }
             HorizontalDivider()
         }
@@ -491,7 +531,13 @@ private fun RecordingCard(
 }
 
 @Composable
-private fun MaterialRow(item: MaterialItem, isActive: Boolean, isPlaying: Boolean, onPlay: () -> Unit) {
+private fun MaterialRow(
+    item: MaterialItem,
+    isActive: Boolean,
+    isPlaying: Boolean,
+    onPlay: () -> Unit,
+    onDelete: (() -> Unit)?,
+) {
     val m = item.material
     val time = remember(m.capturedAt) { SimpleDateFormat("HH:mm:ss", Locale.CHINA).format(Date(m.capturedAt)) }
     val detail = buildString {
@@ -512,16 +558,19 @@ private fun MaterialRow(item: MaterialItem, isActive: Boolean, isPlaying: Boolea
             )
         },
         trailingContent = {
-            // 录制中的那段还没写完，不能回放
-            if (m.durationMs != null && !item.fileMissing && !isActive) {
-                TextButton(onClick = onPlay) { Text(if (isPlaying) "停止" else "播放") }
+            Row {
+                // 录制中的那段还没写完，不能回放
+                if (m.durationMs != null && !item.fileMissing && !isActive) {
+                    TextButton(onClick = onPlay) { Text(if (isPlaying) "停止" else "播放") }
+                }
+                onDelete?.let { DeleteMaterialButton(item.title, it) }
             }
         },
     )
 }
 
 @Composable
-private fun PhotoRow(item: MaterialItem, onOpen: () -> Unit) {
+private fun PhotoRow(item: MaterialItem, onOpen: () -> Unit, onDelete: (() -> Unit)?) {
     val m = item.material
     ListItem(
         headlineContent = { Text(item.title) },
@@ -533,6 +582,8 @@ private fun PhotoRow(item: MaterialItem, onOpen: () -> Unit) {
             )
         },
         leadingContent = { if (!item.fileMissing) PhotoThumbnail(m) },
+        // US11：文件缺失的材料也能删掉，再重新拍
+        trailingContent = { onDelete?.let { DeleteMaterialButton(item.title, it) } },
         // US09 主流程 3：点击查看大图
         modifier = Modifier.clickable(enabled = !item.fileMissing, onClickLabel = "查看大图", onClick = onOpen),
     )

@@ -11,13 +11,16 @@ import edu.neu.aijiaoxue.data.AppDatabase
 import edu.neu.aijiaoxue.data.FileStore
 import edu.neu.aijiaoxue.data.Session
 import edu.neu.aijiaoxue.data.dao.TaskRow
+import edu.neu.aijiaoxue.data.entity.EngagementRecord
 import edu.neu.aijiaoxue.data.entity.InteractionEvent
 import edu.neu.aijiaoxue.data.entity.Material
 import edu.neu.aijiaoxue.data.entity.SupervisionTask
 import edu.neu.aijiaoxue.data.model.InteractionType
+import edu.neu.aijiaoxue.data.model.EngagementRules
 import edu.neu.aijiaoxue.data.model.MaterialType
 import edu.neu.aijiaoxue.data.model.TaskStatus
 import edu.neu.aijiaoxue.navigation.Routes
+import edu.neu.aijiaoxue.ui.engagement.EngagementInput
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -74,6 +77,10 @@ data class CaptureUiState(
     /** US12 业务规则 3：各类型实时计数，没有记录的类型不在表里。 */
     val eventCounts: Map<InteractionType, Int> = emptyMap(),
     val undoableEvent: UndoableEvent? = null,
+    /** US13：按记录时间升序。 */
+    val engagements: List<EngagementRecord> = emptyList(),
+    /** US11 前置条件：评价提交（任务“已完成”）前可以删除材料。 */
+    val canDeleteMaterials: Boolean = false,
 ) {
     /** 当前录音属于本任务。 */
     val isRecordingHere: Boolean
@@ -149,6 +156,8 @@ class CaptureViewModel(
                     events = data.events,
                     eventCounts = data.eventCounts,
                     undoableEvent = undoable,
+                    engagements = data.engagements,
+                    canDeleteMaterials = task?.status in MATERIAL_DELETABLE,
                 )
             }
         }
@@ -212,8 +221,9 @@ class CaptureViewModel(
     private fun capturedData() = combine(
         materialItems(),
         captureDao.observeEvents(taskId),
-    ) { materials, events ->
-        CapturedData(materials, events, events.groupingBy { it.type }.eachCount())
+        captureDao.observeEngagements(taskId),
+    ) { materials, events, engagements ->
+        CapturedData(materials, events, events.groupingBy { it.type }.eachCount(), engagements)
     }
 
     fun startRecording() {
@@ -439,6 +449,60 @@ class CaptureViewModel(
         }
     }
 
+    /**
+     * US11：删除无效材料。规则 8：先删文件再删记录；文件删不掉时保留记录，避免留下找不到记录的文件。
+     * 业务规则 2：按数据库里的任务状态再校验一次，评价已提交后不能删。正在录制的那段先结束录音再删。
+     */
+    fun deleteMaterial(item: MaterialItem) {
+        val m = item.material
+        if (!uiState.value.canDeleteMaterials || m.id == uiState.value.recorder.materialId) return
+        if (player.playingId == m.id) player.stop()
+        viewModelScope.launch {
+            if (captureDao.isMaterialEditable(taskId) != true) {
+                localMessages.emit("评价已提交，材料不能删除")
+                return@launch
+            }
+            if (editingPhotoId.value == m.id) dismissPhotoDialog()
+            val removed = withContext(Dispatchers.IO) { FileStore.delete(getApplication(), m.filePath) }
+            if (!removed) {
+                localMessages.emit("文件删除失败，请重试")
+                return@launch
+            }
+            captureDao.deleteMaterial(m)
+            localMessages.emit("已删除“${item.title}”，可重新采集")
+        }
+    }
+
+    /**
+     * US13：记录参与状态，立即写库（NF-03）。业务规则 3：自动记录时间并关联当前任务。
+     * 页面已经校验过，这里按 Rules 再校验一次，越界时不写库。
+     */
+    fun recordEngagement(input: EngagementInput) {
+        val state = uiState.value
+        val start = state.classStartAt ?: return
+        if (!state.canCapture) return
+        EngagementRules.validate(input.presentCount, input.engagedCount, input.engagedPercent)?.let {
+            localMessages.tryEmit(it)
+            return
+        }
+        val now = System.currentTimeMillis()
+        viewModelScope.launch {
+            captureDao.insertEngagement(
+                EngagementRecord(
+                    taskId = taskId,
+                    type = input.type,
+                    presentCount = input.presentCount,
+                    engagedCount = input.engagedCount,
+                    engagedPercent = input.engagedPercent,
+                    description = input.description,
+                    recordedAt = now,
+                    offsetMs = now - start,
+                ),
+            )
+            localMessages.emit("已记录“${input.type.label}”")
+        }
+    }
+
     override fun onCleared() {
         player.stop()
     }
@@ -447,6 +511,7 @@ class CaptureViewModel(
         val materials: List<MaterialItem>,
         val events: List<InteractionEvent>,
         val eventCounts: Map<InteractionType, Int>,
+        val engagements: List<EngagementRecord>,
     )
 
     private sealed interface Access {
@@ -459,6 +524,7 @@ class CaptureViewModel(
         val CAPTURABLE = setOf(TaskStatus.NOT_STARTED, TaskStatus.IN_PROGRESS)
         val EVENT_EDITABLE = CAPTURABLE + TaskStatus.PENDING_EVALUATION
         val PHOTO_ADDABLE = CAPTURABLE + TaskStatus.PENDING_EVALUATION
+        val MATERIAL_DELETABLE = CAPTURABLE + TaskStatus.PENDING_EVALUATION
         const val UNDO_WINDOW_MS = 5_000L
         const val KEY_PENDING_PHOTO = "pendingPhotoPath"
         const val KEY_EDIT_PHOTO = "editPhotoId"
