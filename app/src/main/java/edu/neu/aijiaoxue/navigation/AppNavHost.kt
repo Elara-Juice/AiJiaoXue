@@ -101,7 +101,16 @@ fun AppNavHost() {
                 )
             }
             guarded(navController, Routes.TASK_CREATE, SUPERVISOR, courseIdArg) { entry ->
-                TaskCreateScreen(courseId = entry.courseId(), onBack = { navController.popBackStack() })
+                // 离开成功页时把创建页移出返回栈，返回键回到课程详情，不会再回到“创建成功”
+                val leave: (String) -> Unit = { route ->
+                    navController.navigate(route) { popUpTo(Routes.TASK_CREATE) { inclusive = true } }
+                }
+                TaskCreateScreen(
+                    courseId = entry.courseId(),
+                    onBack = { navController.popBackStack() },
+                    onStartCapture = { leave(Routes.capture(it)) },
+                    onMyTasks = { leave(Routes.MY_TASKS) },
+                )
             }
             // US07（10/4 由王博田转给李奕萱）
             guarded(navController, Routes.MY_TASKS, SUPERVISOR) {

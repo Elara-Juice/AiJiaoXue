@@ -51,7 +51,8 @@ fun CourseDetailScreen(
                 Text("上课时间：${course.schedule ?: "未填写"}")
                 Text("上课地点：${course.location ?: "未填写"}")
                 Text("历史督导次数：${course.completedCount}")
-                Text("最近督导日期：${course.lastSupervisionDate ?: "未填写"}")
+                // 王博田缺陷 D04：没有已完成督导是“暂无”，不是漏填
+                Text("最近督导日期：${course.lastSupervisionDate ?: "暂无"}")
                 if (course.hasOpenArrangement) Text("已纳入待督导安排", color = MaterialTheme.colorScheme.primary)
                 if (Session.requireUser().role == Role.SUPERVISOR) {
                     Button(onClick = { onCreateTask(course.id) }, modifier = Modifier.fillMaxWidth()) {

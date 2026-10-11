@@ -11,6 +11,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextReplacement
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -36,6 +37,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -117,6 +119,9 @@ class F1FeedbackRegressionTest {
         rule.onNodeWithText("上课班级：软件2402班").assertExists()
         rule.onNodeWithText("上课时间：周五 3-4 节").assertExists()
         rule.onNodeWithText("上课地点：未填写").assertExists()
+        // D04：没有已完成的督导时显示“暂无”
+        assertNull(math.lastSupervisionDate)
+        rule.onNodeWithText("最近督导日期：暂无").assertExists()
         rule.onNodeWithText("已纳入待督导安排").assertExists()
         rule.onNodeWithText("创建督导任务").assertExists()
     }
@@ -162,30 +167,69 @@ class F1FeedbackRegressionTest {
             pendingBefore?.let { sql.execSQL("UPDATE arrangements SET status = 'PENDING' WHERE id = ?", arrayOf(it.id)) }
         }
 
-        fun fill(period: String) {
-            rule.onNode(hasSetTextAction() and hasText("督导日期", substring = true)).performTextReplacement(date)
-            rule.onNode(hasSetTextAction() and hasText("节次", substring = true)).performTextReplacement(period)
-            rule.onNodeWithText("创建任务").performClick()
+        // D03：日期用选择器、节次用下拉。2099 年在日历里翻不到，日期直接交给 ViewModel（与选择器回调同一入口）
+        val vm = TaskCreateViewModel(context.applicationContext as Application, target.id)
+        var startedTaskId: Long? = null
+        var openedMyTasks = false
+        rule.setContent {
+            TaskCreateScreen(
+                target.id, onBack = {}, onStartCapture = { startedTaskId = it }, onMyTasks = { openedMyTasks = true },
+                viewModel = vm,
+            )
+        }
+        fun pickPeriod(label: String, n: Int) {
+            rule.onNodeWithText("$label：", substring = true).performClick()
+            rule.onNode(hasText("第 $n 节") and hasAnyAncestor(isPopup())).performScrollTo().performClick()
         }
 
-        rule.setContent { TaskCreateScreen(target.id, onBack = {}) }
+        // 日期默认今天，点开是日期选择器，不是文本框
+        rule.onNodeWithText("督导日期：", substring = true).performClick()
+        waitFor("确定日期")
+        rule.onNodeWithText("取消").performClick()
+        assertEquals(0, rule.onAllNodes(hasSetTextAction() and hasText("督导日期", substring = true)).fetchSemanticsNodes().size)
+        vm.onDateChange(date)
+        waitFor("督导日期：$date", substring = true)
 
-        // 节次为空：阻止保存并提示
-        fill("")
-        waitFor("请填写有效的督导日期和节次")
+        // 未选节次：提示在节次下方，具体到哪一项
+        rule.onNodeWithText("创建任务").performClick()
+        waitFor("请选择开始节次")
         assertEquals(0, countTasks(sup.id, target.id, date))
 
-        fill("5-6")
+        // 选第 5 节，结束节自动带出第 6 节；再把结束节改成第 3 节
+        pickPeriod("开始节次", 5)
+        waitFor("结束节次：第 6 节", substring = true)
+        pickPeriod("结束节次", 3)
+        rule.onNodeWithText("创建任务").performClick()
+        waitFor("结束节次不能早于开始节次")
+        assertEquals(0, countTasks(sup.id, target.id, date))
+
+        // 日期为空（选择器本身不会产生，只在 ViewModel 里兜底）
+        vm.onDateChange("")
+        rule.onNodeWithText("创建任务").performClick()
+        waitFor("请选择督导日期")
+        vm.onDateChange(date)
+
+        pickPeriod("结束节次", 6)
+        rule.onNodeWithText("创建任务").performClick()
         waitFor("任务创建成功，已加入督导任务")
         val task = runBlocking { db.taskDao().observeRowsFiltered(target.id, sup.id, null).first() }
             .single { it.supervisionDate == date }
         assertEquals("DD20990101-001", task.code)
+        assertEquals("5-6", task.period)
         assertEquals(TaskStatus.NOT_STARTED, task.status)
+        // D02：成功页显示任务编号，可直接开始采集或进入我的督导任务
+        waitFor("任务编号：DD20990101-001", substring = true)
+        rule.onNodeWithText("返回课程").assertExists()
+        rule.onNodeWithText("查看我的督导任务").performClick()
+        assertTrue(openedMyTasks)
+        rule.onNodeWithText("开始采集").performClick()
+        assertEquals(task.id, startedTaskId)
 
         // 同一督导、课程、日期、节次再建一次（新的 ViewModel，相当于重新进入创建页）
         val again = TaskCreateViewModel(context.applicationContext as Application, target.id)
         again.onDateChange(date)
-        again.onPeriodChange("5-6")
+        again.onPeriodStartChange(5)
+        again.onPeriodEndChange(6)
         again.create()
         val deadline = System.currentTimeMillis() + 5_000
         while (again.uiState.value.error == null && System.currentTimeMillis() < deadline) Thread.sleep(50)
@@ -209,8 +253,12 @@ class F1FeedbackRegressionTest {
         org.junit.Assume.assumeTrue(!ds.hasOpenArrangement)
         cleanup += { sql.execSQL("DELETE FROM arrangements WHERE courseId = ?", arrayOf(ds.id)) }
 
-        rule.setContent { ArrangementScreen(onBack = {}, onCourseClick = {}) }
+        val vm = edu.neu.aijiaoxue.ui.arrange.ArrangementViewModel(context.applicationContext as android.app.Application)
+        rule.setContent { ArrangementScreen(onBack = {}, onCourseClick = {}, viewModel = vm) }
         waitFor("数据结构", substring = true)
+        // D04：数据结构没有督导记录，显示“暂无”
+        assertNull(ds.lastSupervisionDate)
+        waitFor("最近督导：暂无")
 
         // 筛选本学期未督导：本学期已完成督导的操作系统不出现
         rule.onAllNodes(isToggleable())[0].performClick()
@@ -222,6 +270,9 @@ class F1FeedbackRegressionTest {
         rule.onNode(hasSetTextAction()).performTextReplacement("回归测试")
         rule.onNodeWithText("纳入安排").performClick()
         waitFor("已纳入待督导安排")
+        // D05：成功写在 message，error 为空
+        assertEquals("已纳入待督导安排", vm.uiState.value.message)
+        assertNull(vm.uiState.value.error)
 
         val arrangement = runBlocking { db.arrangementDao().getOpenByCourse(ds.id) }
         assertNotNull(arrangement)
@@ -244,6 +295,7 @@ class F1FeedbackRegressionTest {
         val deadline = System.currentTimeMillis() + 5_000
         while (vm.uiState.value.error == null && System.currentTimeMillis() < deadline) Thread.sleep(50)
         assertEquals("该课程已在待督导安排中", vm.uiState.value.error)
+        assertNull(vm.uiState.value.message)
         assertEquals(before, openArrangements(math.id))
     }
 
@@ -337,7 +389,8 @@ class F1FeedbackRegressionTest {
         restoreReadAt(row.evaluationId, row.teacherReadAt)
         sql.execSQL("UPDATE evaluations SET teacherReadAt = NULL WHERE id = ?", arrayOf(row.evaluationId))
 
-        rule.setContent { FeedbackDetailScreen(row.taskId, onBack = {}) }
+        var focusOpened = false
+        rule.setContent { FeedbackDetailScreen(row.taskId, onBack = {}, onImproveFocus = { focusOpened = true }) }
         waitFor("综合得分：81 · 良好")
         rule.onNodeWithText("督导：王志强 · 2026-09-16").assertExists()
         rule.onNodeWithText("教学内容：5 分", substring = true).assertExists()
@@ -349,6 +402,11 @@ class F1FeedbackRegressionTest {
         rule.onNode(hasScrollAction()).performScrollToNode(hasText("2. 后排学生低头较多，参与度不足"))
 
         rule.waitUntil(5_000) { readAt(row.evaluationId) != null }
+
+        // D01：反馈详情底部有“确定改进重点”，进入 US36
+        rule.onNode(hasScrollAction()).performScrollToNode(hasText("确定改进重点"))
+        rule.onNodeWithText("确定改进重点").performClick()
+        assertTrue(focusOpened)
     }
 
     @Test

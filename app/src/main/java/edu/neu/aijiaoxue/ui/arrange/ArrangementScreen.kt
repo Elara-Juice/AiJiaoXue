@@ -41,7 +41,8 @@ fun ArrangementScreen(
                 Checkbox(checked = state.uncoveredOnly, onCheckedChange = viewModel::setUncoveredOnly)
                 Text("仅看本学期未督导课程")
             }
-            state.error?.let { Text(it, color = if (it == "已纳入待督导安排") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error, modifier = Modifier.padding(horizontal = 16.dp)) }
+            state.message?.let { Text(it, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(horizontal = 16.dp)) }
+            state.error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(horizontal = 16.dp)) }
             LazyColumn(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -53,7 +54,7 @@ fun ArrangementScreen(
                                 Text("${row.name} · ${row.code}", style = MaterialTheme.typography.titleMedium)
                             }
                             Text("任课教师：${row.teacherName} · 已完成督导 ${row.completedCount} 次")
-                            Text("最近督导：${row.lastSupervisionDate ?: "未填写"}")
+                            Text("最近督导：${row.lastSupervisionDate ?: "暂无"}")
                             when {
                                 row.hasOpenArrangement -> Text(
                                     if (row.isKeyFocus) "待督导 · 重点关注" else "待督导",
