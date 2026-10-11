@@ -24,6 +24,7 @@ import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.isPopup
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -38,7 +39,6 @@ import edu.neu.aijiaoxue.data.AppDatabase
 import edu.neu.aijiaoxue.data.DemoData
 import edu.neu.aijiaoxue.data.FileStore
 import edu.neu.aijiaoxue.data.Session
-import edu.neu.aijiaoxue.data.entity.EngagementRecord
 import edu.neu.aijiaoxue.data.model.ArrangementStatus
 import edu.neu.aijiaoxue.data.model.DateFormats
 import edu.neu.aijiaoxue.data.model.EngagementType
@@ -68,11 +68,9 @@ import java.io.File
 /**
  * 需求说明表 6-1 端到端验收场景（主链 11 步），同一门课程 A 连续走完，回归时直接跑。
  *
- * - 启动真实 MainActivity，全部经由页面操作，只有下面两处例外。
+ * - 启动真实 MainActivity，全部经由页面操作。
  * - 课程 A 由测试自建（端到端演示课程A，任课教师张晓明），不动 docs/演示数据.md 里的数据结构课程，
  *   也不清空模拟器上已采集的数据；测试结束（含失败）删除本测试产生的全部记录和文件。
- * - 第 4 步“记录 1 次参与状态”（US13）和第 6 步“删除照片”（US11）是孙浩然的故事，尚无界面，
- *   这两处直接写库，二次确认无法验证；界面完成后把对应的 TODO 换成页面操作。
  * - 第 5 步无法在测试进程内真正杀进程：关闭 Activity（ViewModel 随之销毁）后重新启动，
  *   录音按设计由前台服务继续，异常退出后的录音补写由 CaptureRecordingTest 覆盖。
  */
@@ -170,8 +168,11 @@ class EndToEndTest {
 
         // ---------- 3. 创建督导任务：唯一任务、待开始、进度页同步可见 ----------
         rule.onNodeWithText("创建督导任务").performClick()
-        waitText("督导日期（yyyy-MM-dd）", substring = true)
-        rule.onNode(hasSetTextAction() and hasText("节次", substring = true)).performTextReplacement("9-10")
+        // 日期默认今天（选择器）；节次下拉选第 9 节，结束节自动带出第 10 节
+        waitText("督导日期：${DateFormats.today()}", substring = true)
+        rule.onNodeWithText("开始节次", substring = true).performClick()
+        rule.onNode(hasText("第 9 节") and hasAnyAncestor(isPopup())).performScrollTo().performClick()
+        waitText("结束节次：第 10 节", substring = true)
         rule.onNode(hasSetTextAction() and hasText("教学章节", substring = true)).performTextReplacement("第1章 绪论")
         closeSoftKeyboard()
         rule.onNodeWithText("创建任务").performClick()
@@ -180,6 +181,7 @@ class EndToEndTest {
         val taskId = task.id
         assertEquals(TaskStatus.NOT_STARTED, task.status)
         assertEquals(DateFormats.today(), task.supervisionDate)
+        assertEquals("9-10", task.period)
         assertTrue(task.code.startsWith("DD${DateFormats.compact(task.supervisionDate)}-"))
         assertEquals(arrangement.id, task.arrangementId)
         assertEquals(ArrangementStatus.CLAIMED, arrangementStatus(arrangement.id))
@@ -188,10 +190,9 @@ class EndToEndTest {
         assertEquals(listOf(task.code), progress.map { it.code })
 
         // ---------- 4. 开始录音，拍 2 张 PPT，标注 3 次教师提问、2 次学生回答，记录 1 次参与状态 ----------
-        goHome(SUPERVISOR_HOME)
-        openHomeEntry("我的督导任务")
-        scrollAny(hasTestTag("task-$taskId"))
-        rule.onNode(hasText("开始采集") and hasAnyAncestor(hasTestTag("task-$taskId"))).performClick()
+        // 王博田缺陷 D02：从创建成功页直接进入采集
+        waitText("任务编号：${task.code}", substring = true)
+        rule.onNodeWithText("开始采集").performClick()
         clickIn(CAPTURE, hasText("开始录音"))
         rule.waitUntil(TIMEOUT) {
             AudioRecorder.state.value.let { it.status == AudioRecorder.Status.RECORDING && it.taskId == taskId }
@@ -200,16 +201,7 @@ class EndToEndTest {
         mark(taskId, InteractionType.TEACHER_QUESTION, 3)
         mark(taskId, InteractionType.STUDENT_ANSWER, 2)
         val classStart = runBlocking { db.taskDao().getById(taskId)!!.classStartAt!! }
-        // TODO(US11/US13 孙浩然)：参与状态记录界面完成后改为页面操作
-        val now = System.currentTimeMillis()
-        runBlocking {
-            db.captureDao().insertEngagement(
-                EngagementRecord(
-                    taskId = taskId, type = EngagementType.LISTENING, presentCount = 40, engagedCount = 35,
-                    description = "前排抬头听讲，后排有低头", recordedAt = now, offsetMs = now - classStart,
-                ),
-            )
-        }
+        recordEngagement()
         val captured = runBlocking { db.taskDao().getById(taskId)!! }
         assertEquals(TaskStatus.IN_PROGRESS, captured.status)
         val materials = materials(taskId)
@@ -222,7 +214,11 @@ class EndToEndTest {
         assertEquals(3, events.count { it.type == InteractionType.TEACHER_QUESTION })
         assertEquals(2, events.count { it.type == InteractionType.STUDENT_ANSWER })
         events.forEach { assertTrue(it.occurredAt >= classStart && it.offsetMs >= 0) }
-        assertEquals(1, engagements(taskId).size)
+        val engagement = awaitDb { engagements(taskId).singleOrNull() }
+        assertEquals(EngagementType.LISTENING, engagement.type)
+        assertEquals(40, engagement.presentCount)
+        assertEquals(35, engagement.engagedCount)
+        assertTrue(engagement.recordedAt >= classStart && engagement.offsetMs >= 0)
 
         // ---------- 5. 关闭应用后重新进入该任务：已采集内容全部恢复，可继续采集 ----------
         scenario!!.close()
@@ -244,11 +240,12 @@ class EndToEndTest {
 
         // ---------- 6. 删除 1 张模糊照片并重新拍摄 ----------
         val blurry = photos.first()
-        // TODO(US11 孙浩然)：材料删除界面完成后改为页面操作，并验证删除前二次确认
-        runBlocking {
-            FileStore.delete(context, blurry.filePath)
-            db.captureDao().deleteMaterial(blurry)
-        }
+        // 先取消一次：取消确认不做任何修改（US11 异常处理）
+        clickIn(CAPTURE, hasContentDescription("删除PPT 1"))
+        clickDialog("取消")
+        assertTrue(materials(taskId).any { it.id == blurry.id })
+        clickIn(CAPTURE, hasContentDescription("删除PPT 1"))
+        clickDialog("删除")
         rule.waitUntil(TIMEOUT) { rule.onAllNodesWithText("PPT 2", substring = true).fetchSemanticsNodes().isEmpty() }
         takePhoto(taskId, expected = 2)
         val retaken = materials(taskId).filter { it.type != MaterialType.AUDIO }
@@ -455,6 +452,18 @@ class EndToEndTest {
         val matcher = hasText(text) and hasAnyAncestor(isDialog())
         rule.waitUntil(TIMEOUT) { rule.onAllNodes(matcher).fetchSemanticsNodes().isNotEmpty() }
         rule.onNode(matcher).performClick()
+    }
+
+    /** US13：记录 1 次参与状态（抬头听讲，实到 40 人、参与 35 人）。 */
+    private fun recordEngagement() {
+        clickIn(CAPTURE, hasText("记录参与状态") and hasClickActionMatcher())
+        waitText("状态类型")
+        rule.onNode(hasSetTextAction() and hasText("实到人数（选填）")).performTextReplacement("40")
+        rule.onNode(hasSetTextAction() and hasText("参与人数（选填）")).performTextReplacement("35")
+        rule.onNode(hasSetTextAction() and hasText("文字描述（选填）")).performTextReplacement("前排抬头听讲，后排有低头")
+        closeSoftKeyboard()
+        clickDialog("保存")
+        rule.waitUntil(TIMEOUT) { rule.onAllNodes(isDialog()).fetchSemanticsNodes().isEmpty() }
     }
 
     /** 点“拍照”，相机替身写入照片；类型对话框按默认 PPT 保存。 */
