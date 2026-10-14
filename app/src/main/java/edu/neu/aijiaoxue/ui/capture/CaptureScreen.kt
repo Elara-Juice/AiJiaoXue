@@ -84,6 +84,7 @@ import java.util.Locale
 fun CaptureScreen(
     onBack: () -> Unit,
     onClassEnded: () -> Unit = {},
+    onAnalysis: () -> Unit = {},
     viewModel: CaptureViewModel = viewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -162,6 +163,7 @@ fun CaptureScreen(
                 onEditEventNote = { viewModel.editEvent(it) },
                 onDeleteEvent = { deletingEventId = it.id },
                 onEndClass = { askEndClass = true },
+                onAnalysis = onAnalysis,
                 onRecordEngagement = { recordingEngagement = true },
                 onDeleteMaterial = { deletingMaterialId = it.material.id },
                 modifier = modifier,
@@ -313,6 +315,7 @@ private fun CaptureContent(
     onEditEventNote: (Long) -> Unit,
     onDeleteEvent: (InteractionEvent) -> Unit,
     onEndClass: () -> Unit,
+    onAnalysis: () -> Unit,
     onRecordEngagement: () -> Unit,
     onDeleteMaterial: (MaterialItem) -> Unit,
     modifier: Modifier,
@@ -334,7 +337,7 @@ private fun CaptureContent(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
-            ClassHeader(state, now, onEndClass)
+            ClassHeader(state, now, onEndClass, onAnalysis)
         }
         item {
             RecordingCard(
@@ -412,7 +415,7 @@ private fun CaptureContent(
 internal const val CAPTURE_PAGE_TAG = "capture-page"
 
 @Composable
-private fun ClassHeader(state: CaptureUiState, now: Long, onEndClass: () -> Unit) {
+private fun ClassHeader(state: CaptureUiState, now: Long, onEndClass: () -> Unit, onAnalysis: () -> Unit) {
     val task = state.task ?: return
     Column {
         Text(
@@ -442,6 +445,14 @@ private fun ClassHeader(state: CaptureUiState, now: Long, onEndClass: () -> Unit
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            // Sprint 2：采集结束后可对本节课做 AI 分析
+            OutlinedButton(
+                onClick = onAnalysis,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+                    .height(48.dp),
+            ) { Text("AI 课堂分析") }
         } else if (!state.canCapture) {
             Text(
                 "课堂采集已结束，只能查看和回放材料",

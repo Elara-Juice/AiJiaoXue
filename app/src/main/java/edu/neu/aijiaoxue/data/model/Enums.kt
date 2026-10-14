@@ -115,3 +115,10 @@ enum class MeasureStatus(val label: String) {
     IN_PROGRESS("进行中"),
     DONE("已完成"),
 }
+
+/** AI 分析类型（Sprint 2）。 */
+enum class AiAnalysisType(val label: String) {
+    BOPPPS("教学环节"),
+    INTERACTION("师生互动"),
+    ENGAGEMENT("学生参与"),
+}
