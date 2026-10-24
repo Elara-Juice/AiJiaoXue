@@ -53,7 +53,10 @@ data class AiCorrection(
      * 修改时间
      */
     val createdAt: Long =
-        System.currentTimeMillis()
+        System.currentTimeMillis(),
+
+    /** 旧版本没有记录审核人，迁移时保持 null；必须重新审核后才能作为正式依据。 */
+    val reviewerId: Long? = null,
 
 
 )

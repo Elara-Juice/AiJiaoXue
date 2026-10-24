@@ -85,6 +85,7 @@ fun CaptureScreen(
     onBack: () -> Unit,
     onClassEnded: () -> Unit = {},
     viewModel: CaptureViewModel = viewModel(),
+    onAnalysis: (() -> Unit)? = null,
 ) {
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -132,6 +133,12 @@ fun CaptureScreen(
             TopAppBar(
                 title = { Text(state.task?.courseName ?: "课堂督导") },
                 navigationIcon = { TextButton(onClick = leave) { Text("返回") } },
+                actions = {
+                    if (onAnalysis != null && state.blockedMessage == null &&
+                        state.status in setOf(TaskStatus.PENDING_EVALUATION, TaskStatus.COMPLETED)) {
+                        TextButton(onClick = onAnalysis) { Text("分析与审核") }
+                    }
+                },
             )
         },
         snackbarHost = { SnackbarHost(snackbar) },

@@ -36,6 +36,16 @@ class EvaluationViewModel(private val repository: EvaluationRepository, private 
 
     init { reload() }
 
+    /** 从审核页返回只刷新参考材料，不能用数据库快照覆盖仍在编辑的人工草稿。 */
+    fun refreshReviewedReference() { viewModelScope.launch {
+        if (state.value.loading || state.value.record == null) return@launch
+        try {
+            val refreshed = repository.load(actorId, taskId)
+            state.update { current -> current.copy(record = current.record?.copy(reviewedAnalyses = refreshed.reviewedAnalyses)) }
+        } catch (e: CancellationException) { throw e
+        } catch (e: Exception) { state.update { it.copy(error = e.message ?: "审核参考刷新失败") } }
+    } }
+
     fun reload() { viewModelScope.launch {
         state.update { it.copy(loading = true, error = null) }
         try {

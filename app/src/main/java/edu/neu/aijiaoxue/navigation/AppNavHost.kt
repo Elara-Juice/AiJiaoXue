@@ -43,8 +43,6 @@ import edu.neu.aijiaoxue.ui.feedback.FeedbackListScreen
 import edu.neu.aijiaoxue.ui.login.LoginScreen
 import edu.neu.aijiaoxue.ui.login.ProfileScreen
 import edu.neu.aijiaoxue.ui.evaluation.*
-import edu.neu.aijiaoxue.ui.evidence.EvidenceViewModel
-import edu.neu.aijiaoxue.ui.evidence.EvidenceViewModelFactory
 import edu.neu.aijiaoxue.ui.improve.*
 
 private val ADMIN = setOf(Role.ADMIN)
@@ -144,6 +142,7 @@ fun AppNavHost() {
                     onBack = { navController.popBackStack() },
                     // 需求 3.3：结束课堂采集后进入评价页；采集页留在返回栈里，返回后可继续补充拍照
                     onClassEnded = { navController.navigate(Routes.evaluation(entry.taskId())) },
+                    onAnalysis = { navController.navigate(Routes.analysis(entry.taskId())) },
                 )
             }
 
@@ -154,7 +153,7 @@ fun AppNavHost() {
                     navController.navigate(Routes.historyDetail(entry.taskId())) {
                         popUpTo(Routes.evaluation(entry.taskId())) { inclusive = true }
                     }
-                })
+                }, onAnalysis = { navController.navigate(Routes.analysis(entry.taskId())) })
             }
             guarded(navController, Routes.HISTORY, ADMIN_SUPERVISOR) {
                 val model = moduleViewModel { db, actor -> HistoryViewModel(EvaluationRepository(db), actor) }
@@ -165,40 +164,30 @@ fun AppNavHost() {
                 HistoryDetailScreen(model, { navController.popBackStack() })
             }
 
-            // ui/analysis、ui/evidence（孙浩然，Sprint 2）
+            // 复用团队分析／审核页面，角色与任务归属同时校验。
             guarded(navController, Routes.ANALYSIS, SUPERVISOR, taskIdArg) { entry ->
                 val context = LocalContext.current
                 val analysisViewModel: AnalysisViewModel = viewModel(
-                    factory = AnalysisViewModelFactory(context.applicationContext as android.app.Application),
+                    factory = AnalysisViewModelFactory(context.applicationContext as android.app.Application, entry.taskId()),
                 )
-                val evidenceViewModel: EvidenceViewModel = viewModel(
-                    factory = EvidenceViewModelFactory(AppDatabase.get(context)),
-                )
-                val evidenceState by evidenceViewModel.uiState.collectAsState()
-                val analysisState by analysisViewModel.uiState.collectAsState()
-                LaunchedEffect(analysisState.latestAnalysisId) {
-                    analysisState.latestAnalysisId?.let { evidenceViewModel.loadEvidence(analysisId = it) }
-                }
-                AnalysisScreen(
-                    taskId = entry.taskId(),
-                    viewModel = analysisViewModel,
-                    evidences = evidenceState.evidences,
-                    onReview = { analysisId, _ -> navController.navigate(Routes.aiReview(analysisId)) },
-                )
+                AnalysisScreen(analysisViewModel, { navController.popBackStack() },
+                    { navController.navigate(Routes.aiReview(it)) },
+                    {
+                        val route = Routes.evaluation(entry.taskId())
+                        // 从评价页进入分析后复用原草稿VM，避免第二个评价实例回写陈旧草稿。
+                        if (!navController.popBackStack(route, false)) {
+                            navController.navigate(route) { launchSingleTop = true }
+                        }
+                    })
             }
-            // US27：AI 结果人工审核
-            guarded(
-                navController, Routes.AI_REVIEW, SUPERVISOR,
-                listOf(navArgument(Routes.ARG_ANALYSIS_ID) { type = NavType.LongType }),
-            ) { entry ->
+            guarded(navController, Routes.AI_REVIEW, SUPERVISOR,
+                listOf(navArgument(Routes.ARG_ANALYSIS_ID) { type = NavType.LongType })) { entry ->
                 val context = LocalContext.current
                 val reviewViewModel: AIReviewViewModel = viewModel(
                     factory = AIReviewViewModelFactory(context.applicationContext as android.app.Application),
                 )
-                AIReviewScreen(
-                    analysisId = requireNotNull(entry.arguments).getLong(Routes.ARG_ANALYSIS_ID),
-                    viewModel = reviewViewModel,
-                )
+                AIReviewScreen(requireNotNull(entry.arguments).getLong(Routes.ARG_ANALYSIS_ID), reviewViewModel,
+                    onBack = { navController.popBackStack() })
             }
 
             // ui/feedback（王博田）

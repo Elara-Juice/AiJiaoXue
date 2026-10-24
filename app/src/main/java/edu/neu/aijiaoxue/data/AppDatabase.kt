@@ -4,6 +4,11 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import edu.neu.aijiaoxue.data.dao.ImprovementSuggestionDao
+import edu.neu.aijiaoxue.data.entity.ImprovementSuggestion
+import edu.neu.aijiaoxue.data.entity.ReviewPublication
+import edu.neu.aijiaoxue.data.entity.ReviewedAnalysisSnapshot
 import edu.neu.aijiaoxue.data.dao.AiAnalysisDao
 import edu.neu.aijiaoxue.data.dao.AiCorrectionDao
 import edu.neu.aijiaoxue.data.dao.AiEvidenceDao
@@ -31,8 +36,7 @@ import edu.neu.aijiaoxue.data.entity.SupervisionTask
 import edu.neu.aijiaoxue.data.entity.User
 
 /**
- * 修改任何实体后 version + 1。Sprint 1 期间允许破坏性迁移（清空重建），
- * 改表结构后各自卸载重装或清除应用数据即可。
+ * Sprint 2 保留旧评价、计划及待办。v3 已被团队其他分支使用，本分支统一升级 v4。
  */
 @Database(
     entities = [
@@ -42,8 +46,9 @@ import edu.neu.aijiaoxue.data.entity.User
         ImprovementPlan::class, ImprovementItem::class, ImprovementMeasure::class,
         // Sprint 2 AI 分析、证据追溯、人工审核
         AiAnalysisResult::class, AiEvidence::class, AiCorrection::class,
+        ReviewPublication::class, ReviewedAnalysisSnapshot::class, ImprovementSuggestion::class,
     ],
-    version = 2,
+    version = 4,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -57,15 +62,17 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun aiAnalysisDao(): AiAnalysisDao
     abstract fun aiEvidenceDao(): AiEvidenceDao
     abstract fun aiCorrectionDao(): AiCorrectionDao
+    abstract fun improvementSuggestionDao(): ImprovementSuggestionDao
 
     companion object {
         const val NAME = "aijiaoxue.db"
+        val MIGRATIONS: Array<Migration> = Sprint2Migrations.ALL
 
         @Volatile private var instance: AppDatabase? = null
 
         fun get(context: Context): AppDatabase = instance ?: synchronized(this) {
             instance ?: Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, NAME)
-                .fallbackToDestructiveMigration(dropAllTables = true)
+                .addMigrations(*MIGRATIONS)
                 .build()
                 .also { instance = it }
         }

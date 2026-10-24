@@ -263,4 +263,6 @@ data class ImprovementMeasure(
     val dueDate: String,
     val status: MeasureStatus = MeasureStatus.NOT_STARTED,
     val updatedAt: Long = System.currentTimeMillis(),
+    /** null 表示旧版督导建议或教师自填；关联建议保存不可变的生成依据。 */
+    val suggestionId: Long? = null,
 )

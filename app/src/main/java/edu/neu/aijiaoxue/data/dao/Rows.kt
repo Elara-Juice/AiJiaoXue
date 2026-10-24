@@ -7,6 +7,7 @@ import edu.neu.aijiaoxue.data.model.MeasureStatus
 import edu.neu.aijiaoxue.data.model.Priority
 import edu.neu.aijiaoxue.data.model.SupervisionType
 import edu.neu.aijiaoxue.data.model.TaskStatus
+import edu.neu.aijiaoxue.data.model.SuggestionOrigin
 
 /*
  * 联表查询的结果行，只读，供列表页直接显示，避免界面逐条再查课程名、教师名。
@@ -114,6 +115,11 @@ data class TodoRow(
     val priority: Priority,
     val courseName: String,
     val supervisionDate: String,
+    val suggestionId: Long? = null,
+    val suggestionContent: String? = null,
+    val suggestionRationale: String? = null,
+    val suggestionOrigin: SuggestionOrigin? = null,
+    val reviewVersionKey: String? = null,
 )
 
 /** US06 状态统计。 */

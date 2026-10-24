@@ -115,3 +115,9 @@ enum class MeasureStatus(val label: String) {
     IN_PROGRESS("进行中"),
     DONE("已完成"),
 }
+
+/** 建议的生成来源；与教师采纳/修改的处置方式分开保存。 */
+enum class SuggestionOrigin(val label: String) {
+    RULE_BASED("规则辅助建议"),
+    AI_GENERATED("AI候选建议"),
+}

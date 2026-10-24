@@ -2,6 +2,7 @@ package edu.neu.aijiaoxue
 
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.test.espresso.Espresso.closeSoftKeyboard
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import edu.neu.aijiaoxue.data.Session
@@ -22,7 +23,8 @@ class Sprint1NavigationTest {
     private fun login(account: String) {
         rule.onNode(hasSetTextAction() and hasText("账号")).performTextReplacement(account)
         rule.onNode(hasSetTextAction() and hasText("密码")).performTextReplacement("123456")
-        rule.onNode(hasText("登录") and !hasSetTextAction()).performClick()
+        closeSoftKeyboard()
+        rule.onNode(hasText("登录") and !hasSetTextAction()).performScrollTo().performClick()
     }
     @Test fun adminCanOpenHistoryAndReadFullRecordThroughRealNavigation() {
         login("admin"); waitText("历史记录")

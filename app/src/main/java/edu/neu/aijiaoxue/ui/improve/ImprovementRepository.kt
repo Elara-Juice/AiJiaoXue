@@ -18,10 +18,17 @@ data class ImprovementRecord(
     val plan: ImprovementPlan?,
     val items: List<ImprovementItem>,
     val measures: List<ImprovementMeasure>,
+    val suggestions: List<ImprovementSuggestion> = emptyList(),
+    val reviewedAnalyses: List<ReviewedAnalysisSnapshot> = emptyList(),
+    val reviewPublished: Boolean = false,
 )
 
-class ImprovementRepository(private val db: AppDatabase) {
+class ImprovementRepository(
+    private val db: AppDatabase,
+    private val suggestionGenerator: ImprovementSuggestionGenerator = RuleBasedImprovementSuggestionGenerator(),
+) {
     private val dao = db.improvementDao()
+    private val suggestions = db.improvementSuggestionDao()
 
     private suspend fun read(actorId: Long, taskId: Long): ImprovementRecord {
         val task = requireNotNull(db.taskDao().getImprovementTaskForActor(taskId, actorId)) {
@@ -31,10 +38,13 @@ class ImprovementRepository(private val db: AppDatabase) {
         val plan = dao.getPlanByTask(taskId)
         require(plan == null || plan.teacherId == actorId) { "无权限访问此计划" }
         val items = plan?.let { dao.getItems(it.id) }.orEmpty()
+        val publication = suggestions.publicationForEvaluation(evaluation.id)
         return ImprovementRecord(
             task, requireNotNull(db.courseDao().getById(task.courseId)), evaluation,
             db.evaluationDao().getIssues(evaluation.id), plan, items,
             items.flatMap { dao.getMeasuresByItem(it.id) },
+            plan?.let { suggestions.suggestions(it.id) }.orEmpty(),
+            publication?.let { suggestions.snapshots(it.id) }.orEmpty(), publication != null,
         )
     }
 
@@ -70,7 +80,7 @@ class ImprovementRepository(private val db: AppDatabase) {
                     val inserted = dao.upsertItem(normalized)
                     val itemId = if (inserted == -1L) normalized.id else inserted
                     // US41：仅首次创建事项时预填，重开页面或放弃后不重复生成。
-                    if (item.id <= 0 && !record.evaluation.suggestions.isNullOrBlank()) {
+                    if (item.id <= 0 && record.reviewedAnalyses.isEmpty() && !record.evaluation.suggestions.isNullOrBlank()) {
                         dao.upsertMeasure(ImprovementMeasure(
                             planId = planId, itemId = itemId, content = record.evaluation.suggestions.trim(),
                             source = MeasureSource.ADOPTED, dueDate = "",
@@ -90,16 +100,35 @@ class ImprovementRepository(private val db: AppDatabase) {
                 val plan = requireNotNull(record.plan) { "请先确定改进重点" }
                 require(plan.status == PlanStatus.DRAFT) { "计划已确认，内容和日期不可修改" }
                 require(measures.filter { it.id > 0 }.map { it.id }.distinct().size == measures.count { it.id > 0 }) { "措施重复" }
+                require(measures.mapNotNull { it.suggestionId }.distinct().size == measures.count { it.suggestionId != null }) {
+                    "同一建议不能重复生成措施"
+                }
                 measures.forEach { measure ->
                     require(record.items.any { it.id == measure.itemId }) { "措施不属于此计划的事项" }
                     require(measure.id <= 0 || record.measures.any { it.id == measure.id && it.itemId == measure.itemId }) { "措施不属于此事项" }
                     require(measure.dueDate.isEmpty() || validDate(measure.dueDate)) { "计划完成日期无效" }
+                    val previous = record.measures.find { it.id == measure.id }
+                    require(previous == null || previous.suggestionId == measure.suggestionId) { "不能改写措施的建议来源" }
+                    measure.suggestionId?.let { id ->
+                        val suggestion = requireNotNull(record.suggestions.find { it.id == id && it.itemId == measure.itemId }) {
+                            "建议不属于此改进事项"
+                        }
+                        require(suggestion.dismissedAt == null) { "请先恢复已放弃的建议" }
+                        require(previous != null || record.items.any { it.id == measure.itemId && it.description == suggestion.problemSnapshot }) {
+                            "改进重点已变化，请刷新建议"
+                        }
+                    }
                 }
                 if (confirm) require(planError(record.items, measures) == null) { planError(record.items, measures).orEmpty() }
                 record.measures.filter { old -> measures.none { it.id == old.id } }.forEach { dao.deleteMeasure(it) }
                 measures.forEach { measure ->
-                    val source = if (measure.source == MeasureSource.ADOPTED &&
-                        measure.content.trim() != record.evaluation.suggestions?.trim()) MeasureSource.MODIFIED else measure.source
+                    val linked = record.suggestions.find { it.id == measure.suggestionId }
+                    val source = when {
+                        linked != null -> if (measure.content.trim() == linked.content.trim()) MeasureSource.ADOPTED else MeasureSource.MODIFIED
+                        measure.source == MeasureSource.ADDED || record.evaluation.suggestions.isNullOrBlank() -> MeasureSource.ADDED
+                        measure.content.trim() == record.evaluation.suggestions.trim() -> MeasureSource.ADOPTED
+                        else -> MeasureSource.MODIFIED
+                    }
                     dao.upsertMeasure(measure.copy(
                         id = measure.id.coerceAtLeast(0), planId = plan.id, source = source,
                         status = MeasureStatus.NOT_STARTED, updatedAt = System.currentTimeMillis(),
@@ -108,6 +137,61 @@ class ImprovementRepository(private val db: AppDatabase) {
                 if (confirm) check(dao.confirmPlanChecked(plan.id, System.currentTimeMillis())) { "确认失败，请重新打开计划" }
             }
         }
+
+    /** 生成可能较慢，放在事务外；写回时重新核对权限、事项和发布版本。 */
+    suspend fun refreshSuggestions(actorId: Long, taskId: Long): ImprovementRecord {
+        val before = load(actorId, taskId)
+        if (before.plan == null || before.plan.status == PlanStatus.CONFIRMED || before.reviewedAnalyses.isEmpty()) return before
+        val generated = before.items.flatMap { item ->
+            suggestionGenerator.generate(item, before.issues.find { it.id == item.issueId }?.dimension, before.reviewedAnalyses)
+        }
+        return DraftTransactions.mutex.withLock { db.withTransaction {
+            val current = read(actorId, taskId)
+            require(current.plan?.id == before.plan.id && current.plan.status == PlanStatus.DRAFT) { "计划已变化，请重新打开" }
+            require(current.items == before.items && current.reviewedAnalyses == before.reviewedAnalyses) { "改进重点或审核依据已变化，请刷新建议" }
+            generated.forEach { candidate ->
+                val item = requireNotNull(current.items.find { it.id == candidate.itemId }) { "建议与事项不匹配" }
+                val snapshot = requireNotNull(current.reviewedAnalyses.find { it.id == candidate.sourceSnapshotId }) { "建议缺少已发布的审核依据" }
+                require(candidate.reviewVersionKey == snapshot.versionKey && candidate.content.isNotBlank() && candidate.generatorVersion.isNotBlank()) {
+                    "建议内容或来源版本无效"
+                }
+                suggestions.insertSuggestion(candidate.copy(id = 0, planId = before.plan.id,
+                    problemSnapshot = item.description, dismissedAt = null, createdAt = System.currentTimeMillis()))
+            }
+            read(actorId, taskId)
+        } }
+    }
+
+    /** 采纳和措施写入同一事务；重复点击返回现有措施，不能覆盖教师已经修改的内容。 */
+    suspend fun adoptSuggestion(actorId: Long, taskId: Long, suggestionId: Long, content: String? = null): ImprovementRecord =
+        DraftTransactions.mutex.withLock { db.withTransaction {
+            val record = read(actorId, taskId)
+            val plan = requireNotNull(record.plan) { "请先确定改进重点" }
+            require(plan.status == PlanStatus.DRAFT) { "计划已确认，不能修改措施" }
+            val suggestion = requireNotNull(record.suggestions.find { it.id == suggestionId }) { "建议不存在或无权限访问" }
+            require(record.items.any { it.id == suggestion.itemId && it.description == suggestion.problemSnapshot }) {
+                "改进重点已变化，请刷新建议"
+            }
+            require(suggestion.dismissedAt == null) { "请先恢复已放弃的建议" }
+            if (record.measures.none { it.suggestionId == suggestionId }) {
+                val text = (content ?: suggestion.content).trim()
+                require(text.isNotEmpty()) { "措施内容不能为空" }
+                dao.upsertMeasure(ImprovementMeasure(planId = plan.id, itemId = suggestion.itemId,
+                    content = text, source = if (text == suggestion.content.trim()) MeasureSource.ADOPTED else MeasureSource.MODIFIED,
+                    dueDate = "", suggestionId = suggestion.id))
+            }
+            read(actorId, taskId)
+        } }
+
+    suspend fun dismissSuggestion(actorId: Long, taskId: Long, suggestionId: Long, dismissed: Boolean = true): ImprovementRecord =
+        DraftTransactions.mutex.withLock { db.withTransaction {
+            val record = read(actorId, taskId)
+            require(record.plan?.status == PlanStatus.DRAFT) { "计划已确认，不能修改建议处置" }
+            require(record.suggestions.any { it.id == suggestionId }) { "建议不存在或无权限访问" }
+            require(!dismissed || record.measures.none { it.suggestionId == suggestionId }) { "请先移除已采纳的措施，再放弃建议" }
+            suggestions.setDismissed(suggestionId, if (dismissed) System.currentTimeMillis() else null)
+            read(actorId, taskId)
+        } }
 
     fun todos(actorId: Long, onlyOpen: Boolean, status: MeasureStatus?) = flow {
         require(db.userDao().getById(actorId)?.role == Role.TEACHER) { "无权限访问教师待办" }

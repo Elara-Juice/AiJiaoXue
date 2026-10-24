@@ -1,79 +1,23 @@
 package edu.neu.aijiaoxue.data.repository
 
+import androidx.room.withTransaction
+import edu.neu.aijiaoxue.data.AppDatabase
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 
-import edu.neu.aijiaoxue.data.dao.AiEvidenceDao
-import edu.neu.aijiaoxue.data.entity.AiEvidence
-import edu.neu.aijiaoxue.data.entity.AiAnalysisResult
-
-
-
-/**
- * Sprint2 US26
- *
- * AI结果与课堂证据关联
- */
-class AiEvidenceRepository(
-
-    private val dao: AiEvidenceDao
-
-){
-
-
-
-    suspend fun createEvidence(
-
-        analysis: AiAnalysisResult
-
-    ){
-
-
-        val evidence = AiEvidence(
-
-            analysisId = analysis.id,
-
-            taskId = analysis.taskId,
-
-            startMs = analysis.startMs,
-
-            endMs = analysis.endMs,
-
-            description =
-                "AI分析依据：${analysis.content}"
-
-        )
-
-
-        dao.insertEvidence(
-            evidence
-        )
-
+/** 仅查看该督导本人任务的关联证据，不再将分析结论复制成“证据”。 */
+class AiEvidenceRepository(private val db: AppDatabase) {
+    fun observeEvidence(analysisId: Long, actorId: Long) = flow {
+        db.withTransaction {
+            requireNotNull(db.aiAnalysisDao().getAnalysisForActor(analysisId, actorId)) { "证据不存在或无权限访问" }
+        }
+        emitAll(db.aiEvidenceDao().observeForActor(analysisId, actorId))
     }
 
-
-
-
-    fun observeEvidence(
-
-        analysisId: Long
-
-    ) =
-        dao.observeEvidence(
-            analysisId
-        )
-
-
-
-    suspend fun deleteEvidence(
-
-        analysisId: Long
-
-    ){
-
-        dao.deleteByAnalysis(
-            analysisId
-        )
-
+    fun observeByTask(taskId: Long, actorId: Long) = flow {
+        db.withTransaction {
+            requireNotNull(db.taskDao().getEvaluationTaskForActor(taskId, actorId)) { "任务不存在或无权限访问" }
+        }
+        emitAll(db.aiEvidenceDao().observeByTaskForActor(taskId, actorId))
     }
-
-
 }
