@@ -155,10 +155,16 @@ private fun TaskActions(taskId: Long, status: TaskStatus, onNavigate: (String) -
                 ) { Text("继续评价") }
             }
 
-            TaskStatus.COMPLETED -> OutlinedButton(
-                onClick = { onNavigate(Routes.historyDetail(taskId)) },
-                modifier = buttonModifier,
-            ) { Text("查看记录") }
+            TaskStatus.COMPLETED -> {
+                OutlinedButton(
+                    onClick = { onNavigate(Routes.historyDetail(taskId)) },
+                    modifier = buttonModifier,
+                ) { Text("查看记录") }
+                Button(
+                    onClick = { onNavigate(Routes.analysis(taskId)) },
+                    modifier = buttonModifier,
+                ) { Text("AI分析") }
+            }
         }
     }
 }
