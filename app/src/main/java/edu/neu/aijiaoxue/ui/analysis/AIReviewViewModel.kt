@@ -13,43 +13,51 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class AIReviewUiState(
+    val loading: Boolean = true,
     val analysis: AiAnalysisResult? = null,
     val corrections: List<AiCorrection> = emptyList(),
-    val loading: Boolean = false,
     val saving: Boolean = false,
-    val saved: Boolean = false,
+    /** 保存成功后提示一次。 */
+    val savedAt: Long? = null,
     val error: String? = null,
 )
 
-class AIReviewViewModel(private val repository: AiCorrectionRepository, private val actorId: Long) : ViewModel() {
+/** US27：督导确认或修正 AI 结论。 */
+class AIReviewViewModel(
+    private val repository: AiCorrectionRepository,
+    private val actorId: Long,
+    private val analysisId: Long,
+) : ViewModel() {
     private val state = MutableStateFlow(AIReviewUiState())
     val uiState = state.asStateFlow()
     private var observation: Job? = null
 
-    fun load(analysisId: Long) {
+    init { reload() }
+
+    fun reload() {
+        if (state.value.saving) return
         observation?.cancel()
-        state.value = AIReviewUiState(loading = true)
+        state.value = AIReviewUiState()
         observation = viewModelScope.launch {
             try {
-                repository.loadAnalysis(analysisId, actorId)
-                repository.observeCorrections(analysisId, actorId).collect { corrections ->
-                    val analysis = repository.loadAnalysis(analysisId, actorId)
-                    state.update { it.copy(analysis = analysis, corrections = corrections, loading = false) }
+                val analysis = repository.loadAnalysis(analysisId, actorId)
+                state.update { it.copy(analysis = analysis) }
+                repository.observeCorrections(analysisId, actorId).collect { list ->
+                    val current = repository.loadAnalysis(analysisId, actorId)
+                    state.update { it.copy(loading = false, analysis = current, corrections = list) }
                 }
             } catch (e: CancellationException) { throw e }
-            catch (e: Exception) { state.value = AIReviewUiState(error = e.message ?: "加载失败") }
+            catch (e: Exception) { state.update { it.copy(loading = false, error = e.message ?: "加载失败") } }
         }
     }
 
-    // 保留原Screen调用形式；original/accepted不作为可信输入，Repository会从库内推导。
-    @Suppress("UNUSED_PARAMETER")
-    fun save(analysisId: Long, original: String, corrected: String, accepted: Boolean) {
-        if (state.value.saving || state.value.analysis?.id != analysisId) return
-        state.update { it.copy(saving = true, saved = false, error = null) }
+    fun save(correctedContent: String) {
+        if (state.value.saving || state.value.loading || state.value.analysis == null) return
+        state.update { it.copy(saving = true, savedAt = null, error = null) }
         viewModelScope.launch {
             try {
-                repository.saveCorrection(analysisId, actorId, corrected)
-                state.update { it.copy(analysis = it.analysis?.copy(verified = true), saved = true) }
+                repository.saveCorrection(analysisId, actorId, correctedContent)
+                state.update { it.copy(analysis = it.analysis?.copy(verified = true), savedAt = System.currentTimeMillis()) }
             } catch (e: CancellationException) { throw e }
             catch (e: Exception) { state.update { it.copy(error = e.message ?: "保存失败") } }
             finally { state.update { it.copy(saving = false) } }

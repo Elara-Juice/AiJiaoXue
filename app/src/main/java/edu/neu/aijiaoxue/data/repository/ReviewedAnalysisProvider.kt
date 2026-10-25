@@ -20,13 +20,13 @@ class ReviewedAnalysisProvider(private val db: AppDatabase) {
             val correction = db.aiCorrectionDao().getByAnalysis(analysis.id).firstOrNull()
             if (!analysis.verified || correction?.reviewerId != actorId ||
                 correction.originalContent != analysis.content || correction.correctedContent.isBlank()) return@mapNotNull null
-            val evidence = db.aiEvidenceDao().observeEvidence(analysis.id).first().filter { it.taskId == taskId }
+            val evidence = db.aiEvidenceDao().getByAnalysis(analysis.id).filter { it.taskId == taskId }
             val materials = db.captureDao().getMaterials(taskId).associateBy { it.id }
             val events = db.captureDao().observeEvents(taskId).first().associateBy { it.id }
             val summary = if (evidence.isEmpty()) "该审核结论未关联课堂证据，需结合人工记录判断。"
                 else evidence.joinToString("\n") { row ->
                     val sourceState = when {
-                        row.materialId == null && row.eventId == null -> "历史文字说明，未绑定原始课堂证据："
+                        row.materialId == null && row.eventId == null -> "文字或时间提示，未绑定原始课堂证据："
                         (row.materialId != null && !materials.containsKey(row.materialId)) ||
                             (row.eventId != null && !events.containsKey(row.eventId)) -> "原引用已失效或不属于本任务，仅留存文字："
                         else -> "已关联本任务课堂记录："
@@ -38,7 +38,7 @@ class ReviewedAnalysisProvider(private val db: AppDatabase) {
                 }
             ReviewedAnalysisSnapshot(
                 publicationId = 0, analysisId = analysis.id, correctionId = correction.id,
-                reviewerId = actorId, type = analysis.type, originalContent = analysis.content,
+                reviewerId = actorId, type = analysis.type.name, originalContent = analysis.content,
                 // accepted=false 是已修正的有效结论，不是“拒绝审核”。
                 effectiveContent = correction.correctedContent.trim(), evidenceSummary = summary,
                 reviewedAt = correction.createdAt, versionKey = "analysis-${analysis.id}/review-${correction.id}",

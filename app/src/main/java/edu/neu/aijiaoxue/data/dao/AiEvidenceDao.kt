@@ -17,6 +17,9 @@ interface AiEvidenceDao {
     @Query("SELECT * FROM ai_evidences WHERE analysisId = :analysisId ORDER BY startMs, id")
     suspend fun getByAnalysis(analysisId: Long): List<AiEvidence>
 
+    @Query("SELECT * FROM ai_evidences WHERE taskId = :taskId ORDER BY startMs, id")
+    fun observeByTask(taskId: Long): Flow<List<AiEvidence>>
+
     @Query("""SELECT e.* FROM ai_evidences e JOIN ai_analysis_results a ON a.id = e.analysisId
         JOIN supervision_tasks t ON t.id = a.taskId JOIN users u ON u.id = :actorId
         WHERE e.analysisId = :analysisId AND e.taskId = a.taskId

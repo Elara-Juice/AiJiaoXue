@@ -40,12 +40,12 @@ class Sprint2ImprovementTest {
         val error = runCatching { action() }.exceptionOrNull()
         assertTrue("Expected a business denial, got $error", error is IllegalArgumentException || error is IllegalStateException)
     }
-    private suspend fun analysis(taskId: Long, type: String = "BOPPPS", content: String = "原始分析：课堂互动不足", verified: Boolean = false) =
+    private suspend fun analysis(taskId: Long, type: AiAnalysisType = AiAnalysisType.BOPPPS, content: String = "原始分析：课堂互动不足", verified: Boolean = false) =
         db.aiAnalysisDao().insertAnalysis(AiAnalysisResult(taskId = taskId, type = type, content = content, confidence = 0.75f, verified = verified))
 
     private suspend fun reviewedTask(courseId: Long = f.course, supervisorId: Long = f.supervisor): Long {
         val task = f.task(courseId, supervisorId)
-        val analysis = analysis(task, type = "INTERACTION")
+        val analysis = analysis(task, type = AiAnalysisType.INTERACTION)
         AiCorrectionRepository(db).saveCorrection(analysis, supervisorId, reviewedText)
         f.evaluations.save(supervisorId, task, f.draft(task), submit = true)
         return task
@@ -95,6 +95,24 @@ class Sprint2ImprovementTest {
         assertTrue(record.reviewPublished)
         assertTrue(record.reviewedAnalyses.isEmpty())
         assertTrue(record.suggestions.isEmpty())
+    }
+
+    @Test fun sameTimestampReviewsPublishTheNewestIdDeterministically() = runBlocking {
+        val task = f.task()
+        val original = "同一时刻的审核原文"
+        val id = analysis(task, content = original, verified = true)
+        val timestamp = 1_793_000_000_000L
+        db.aiCorrectionDao().insertCorrection(AiCorrection(analysisId = id, reviewerId = f.supervisor,
+            originalContent = original, correctedContent = "先保存的修正", accepted = false, createdAt = timestamp))
+        val latestId = db.aiCorrectionDao().insertCorrection(AiCorrection(analysisId = id, reviewerId = f.supervisor,
+            originalContent = original, correctedContent = "后保存的修正", accepted = false, createdAt = timestamp))
+        val reference = ReviewedAnalysisProvider(db).forSupervisor(f.supervisor, task).single()
+        assertEquals(latestId, reference.correctionId)
+        assertEquals("后保存的修正", reference.effectiveContent)
+        f.evaluations.save(f.supervisor, task, f.draft(task), submit = true)
+        val published = f.improvement.load(f.teacher, task).reviewedAnalyses.single()
+        assertEquals(latestId, published.correctionId)
+        assertEquals("后保存的修正", published.effectiveContent)
     }
 
     @Test fun laterCorrectionAndReanalysisDoNotChangePublishedSnapshotOrConfirmedMeasure() = runBlocking {
@@ -299,6 +317,40 @@ class Sprint2ImprovementTest {
         assertEquals(PlanStatus.CONFIRMED, f.improvement.load(f.teacher, task).plan!!.status)
     }
 
+    @Test fun slowSuggestionRefreshPreservesTeacherEditAndDismissal() = runBlocking {
+        val task = reviewedTask()
+        f.focus(task, count = 2)
+        val initial = f.improvement.refreshSuggestions(f.teacher, task)
+        val adopted = initial.suggestions.first()
+        val dismissed = initial.suggestions.first { it.itemId != adopted.itemId }
+        f.improvement.adoptSuggestion(f.teacher, task, adopted.id)
+        val entered = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        val delayed = ImprovementRepository(db, object : ImprovementSuggestionGenerator {
+            override suspend fun generate(item: ImprovementItem, dimension: EvalDimension?,
+                reviews: List<ReviewedAnalysisSnapshot>): List<ImprovementSuggestion> {
+                entered.complete(Unit)
+                release.await()
+                return RuleBasedImprovementSuggestionGenerator().generate(item, dimension, reviews)
+            }
+        })
+        val request = async { delayed.refreshSuggestions(f.teacher, task) }
+        entered.await()
+        val beforeEdit = f.improvement.load(f.teacher, task)
+        f.improvement.saveMeasures(f.teacher, task, beforeEdit.measures.map {
+            it.copy(content = "教师等待期间自行调整的课堂措施", dueDate = "2026-11-01")
+        })
+        f.improvement.dismissSuggestion(f.teacher, task, dismissed.id)
+        release.complete(Unit)
+        val after = request.await()
+        assertEquals(initial.suggestions.map { it.id }, after.suggestions.map { it.id })
+        assertNotNull(after.suggestions.single { it.id == dismissed.id }.dismissedAt)
+        assertEquals("教师等待期间自行调整的课堂措施", after.measures.single().content)
+        assertEquals(MeasureSource.MODIFIED, after.measures.single().source)
+        assertEquals("2026-11-01", after.measures.single().dueDate)
+        assertEquals(adopted.id, after.measures.single().suggestionId)
+    }
+
     @Test fun sourceAndAdoptionSurviveDatabaseCloseAndReopen() = runBlocking {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val name = "yzj-s2-persistence-${System.nanoTime()}.db"
@@ -307,7 +359,7 @@ class Sprint2ImprovementTest {
             val fixture = Sprint1Fixture(disk)
             fixture.seed()
             val task = fixture.task()
-            val analysis = disk.aiAnalysisDao().insertAnalysis(AiAnalysisResult(taskId = task, type = "INTERACTION",
+            val analysis = disk.aiAnalysisDao().insertAnalysis(AiAnalysisResult(taskId = task, type = AiAnalysisType.INTERACTION,
                 content = "磁盘测试原结论", confidence = 0.8f))
             AiCorrectionRepository(disk).saveCorrection(analysis, fixture.supervisor, reviewedText)
             fixture.evaluations.save(fixture.supervisor, task, fixture.draft(task), submit = true)

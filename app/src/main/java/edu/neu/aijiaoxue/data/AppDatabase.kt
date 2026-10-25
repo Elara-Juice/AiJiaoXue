@@ -9,6 +9,7 @@ import edu.neu.aijiaoxue.data.dao.ImprovementSuggestionDao
 import edu.neu.aijiaoxue.data.entity.ImprovementSuggestion
 import edu.neu.aijiaoxue.data.entity.ReviewPublication
 import edu.neu.aijiaoxue.data.entity.ReviewedAnalysisSnapshot
+import edu.neu.aijiaoxue.data.entity.LegacyAiMigrationArchive
 import edu.neu.aijiaoxue.data.dao.AiAnalysisDao
 import edu.neu.aijiaoxue.data.dao.AiCorrectionDao
 import edu.neu.aijiaoxue.data.dao.AiEvidenceDao
@@ -36,7 +37,7 @@ import edu.neu.aijiaoxue.data.entity.SupervisionTask
 import edu.neu.aijiaoxue.data.entity.User
 
 /**
- * Sprint 2 保留旧评价、计划及待办。v3 已被团队其他分支使用，本分支统一升级 v4。
+ * Sprint 2 团队 v3 与个人 v4 均已交付，统一升级 v5 并保留各自历史数据。
  */
 @Database(
     entities = [
@@ -47,8 +48,9 @@ import edu.neu.aijiaoxue.data.entity.User
         // Sprint 2 AI 分析、证据追溯、人工审核
         AiAnalysisResult::class, AiEvidence::class, AiCorrection::class,
         ReviewPublication::class, ReviewedAnalysisSnapshot::class, ImprovementSuggestion::class,
+        LegacyAiMigrationArchive::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {

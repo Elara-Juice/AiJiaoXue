@@ -121,3 +121,10 @@ enum class SuggestionOrigin(val label: String) {
     RULE_BASED("规则辅助建议"),
     AI_GENERATED("AI候选建议"),
 }
+
+/** AI 分析类型（Sprint 2）。 */
+enum class AiAnalysisType(val label: String) {
+    BOPPPS("教学环节"),
+    INTERACTION("师生互动"),
+    ENGAGEMENT("学生参与"),
+}

@@ -1,31 +1,25 @@
 package edu.neu.aijiaoxue.data.ai
 
+import edu.neu.aijiaoxue.data.model.AiAnalysisType
 
-/**
- * AI课堂分析结果
- *
- * Sprint2核心数据对象
- *
- * 后续Sprint3：
- * 用于历史趋势分析、教学改进验证
- */
+/** 分析器返回的临时结果，由 AIAnalysisRepository 转成 AiAnalysisResult 入库。 */
 data class AIResult(
-
-    // 分析类型
-    val type: String,
-
-
-    // AI分析内容
+    val type: AiAnalysisType,
     val content: String,
-
-
-    // 可信度 0-1
+    /** 可信度 0–1。 */
     val confidence: Float,
-
-
-    // 对应课堂时间范围(ms)
+    /** 对应课堂时间范围，相对 classStartAt 的毫秒数。 */
     val startMs: Long? = null,
+    val endMs: Long? = null,
+    /** US26：支撑该结论的课堂证据。 */
+    val evidences: List<AIEvidenceRef> = emptyList(),
+)
 
-    val endMs: Long? = null
-
+/** 指向一条课堂材料或互动事件；两者都为空时表示时间片段证据。 */
+data class AIEvidenceRef(
+    val description: String,
+    val materialId: Long? = null,
+    val eventId: Long? = null,
+    val startMs: Long? = null,
+    val endMs: Long? = null,
 )

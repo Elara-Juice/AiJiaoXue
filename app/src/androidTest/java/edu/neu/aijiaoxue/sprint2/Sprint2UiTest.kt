@@ -64,7 +64,7 @@ class Sprint2UiTest {
     private suspend fun reviewedTask(submit: Boolean): Pair<Long, Long> {
         val task = f.task()
         val analysis = db.aiAnalysisDao().insertAnalysis(AiAnalysisResult(
-            taskId = task, type = "INTERACTION", content = originalAnalysis, confidence = 0.8f,
+            taskId = task, type = AiAnalysisType.INTERACTION, content = originalAnalysis, confidence = 0.8f,
         ))
         AiCorrectionRepository(db).saveCorrection(analysis, f.supervisor, reviewedAnalysis)
         if (submit) {
