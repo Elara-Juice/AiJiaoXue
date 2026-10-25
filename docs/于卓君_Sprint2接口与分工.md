@@ -1,6 +1,6 @@
 # 于卓君 Sprint 2 接口与分工
 
-实际开发日期：2026-10-24。开发分支：`feature/yzj-sprint2-improve`。基线：团队 `main` 的 `bdbf1e8caae9fc74055c276f0f9f874c91423a47`。原任务表的 10/7—10/11 是历史计划日期，本文件不将本次实现回填为当时完成。
+原个人开发：2026-10-24；整合适配：2026-10-25。开发分支：`feature/yzj-sprint2-improve`。原基线 `bdbf1e8`，本次吸收团队 `main` 的 `302531a061389fbb71a509a102cf95d7638b371e`，保留个人 `4885ec6` 之前的提交历史。原任务表的 10/7—10/11 是历史计划日期，本文件不将本次实现回填为当时完成。
 
 ## 个人交付边界
 
@@ -36,17 +36,33 @@
 
 `MeasureSource.ADOPTED/MODIFIED/ADDED` 继续表示教师采用方式，不用来表示建议是不是 AI 来源。原分析可能因重新分析删除，已发布快照和已采用措施不依赖该原始记录级联存活。
 
-数据库统一为 v4，提供 `AppDatabase.MIGRATIONS` 的 v1/v2/v3→v4 路径，取消破坏性迁移兜底。v3 用于兼容李奕萱分支的数据库形状，**不表示其整个分支已经合入本分支**。历史数据没有发布快照时保持人工计划，不回填历史审核身份或发布版本。
+数据库统一为 **v5**，`AppDatabase.MIGRATIONS` 提供 v1/v2/v3/v4 直达 v5 的保留数据迁移。保留团队 AI 表外键、索引及材料／事件删除后的 SET_NULL 行为；审核人字段可空以兼容旧版本，新审核必须使用真实授权 actor。原 v4 的发布、建议、教师编辑及待办保留；历史无发布快照的评价保持人工流程，不补造历史身份或发布版本。
+
+旧 AI 数据若存在孤立父记录、未知分析类型或失效引用，原始行与原因保存在 `LegacyAiMigrationArchive`，不进入有效审核依据；可空失效引用置空。该归档仅用于迁移诊断，无业务级联外键，不开放给教师页面。历史 schema 1～4 保留，新结构导出为 5.json。
 
 ## 团队交接
 
 | 对接人／模块 | 本分支交接内容 | 尚需团队确认的事项 |
 |---|---|---|
-| 李奕萱／公共数据与整合 | v4 schema、三条旧库迁移、nullable 审核人、发布及建议实体 | 合并其未整合分支时核对重复公共修改、版本号、DAO 与权限差异；不能直接覆盖新 v4 |
+| 李奕萱／公共数据与整合 | v5 schema、四来源直达迁移、nullable 审核人、团队 AI 约束及个人建议域 | 基于 main 302531a 的整合；后续迁移继续保留历史 schema 与来源数据 |
 | 孙浩然／分析与审核 | 有身份的审核写入、有效修正消费、独立 `ImprovementSuggestionGenerator` 接口 | 真实转写、真实分析与建议生成服务的接入和课堂效果验证 |
 | 王博田／教师反馈入口 | 复用 taskId 的反馈→重点→计划→待办路径 | 同课程同任务演示与教师发布范围确认 |
 | 于卓君／评价与改进 | 只读审核参考、候选处置、来源快照、人工回退与测试 | 人工代码审阅、交付 SHA、团队评审和整合结论 |
 
 新增生成器只能消费传入的发布快照，返回稳定的生成版本及来源键。真实服务接入后仍需保留未审核不发布、事务外生成后复核、教师最终确认等边界；不要仅把 `RULE_BASED` 改为模型标签而保持规则输出。
 
-本地接口验证已完成：19 条 JVM 通过，114 条不同设备用例按全量与针对复测的最新结果全部通过；其中 v1/v2/v3→v4 迁移均实际验证。具体各轮结果及限制见 `于卓君_Sprint2测试记录.md`。用户已明确授权提交并推送个人分支，实现提交为 `0627420da6c63d61c353c248374a18bbc62cabfa`，版本同时通过 `docs/test-evidence/source-manifest.json` 绑定；团队人工验收另行记录。
+本次整合的实际构建、迁移、数据、UI 与正式导航验证以 [测试记录](于卓君_Sprint2测试记录.md) 为准。2026-10-24 的 19/114 结果只对应原个人版本；自动测试和 AI 审阅不登记为团队人工验收。
+
+## 本次统一的公共接口
+
+| 接口 | 统一契约 |
+|---|---|
+| `AIAnalyzer.analyze` | `taskId, materials, events, engagements` 四参数，保留 main 的参与记录输入 |
+| `AIResult` / `AiAnalysisResult.type` | 使用 `AiAnalysisType`；发布快照在消费边界保存 `.name`，不保存中文 label |
+| `AIAnalysisRepository` | `loadTask/analyzeAndSave/observeResults/clearResults(taskId, actorId)`；分析写回前在事务内重查权限、任务、材料、事件、参与与最新审核版本 |
+| `AiCorrectionRepository` | `loadAnalysis/observeCorrections(analysisId, actorId)`；`saveCorrection(analysisId, actorId, correctedContent)` 返回修正 ID，事务内重查并核验 verified 更新行数 |
+| `AiEvidenceRepository` | `observeEvidence(analysisId, actorId)`、`observeByTask(taskId, actorId)`，按数据层授权读取 |
+| DAO / 审核映射 | 最新审核按 `createdAt DESC, id DESC`；证据材料和事件必须属于同一任务；DAO 为内部持久化接口，页面通过有 actor 的 Repository |
+| 导航 | 保留 main 的 `moduleViewModel` 和分析 ID 参数；评价返回复用原路由与 VM，仅刷新审核参考；Capture 保留单一分析回调 |
+
+耗时分析不会覆盖执行期间新增的审核或参与数据；耗时建议不会改写教师编辑／放弃决定，计划确认和事项变化后拒绝旧写回。分析可以重新运行，正式评价的发布快照保持冻结。

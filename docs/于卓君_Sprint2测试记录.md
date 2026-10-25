@@ -1,5 +1,52 @@
 # 于卓君 Sprint 2 测试记录
 
+## 2026-10-25：团队main整合版本（本次交付）
+
+被测实现提交：`736c9c0a0c96dcefc156d70d5a201cbea9d0a9dc`。父提交分别为个人 `4885ec6882cad1d6c4ae3cda495f26e2589e0d11` 与团队 main `302531a061389fbb71a509a102cf95d7638b371e`；普通合并发生在 `feature/yzj-sprint2-improve`，不向 main 合并。
+
+**最终构建通过；19/19 条 JVM 用例通过；同一次无筛选全量设备运行 130/130 通过，0 failures、0 errors、0 skipped。**本次不是用多次定向复测拼出全量通过数量。
+
+| 验证项 | 结果与范围 | 原始证据 |
+|---|---|---|
+| 主工程及测试APK编译 | `assembleDebug`、`assembleDebugAndroidTest` 通过；Room生成v5 schema，历史v3/v4保持 | [完整构建日志](test-evidence/integration-20261025/full-build.log) |
+| JVM | 19/19：原规则／验证16条与建议生成3条 | [本次证据目录](test-evidence/integration-20261025/) 中4份TEST XML |
+| 最终设备全量 | 130/130，同一次运行，无类筛选；含原86条回归及整合后44条S2用例 | [全量XML](test-evidence/integration-20261025/instrumentation-full-130-pass.xml) |
+| 团队分析测试 | 6/6，四输入、证据、替换、审核、越权、任务状态与材料删除行为 | 同上 `data.AiAnalysisTest` |
+| 上游安全与并发 | 11/11，actor权限、审核原子性、慢分析遇新审核／参与变化、跨任务证据、回滚、空结果／异常保留旧数据 | 同上 `AiUpstreamSecurityTest` |
+| 教师改进数据 | 17/17，正式发布冻结、空发布、教师隔离、逐项处置、幂等、确认锁定、人工回退、迟到生成、同时间最新审核、教师编辑／放弃保留 | 同上 `Sprint2ImprovementTest` |
+| 真实旧库迁移 | 5/5，v1/2/3、正常v4、异常v4；保留计划／来源，恢复FK／索引，归档原字段，三表已删除高ID不复用 | 同上 `Sprint2MigrationTest` |
+| S2组件交互 | 4/4，评分不自动写入、建议处置、日期、确认、待办、失败人工回退及快速离页保存 | 同上 `Sprint2UiTest` |
+| 正式App导航 | 1/1，真实登录及AppNavHost；同一草稿往返审核、提交、教师反馈／重点／建议／确认／待办与返回 | 同上 `Sprint2NavigationTest`；[定向XML](test-evidence/integration-20261025/navigation-1-pass.xml) |
+
+### 环境、执行与隔离
+
+沿用专用 `YzjS2Test_20261024` AVD，serial `emulator-5560`，API37、Android17、x86_64。没有清空个人演示设备；迁移用随机独立数据库，Repository用内存库，正式导航创建专用测试账号／课程后仅清理自己的行。原Sprint1工程 HEAD 保持 `7df61fc` 且工作区干净。验证结束后已停止本次启动的专用模拟器释放资源，AVD保留供复跑。
+
+Windows + Android Studio JBR25、SDK `D:\Android\Sdk`、Gradle Wrapper9.6.0、缓存 `D:\Android\.gradle`。使用根目录 `Build-Sprint2.ps1` 的英文 `S:` 映射。最终实际命令：
+
+```powershell
+.\Build-Sprint2.ps1 -Tasks @(':app:assembleDebug', ':app:testDebugUnitTest', ':app:connectedDebugAndroidTest') -DeviceSerial emulator-5560
+```
+
+本次执行顺序为初次构建／JVM→迁移专项→完整导航专项→最终全量。首轮传入多个class的筛选命令，XML实际仅列迁移5条（5/5通过），没有登记成所有专项已执行；随后导航1/1和最终无筛选全量提供完整覆盖。初轮结果保存在 [迁移XML](test-evidence/integration-20261025/migration-initial-5-pass.xml)。
+
+代码二审后加入空分析结果保全，并强化三AI表历史自增ID测试；上述最终全量已包含这些修改。新迁移代码的数组泛型警告已修正；构建工具仍有protobuf/JDK的弃用提示，不影响本轮构建和测试。没有修改原始XML来消除失败，也没有新增测试后仍引用旧统计。
+
+### 交付版本与限制
+
+新APK：`实验/3/于卓君_Sprint2_集成测试版_20261025.apk`，SHA256 `7ab625e62807f4524b336786715e3648bfa8a5fea74e0a79637340b19b1310df`。原个人测试APK保留。
+
+[源码／APK／测试哈希清单](test-evidence/integration-20261025/source-manifest.json) 绑定本次实现提交、源码Git blob、工作文件SHA256和报告；[结果汇总](test-evidence/integration-20261025/verification-summary.json) 列出所有测试类。后续文档整理提交不改变被测源码。
+
+19处合并冲突及自动合并的Capture重复参数已处理；main的公共AI能力和个人评价／改进能力均纳入本次回归。当前上游仍是Mock，建议仍是明示规则辅助；本报告验证软件行为与数据保护，不证明真实模型分析准确性、教学改善成效，也不代替团队人工验收。
+
+---
+
+## 2026-10-24：原个人版本历史记录
+
+以下内容及旧 `test-evidence/` 文件仅对应原实现 `0627420`，保留原始经过与局限，不表示本次版本：
+
+
 记录日期：2026-10-24。分支：`feature/yzj-sprint2-improve`。基线提交：`bdbf1e8caae9fc74055c276f0f9f874c91423a47`。测试完成后，用户明确授权提交并推送个人分支。对应实现提交为 `0627420da6c63d61c353c248374a18bbc62cabfa`。被测源码与 APK 由 [source-manifest.json](test-evidence/source-manifest.json) 的 SHA256 清单绑定；基线 SHA 不是本次修改的提交 SHA。
 
 最终结果：**19 条 JVM 用例通过；114 条不同设备用例在全量运行及针对复测后的最新结果均通过，无仍失败用例。**设备结果来自“全量 113/114 通过＋修复一处测试同步问题后 S2 UI 4/4 复测通过”，不是单次全量 114/114 全绿。

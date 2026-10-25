@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuites tests="5" failures="0" errors="0" skipped="0" time="0.000" timestamp="2026-10-25T06:54:29" hostname="localhost">
+  <testsuite name="edu.neu.aijiaoxue.sprint2.Sprint2MigrationTest" tests="5" failures="0" errors="0" skipped="0" time="1.472" timestamp="2026-10-25T06:54:29" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5560" />
+    </properties>
+    <testcase name="version1KeepsManualDraftConfirmedPlanAndTodo" classname="edu.neu.aijiaoxue.sprint2.Sprint2MigrationTest" time="0.321" />
+    <testcase name="version2KeepsManualDataAndLegacyAi" classname="edu.neu.aijiaoxue.sprint2.Sprint2MigrationTest" time="0.267" />
+    <testcase name="version3KeepsManualDataAndReviewedAi" classname="edu.neu.aijiaoxue.sprint2.Sprint2MigrationTest" time="0.270" />
+    <testcase name="version4KeepsPublishedSourcesAdoptionDismissalAndConfirmedTodo" classname="edu.neu.aijiaoxue.sprint2.Sprint2MigrationTest" time="0.279" />
+    <testcase name="version4ArchivesInvalidAiWithoutLosingPersonalData" classname="edu.neu.aijiaoxue.sprint2.Sprint2MigrationTest" time="0.335" />
+  </testsuite>
+</testsuites>
