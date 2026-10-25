@@ -49,6 +49,8 @@ object Routes {
     const val IMPROVE_PLAN = "improve/{taskId}/plan"
     fun improvePlan(taskId: Long) = "improve/$taskId/plan"
     const val IMPROVE_TODO = "improve/todo"
+    const val IMPROVE_EXECUTION = "improve/{taskId}/execution"
+    fun improveExecution(taskId: Long) = "improve/$taskId/execution"
 
     // ui/analysis、ui/evidence（孙浩然，Sprint 2）
     const val ANALYSIS = "analysis/{taskId}"
