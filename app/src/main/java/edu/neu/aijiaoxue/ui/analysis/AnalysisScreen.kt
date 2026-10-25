@@ -27,108 +27,138 @@ import edu.neu.aijiaoxue.ui.evidence.EvidencePanel
 const val ANALYSIS_PAGE_TAG = "analysis_page"
 
 @Composable
-fun AnalysisScreen(
-    viewModel: AnalysisViewModel,
-    onBack: () -> Unit,
-    onReview: (Long) -> Unit
-) {
+<<<<<<< feature/lyx-sprint2
+fun AnalysisScreen(viewModel: AnalysisViewModel, onBack: () -> Unit, onReview: (Long) -> Unit) {
     val state by viewModel.uiState.collectAsState()
-
     ModulePage("AI 课堂分析", onBack) { padding ->
-
         if (state.loading) {
-            CircularProgressIndicator(
-                modifier = Modifier
-                    .padding(padding)
-                    .padding(24.dp)
-            )
+            CircularProgressIndicator(Modifier.padding(padding).padding(24.dp))
             return@ModulePage
-        }
+=======
+fun AnalysisScreen(
 
+    taskId: Long,
+
+    viewModel: AnalysisViewModel,
+
+    evidences: List<AiEvidence> = emptyList(),
+
+    onReview: (
+        Long,
+        String
+    ) -> Unit
+
+){
+
+
+    val state by
+    viewModel.uiState.collectAsState()
+
+
+
+    Column(
+
+        modifier = Modifier
+            .padding(16.dp)
+
+    ){
+
+
+        Text(
+            text = "AI课堂分析"
+        )
+
+
+        Spacer(
+            Modifier.height(16.dp)
+        )
+
+
+
+        Button(
+
+            onClick = {
+
+                viewModel.analyze(
+                    taskId
+                )
+
+            },
+            enabled = !state.analyzing
+
+        ) {
+
+            Text(
+                if(state.analyzing)
+                    "分析中..."
+                else
+                    "开始AI分析"
+            )
+
+>>>>>>> main
+        }
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .testTag(ANALYSIS_PAGE_TAG),
+            Modifier.fillMaxSize().padding(padding).testTag(ANALYSIS_PAGE_TAG),
             contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             state.task?.let { task ->
-                item {
+                item { Text("任务 ${task.code}  ${task.supervisionDate} 第 ${task.period} 节", style = MaterialTheme.typography.titleMedium) }
+            }
+            state.error?.let { item { MessageCard(it, error = true) } }
+            if (state.task != null) item {
+                if (!state.canAnalyze) MessageCard("课堂采集结束后才能进行 AI 分析")
+                Button(
+                    onClick = viewModel::analyze,
+                    enabled = state.canAnalyze && !state.analyzing,
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                ) {
                     Text(
-                        text = "任务 ${task.code}  ${task.supervisionDate} 第 ${task.period} 节",
-                        style = MaterialTheme.typography.titleMedium
+                        when {
+                            state.analyzing -> "分析中…"
+                            state.results.isEmpty() -> "开始 AI 分析"
+                            else -> "重新分析"
+                        }
                     )
                 }
+                if (state.results.isNotEmpty()) Text(
+                    "重新分析会替换当前结果和审核状态",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
-
-            state.error?.let { error ->
-                item {
-                    MessageCard(error, error = true)
-                }
-            }
-
-            if (state.task != null) {
-                item {
-                    if (!state.canAnalyze) {
-                        MessageCard("课堂采集结束后才能进行 AI 分析")
-                    }
-
-                    Button(
-                        onClick = viewModel::analyze,
-                        enabled = state.canAnalyze && !state.analyzing,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp)
-                    ) {
-                        Text(
-                            when {
-                                state.analyzing -> "分析中…"
-                                state.results.isEmpty() -> "开始 AI 分析"
-                                else -> "重新分析"
-                            }
-                        )
-                    }
-
-                    if (state.results.isNotEmpty()) {
-                        Text(
-                            text = "重新分析会替换当前结果和审核状态",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-
+<<<<<<< feature/lyx-sprint2
             items(state.results, key = { it.id }) { result ->
                 SectionCard(result.type.label) {
                     Text(result.content)
-
                     Text(
-                        text = "可信度 ${(result.confidence * 100).toInt()}% · " +
-                            if (result.verified) "已审核" else "待审核",
+                        "可信度 ${(result.confidence * 100).toInt()}%  ·  ${if (result.verified) "已审核" else "待审核"}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-
-                    EvidencePanel(
-                        state.evidences[result.id].orEmpty()
-                    )
-
-                    OutlinedButton(
-                        onClick = { onReview(result.id) },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            if (result.verified) {
-                                "查看审核记录"
-                            } else {
-                                "审核 AI 结果"
-                            }
-                        )
+                    EvidencePanel(state.evidences[result.id].orEmpty())
+                    OutlinedButton(onClick = { onReview(result.id) }, modifier = Modifier.fillMaxWidth()) {
+                        Text(if (result.verified) "查看审核记录" else "审核 AI 结果")
                     }
                 }
             }
+=======
+
+
+            Text(
+                text =
+                    "可信度：${result.confidence}"
+            )
+
+            Spacer(
+                modifier = Modifier.height(24.dp)
+            )
+        }
+
+        if (evidences.isNotEmpty()) {
+            EvidencePanel(evidences = evidences)
+>>>>>>> main
         }
     }
 }
+给我避免冲突的完整改法
