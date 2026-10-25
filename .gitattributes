@@ -1,2 +1,2 @@
 # Preserve original test evidence bytes so archived SHA256 checks work on every OS.
-docs/test-evidence/integration-20261025/** -text
+docs/test-evidence/integration-20261025/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
