@@ -43,7 +43,7 @@ import edu.neu.aijiaoxue.data.entity.User
         // Sprint 2 AI 分析、证据追溯、人工审核
         AiAnalysisResult::class, AiEvidence::class, AiCorrection::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {

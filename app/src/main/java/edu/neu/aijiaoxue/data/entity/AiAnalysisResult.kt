@@ -1,85 +1,34 @@
 package edu.neu.aijiaoxue.data.entity
 
-
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
-
+import edu.neu.aijiaoxue.data.model.AiAnalysisType
 
 /**
- * Sprint2 AI分析结果实体
- *
- * 用于保存AI分析后的正式结果。
- *
- * 与 data.ai.AIResult 区别：
- *
- * AIResult:
- * AI服务运行过程中的临时对象
- *
- * AiAnalysisResult:
- * Room数据库持久化对象
- *
- * Sprint3:
- * 用于历史趋势分析和教学改进验证
+ * Sprint 2 AI 分析结果，Room 持久化对象；data.ai.AIResult 是分析器返回的临时对象。
+ * 删除督导任务时级联删除，避免留下找不到任务的分析结果。
  */
 @Entity(
-    tableName = "ai_analysis_results"
+    tableName = "ai_analysis_results",
+    foreignKeys = [ForeignKey(
+        entity = SupervisionTask::class, parentColumns = ["id"], childColumns = ["taskId"],
+        onDelete = ForeignKey.CASCADE,
+    )],
+    indices = [Index("taskId")],
 )
 data class AiAnalysisResult(
-
-
-    @PrimaryKey(autoGenerate = true)
-    val id: Long = 0,
-
-
-    /**
-     * 所属督导任务
-     */
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val taskId: Long,
-
-
-    /**
-     * 分析类型
-     *
-     * BOPPPS
-     * INTERACTION
-     * ENGAGEMENT
-     */
-    val type: String,
-
-
-    /**
-     * AI分析文本
-     */
+    val type: AiAnalysisType,
     val content: String,
-
-
-    /**
-     * AI可信度 0-1
-     */
+    /** 可信度 0–1。 */
     val confidence: Float,
-
-
-    /**
-     * 对应课堂时间范围
-     */
+    /** 对应课堂时间范围，相对 classStartAt 的毫秒数。 */
     val startMs: Long? = null,
-
-
     val endMs: Long? = null,
-
-
-    /**
-     * 是否人工审核
-     *
-     * US27
-     */
+    /** US27：督导已审核（确认或修正）。 */
     val verified: Boolean = false,
-
-
-    /**
-     * 创建时间
-     */
-    val createdAt: Long =
-        System.currentTimeMillis()
-
+    val createdAt: Long = System.currentTimeMillis(),
 )
