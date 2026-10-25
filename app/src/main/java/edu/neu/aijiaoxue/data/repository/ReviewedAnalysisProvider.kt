@@ -2,6 +2,8 @@ package edu.neu.aijiaoxue.data.repository
 
 import androidx.room.withTransaction
 import edu.neu.aijiaoxue.data.AppDatabase
+import edu.neu.aijiaoxue.data.entity.AiAnalysisResult
+import edu.neu.aijiaoxue.data.entity.AiCorrection
 import edu.neu.aijiaoxue.data.entity.ReviewPublication
 import edu.neu.aijiaoxue.data.entity.ReviewedAnalysisSnapshot
 import edu.neu.aijiaoxue.data.model.EvalStatus
@@ -18,8 +20,7 @@ class ReviewedAnalysisProvider(private val db: AppDatabase) {
         db.aiAnalysisDao().getByTask(taskId).mapNotNull { analysis ->
             // 不能仅信任 verified；旧版记录没有审核人，必须重新审核。
             val correction = db.aiCorrectionDao().getByAnalysis(analysis.id).firstOrNull()
-            if (!analysis.verified || correction?.reviewerId != actorId ||
-                correction.originalContent != analysis.content || correction.correctedContent.isBlank()) return@mapNotNull null
+            if (correction == null) return@mapNotNull null
             val evidence = db.aiEvidenceDao().getByAnalysis(analysis.id).filter { it.taskId == taskId }
             val materials = db.captureDao().getMaterials(taskId).associateBy { it.id }
             val events = db.captureDao().observeEvents(taskId).first().associateBy { it.id }
@@ -36,13 +37,7 @@ class ReviewedAnalysisProvider(private val db: AppDatabase) {
                     }.orEmpty()
                     sourceState + row.description.take(500) + range
                 }
-            ReviewedAnalysisSnapshot(
-                publicationId = 0, analysisId = analysis.id, correctionId = correction.id,
-                reviewerId = actorId, type = analysis.type.name, originalContent = analysis.content,
-                // accepted=false 是已修正的有效结论，不是“拒绝审核”。
-                effectiveContent = correction.correctedContent.trim(), evidenceSummary = summary,
-                reviewedAt = correction.createdAt, versionKey = "analysis-${analysis.id}/review-${correction.id}",
-            )
+            createReviewedAnalysisSnapshot(analysis, correction, actorId, summary)
         }
 
     /** 由评价提交事务调用；提交前后与审核写入同受 Room 事务串行保护。 */
@@ -58,4 +53,28 @@ class ReviewedAnalysisProvider(private val db: AppDatabase) {
         ))
         rows.forEach { dao.insertSnapshot(it.copy(publicationId = publicationId)) }
     }
+}
+
+/** Pure boundary validation so reviewed results cannot publish stale or unauthored corrections. */
+internal fun createReviewedAnalysisSnapshot(
+    analysis: AiAnalysisResult,
+    correction: AiCorrection,
+    actorId: Long,
+    evidenceSummary: String,
+): ReviewedAnalysisSnapshot? {
+    if (!analysis.verified || correction.reviewerId != actorId ||
+        correction.originalContent != analysis.content || correction.correctedContent.isBlank()) return null
+    return ReviewedAnalysisSnapshot(
+        publicationId = 0,
+        analysisId = analysis.id,
+        correctionId = correction.id,
+        reviewerId = actorId,
+        type = analysis.type.name,
+        originalContent = analysis.content,
+        // accepted=false 是已修正的有效结论，不是“拒绝审核”。
+        effectiveContent = correction.correctedContent.trim(),
+        evidenceSummary = evidenceSummary,
+        reviewedAt = correction.createdAt,
+        versionKey = "analysis-${analysis.id}/review-${correction.id}",
+    )
 }

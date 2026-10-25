@@ -127,4 +127,6 @@ enum class AiAnalysisType(val label: String) {
     BOPPPS("教学环节"),
     INTERACTION("师生互动"),
     ENGAGEMENT("学生参与"),
+    VERBAL_REPETITION("口头表达"),
+    TEACHING_TRANSITION("教学环节衔接"),
 }
