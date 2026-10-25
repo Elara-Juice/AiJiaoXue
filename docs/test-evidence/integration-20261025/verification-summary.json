@@ -1,0 +1,157 @@
+{
+  "implementation_commit": "736c9c0a0c96dcefc156d70d5a201cbea9d0a9dc",
+  "main_baseline": "302531a061389fbb71a509a102cf95d7638b371e",
+  "personal_parent": "4885ec6882cad1d6c4ae3cda495f26e2589e0d11",
+  "date": "2026-10-25",
+  "device": "emulator-5560 / YzjS2Test_20261024 / API 37 Android 17",
+  "jvm": {
+    "tests": 19,
+    "passed": 19,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "classes": [
+      {
+        "class": "edu.neu.aijiaoxue.data.RulesTest",
+        "tests": 7,
+        "passed": 7
+      },
+      {
+        "class": "edu.neu.aijiaoxue.ExampleUnitTest",
+        "tests": 1,
+        "passed": 1
+      },
+      {
+        "class": "edu.neu.aijiaoxue.Sprint1ValidationTest",
+        "tests": 8,
+        "passed": 8
+      },
+      {
+        "class": "edu.neu.aijiaoxue.sprint2.ImprovementSuggestionGeneratorTest",
+        "tests": 3,
+        "passed": 3
+      }
+    ]
+  },
+  "instrumentation": {
+    "tests": 130,
+    "passed": 130,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "single_full_run": true,
+    "report_timestamp_utc": "2026-10-25T07:00:20",
+    "classes": [
+      {
+        "class": "edu.neu.aijiaoxue.EndToEndTest",
+        "tests": 1,
+        "passed": 1
+      },
+      {
+        "class": "edu.neu.aijiaoxue.ExampleInstrumentedTest",
+        "tests": 1,
+        "passed": 1
+      },
+      {
+        "class": "edu.neu.aijiaoxue.LoginFlowTest",
+        "tests": 4,
+        "passed": 4
+      },
+      {
+        "class": "edu.neu.aijiaoxue.Sprint1NavigationTest",
+        "tests": 2,
+        "passed": 2
+      },
+      {
+        "class": "edu.neu.aijiaoxue.Sprint1RepositoryTest",
+        "tests": 15,
+        "passed": 15
+      },
+      {
+        "class": "edu.neu.aijiaoxue.Sprint1UiTest",
+        "tests": 6,
+        "passed": 6
+      },
+      {
+        "class": "edu.neu.aijiaoxue.data.AiAnalysisTest",
+        "tests": 6,
+        "passed": 6
+      },
+      {
+        "class": "edu.neu.aijiaoxue.data.DaoQueriesTest",
+        "tests": 11,
+        "passed": 11
+      },
+      {
+        "class": "edu.neu.aijiaoxue.data.DemoDataTest",
+        "tests": 7,
+        "passed": 7
+      },
+      {
+        "class": "edu.neu.aijiaoxue.sprint2.AiUpstreamSecurityTest",
+        "tests": 11,
+        "passed": 11
+      },
+      {
+        "class": "edu.neu.aijiaoxue.sprint2.Sprint2ImprovementTest",
+        "tests": 17,
+        "passed": 17
+      },
+      {
+        "class": "edu.neu.aijiaoxue.sprint2.Sprint2MigrationTest",
+        "tests": 5,
+        "passed": 5
+      },
+      {
+        "class": "edu.neu.aijiaoxue.sprint2.Sprint2NavigationTest",
+        "tests": 1,
+        "passed": 1
+      },
+      {
+        "class": "edu.neu.aijiaoxue.sprint2.Sprint2UiTest",
+        "tests": 4,
+        "passed": 4
+      },
+      {
+        "class": "edu.neu.aijiaoxue.ui.F1FeedbackRegressionTest",
+        "tests": 11,
+        "passed": 11
+      },
+      {
+        "class": "edu.neu.aijiaoxue.ui.capture.CaptureEngagementTest",
+        "tests": 6,
+        "passed": 6
+      },
+      {
+        "class": "edu.neu.aijiaoxue.ui.capture.CaptureInteractionTest",
+        "tests": 6,
+        "passed": 6
+      },
+      {
+        "class": "edu.neu.aijiaoxue.ui.capture.CaptureMaterialDeleteTest",
+        "tests": 4,
+        "passed": 4
+      },
+      {
+        "class": "edu.neu.aijiaoxue.ui.capture.CapturePhotoTest",
+        "tests": 4,
+        "passed": 4
+      },
+      {
+        "class": "edu.neu.aijiaoxue.ui.capture.CaptureRecordingTest",
+        "tests": 5,
+        "passed": 5
+      },
+      {
+        "class": "edu.neu.aijiaoxue.ui.course.MyTasksTest",
+        "tests": 3,
+        "passed": 3
+      }
+    ]
+  },
+  "preliminary_runs": {
+    "migration_initial": 5,
+    "navigation": 1,
+    "note": "首轮多类筛选实际仅执行迁移5条；最终无筛选全量覆盖全部130条。"
+  }
+}

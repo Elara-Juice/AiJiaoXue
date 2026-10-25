@@ -6,6 +6,7 @@ import edu.neu.aijiaoxue.data.entity.AiAnalysisResult
 import edu.neu.aijiaoxue.data.entity.AiCorrection
 import edu.neu.aijiaoxue.data.repository.AiCorrectionRepository
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -29,14 +30,21 @@ class AIReviewViewModel(
 ) : ViewModel() {
     private val state = MutableStateFlow(AIReviewUiState())
     val uiState = state.asStateFlow()
+    private var observation: Job? = null
 
-    init {
-        viewModelScope.launch {
+    init { reload() }
+
+    fun reload() {
+        if (state.value.saving) return
+        observation?.cancel()
+        state.value = AIReviewUiState()
+        observation = viewModelScope.launch {
             try {
                 val analysis = repository.loadAnalysis(analysisId, actorId)
                 state.update { it.copy(analysis = analysis) }
-                repository.observeCorrections(analysisId).collect { list ->
-                    state.update { it.copy(loading = false, corrections = list) }
+                repository.observeCorrections(analysisId, actorId).collect { list ->
+                    val current = repository.loadAnalysis(analysisId, actorId)
+                    state.update { it.copy(loading = false, analysis = current, corrections = list) }
                 }
             } catch (e: CancellationException) { throw e }
             catch (e: Exception) { state.update { it.copy(loading = false, error = e.message ?: "加载失败") } }
@@ -44,9 +52,9 @@ class AIReviewViewModel(
     }
 
     fun save(correctedContent: String) {
-        if (state.value.saving) return
+        if (state.value.saving || state.value.loading || state.value.analysis == null) return
+        state.update { it.copy(saving = true, savedAt = null, error = null) }
         viewModelScope.launch {
-            state.update { it.copy(saving = true, error = null) }
             try {
                 repository.saveCorrection(analysisId, actorId, correctedContent)
                 state.update { it.copy(analysis = it.analysis?.copy(verified = true), savedAt = System.currentTimeMillis()) }

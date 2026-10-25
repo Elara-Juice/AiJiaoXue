@@ -541,7 +541,7 @@ interface EvaluationDao {
 
 @Dao
 interface ImprovementDao {
-    @Query("""SELECT m.* FROM improvement_measures m
+    @Query("""SELECT m.* FROM improvement_measures m LEFT JOIN improvement_suggestions s ON s.id = m.suggestionId
         JOIN improvement_plans p ON p.id = m.planId
         JOIN improvement_items i ON i.id = m.itemId AND i.planId = p.id
         JOIN supervision_tasks t ON t.id = p.taskId JOIN courses c ON c.id = t.courseId
@@ -552,8 +552,11 @@ interface ImprovementDao {
 
     /** US42：身份、课程归属、计划归属与筛选均在SQL中限制。 */
     @Query("""SELECT m.id AS measureId, m.planId, p.taskId, m.content, m.source, m.dueDate, m.status,
+        m.suggestionId, s.content AS suggestionContent, s.rationale AS suggestionRationale,
+        s.generatorMode AS suggestionOrigin, s.reviewVersionKey,
         i.description AS itemDescription, i.priority, c.name AS courseName, t.supervisionDate
-        FROM improvement_measures m JOIN improvement_plans p ON p.id = m.planId
+        FROM improvement_measures m LEFT JOIN improvement_suggestions s ON s.id = m.suggestionId
+        JOIN improvement_plans p ON p.id = m.planId
         JOIN improvement_items i ON i.id = m.itemId AND i.planId = p.id
         JOIN supervision_tasks t ON t.id = p.taskId JOIN courses c ON c.id = t.courseId
         JOIN users u ON u.id = :actorId
@@ -621,9 +624,11 @@ interface ImprovementDao {
     @Query(
         """
         SELECT m.id AS measureId, m.planId, p.taskId, m.content, m.source, m.dueDate, m.status,
+        m.suggestionId, s.content AS suggestionContent, s.rationale AS suggestionRationale,
+        s.generatorMode AS suggestionOrigin, s.reviewVersionKey,
                i.description AS itemDescription, i.priority,
                c.name AS courseName, t.supervisionDate
-        FROM improvement_measures m
+        FROM improvement_measures m LEFT JOIN improvement_suggestions s ON s.id = m.suggestionId
         JOIN improvement_plans p ON p.id = m.planId
         JOIN improvement_items i ON i.id = m.itemId
         JOIN supervision_tasks t ON t.id = p.taskId
@@ -639,9 +644,11 @@ interface ImprovementDao {
     @Query(
         """
         SELECT m.id AS measureId, m.planId, p.taskId, m.content, m.source, m.dueDate, m.status,
+        m.suggestionId, s.content AS suggestionContent, s.rationale AS suggestionRationale,
+        s.generatorMode AS suggestionOrigin, s.reviewVersionKey,
                i.description AS itemDescription, i.priority,
                c.name AS courseName, t.supervisionDate
-        FROM improvement_measures m
+        FROM improvement_measures m LEFT JOIN improvement_suggestions s ON s.id = m.suggestionId
         JOIN improvement_plans p ON p.id = m.planId
         JOIN improvement_items i ON i.id = m.itemId
         JOIN supervision_tasks t ON t.id = p.taskId

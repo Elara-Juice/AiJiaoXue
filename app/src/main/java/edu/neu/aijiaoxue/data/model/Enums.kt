@@ -116,6 +116,12 @@ enum class MeasureStatus(val label: String) {
     DONE("已完成"),
 }
 
+/** 建议的生成来源；与教师采纳/修改的处置方式分开保存。 */
+enum class SuggestionOrigin(val label: String) {
+    RULE_BASED("规则辅助建议"),
+    AI_GENERATED("AI候选建议"),
+}
+
 /** AI 分析类型（Sprint 2）。 */
 enum class AiAnalysisType(val label: String) {
     BOPPPS("教学环节"),

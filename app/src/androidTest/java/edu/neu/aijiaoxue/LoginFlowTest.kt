@@ -6,7 +6,9 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextReplacement
+import androidx.test.espresso.Espresso.closeSoftKeyboard
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import edu.neu.aijiaoxue.data.Session
@@ -34,7 +36,8 @@ class LoginFlowTest {
     private fun login(account: String, password: String) {
         rule.onNode(hasSetTextAction() and hasText("账号")).performTextReplacement(account)
         rule.onNode(hasSetTextAction() and hasText("密码")).performTextReplacement(password)
-        rule.onNode(hasText("登录") and !hasSetTextAction()).performClick()
+        closeSoftKeyboard()
+        rule.onNode(hasText("登录") and !hasSetTextAction()).performScrollTo().performClick()
     }
 
     @Test

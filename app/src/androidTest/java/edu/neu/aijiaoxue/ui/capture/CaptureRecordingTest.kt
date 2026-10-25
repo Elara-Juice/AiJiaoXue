@@ -218,10 +218,11 @@ class CaptureRecordingTest {
             )
         }
         showCapture()
-        waitFor("共 12 条")
+        waitFor("课堂录音")
         val records = rule.onNodeWithTag(RECORD_LIST_TAG)
         // 先把整页滚到记录卡片，再在卡片内滚到第一条和最后一条
         rule.onNodeWithTag(CAPTURE_PAGE_TAG).performScrollToNode(hasTestTag(RECORD_LIST_TAG))
+        waitFor("共 12 条")
         records.performScrollToNode(hasText("第1问"))
         rule.onNodeWithText("第1问").assertIsDisplayed()
         records.performScrollToNode(hasText("第12问"))

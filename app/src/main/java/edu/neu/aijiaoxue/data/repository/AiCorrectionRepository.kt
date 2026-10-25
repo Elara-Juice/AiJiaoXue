@@ -4,28 +4,32 @@ import androidx.room.withTransaction
 import edu.neu.aijiaoxue.data.AppDatabase
 import edu.neu.aijiaoxue.data.entity.AiAnalysisResult
 import edu.neu.aijiaoxue.data.entity.AiCorrection
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 
-/** US27：AI 结果人工审核。 */
+/** US27：审核人必须来自本次实际登录操作，不从任务负责人倒填历史记录。 */
 class AiCorrectionRepository(private val db: AppDatabase) {
-    suspend fun loadAnalysis(analysisId: Long, actorId: Long): AiAnalysisResult =
-        db.aiAnalysisDao().getAnalysisForActor(analysisId, actorId) ?: throw IllegalStateException("无权限访问该分析结果")
-
-    /** 审核记录与“已审核”标记同时写入；修正内容为空时视为确认原结论。 */
-    suspend fun saveCorrection(analysisId: Long, actorId: Long, correctedContent: String) {
-        val analysis = loadAnalysis(analysisId, actorId)
-        val corrected = correctedContent.trim().ifEmpty { analysis.content }
-        db.withTransaction {
-            db.aiCorrectionDao().insertCorrection(
-                AiCorrection(
-                    analysisId = analysisId, reviewerId = actorId, originalContent = analysis.content,
-                    correctedContent = corrected, accepted = corrected == analysis.content,
-                )
-            )
-            db.aiAnalysisDao().markVerified(analysisId)
-        }
+    suspend fun loadAnalysis(analysisId: Long, actorId: Long): AiAnalysisResult = db.withTransaction {
+        authorizedAnalysis(analysisId, actorId)
     }
 
-    fun observeCorrections(analysisId: Long): Flow<List<AiCorrection>> =
-        db.aiCorrectionDao().observeCorrections(analysisId)
+    private suspend fun authorizedAnalysis(analysisId: Long, actorId: Long): AiAnalysisResult =
+        requireNotNull(db.aiAnalysisDao().getAnalysisForActor(analysisId, actorId)) { "分析不存在或无权限审核" }
+
+    /** 原文、accepted均由可信数据库内容推导，不接受页面伪造审核人或原文。 */
+    suspend fun saveCorrection(analysisId: Long, actorId: Long, correctedContent: String): Long = db.withTransaction {
+        val analysis = authorizedAnalysis(analysisId, actorId)
+        val corrected = correctedContent.trim().ifEmpty { analysis.content }
+        val id = db.aiCorrectionDao().insertCorrection(AiCorrection(
+            analysisId = analysisId, originalContent = analysis.content, correctedContent = corrected,
+            accepted = corrected == analysis.content, reviewerId = actorId,
+        ))
+        check(db.aiAnalysisDao().markVerified(analysisId) == 1) { "分析结果已改变，请重新打开" }
+        id
+    }
+
+    fun observeCorrections(analysisId: Long, actorId: Long) = flow {
+        loadAnalysis(analysisId, actorId)
+        emitAll(db.aiCorrectionDao().observeForActor(analysisId, actorId))
+    }
 }

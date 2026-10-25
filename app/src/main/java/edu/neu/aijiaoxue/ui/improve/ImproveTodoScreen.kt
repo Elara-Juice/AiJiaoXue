@@ -12,6 +12,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import edu.neu.aijiaoxue.data.model.DateFormats
 import edu.neu.aijiaoxue.data.model.MeasureStatus
+import edu.neu.aijiaoxue.data.model.MeasureSource
 import edu.neu.aijiaoxue.data.model.isMeasureOverdue
 import edu.neu.aijiaoxue.ui.evaluation.*
 import kotlinx.coroutines.delay
@@ -42,7 +43,17 @@ fun ImproveTodoScreen(viewModel: ImproveTodoViewModel, onBack: () -> Unit, onPla
                 SectionCard(row.courseName) {
                     Text(row.content, style = MaterialTheme.typography.titleMedium)
                     Text("原问题：${row.itemDescription}")
-                    Text("${row.priority.label}优先级 · ${row.source.label}")
+                    Text("${row.priority.label}优先级 · ${row.suggestionOrigin?.let {
+                        "${it.label}（${if (row.source == MeasureSource.MODIFIED) "修改后采用" else "已采纳"}）"
+                    } ?: row.source.label}")
+                    if (row.suggestionId != null) {
+                        Column(Modifier.testTag("todo-source-${row.measureId}"), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            ReadField("原建议快照", row.suggestionContent)
+                            ReadField("建议理由", row.suggestionRationale)
+                            ReadField("审核来源版本", row.reviewVersionKey)
+                            Text("此处保留确认计划时采用的建议来源；可在原计划查看审核依据。")
+                        }
+                    }
                     Text("督导日期：${row.supervisionDate}")
                     Text("计划完成：${row.dueDate} · ${row.status.label}")
                     if (isMeasureOverdue(row.status, row.dueDate, today)) Text("已逾期", color = MaterialTheme.colorScheme.error)

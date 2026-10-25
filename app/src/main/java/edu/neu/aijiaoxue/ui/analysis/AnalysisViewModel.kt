@@ -8,6 +8,7 @@ import edu.neu.aijiaoxue.data.entity.SupervisionTask
 import edu.neu.aijiaoxue.data.repository.AIAnalysisRepository
 import edu.neu.aijiaoxue.data.repository.AiEvidenceRepository
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -33,14 +34,20 @@ class AnalysisViewModel(
 ) : ViewModel() {
     private val state = MutableStateFlow(AnalysisUiState())
     val uiState = state.asStateFlow()
+    private var observation: Job? = null
 
-    init {
-        viewModelScope.launch {
+    init { reload() }
+
+    fun reload() {
+        if (state.value.analyzing) return
+        observation?.cancel()
+        state.value = AnalysisUiState()
+        observation = viewModelScope.launch {
             try {
                 val task = repository.loadTask(taskId, actorId)
                 state.update { it.copy(task = task, canAnalyze = repository.canAnalyze(task)) }
                 // 已有分析结果直接展示，不重复分析
-                combine(repository.observeResults(taskId), evidenceRepository.observeByTask(taskId)) { results, evidences ->
+                combine(repository.observeResults(taskId, actorId), evidenceRepository.observeByTask(taskId, actorId)) { results, evidences ->
                     results to evidences.groupBy { it.analysisId }
                 }.collect { (results, evidences) ->
                     state.update { it.copy(loading = false, results = results, evidences = evidences) }
@@ -51,12 +58,12 @@ class AnalysisViewModel(
     }
 
     fun analyze() {
-        if (state.value.analyzing) return
+        if (state.value.analyzing || state.value.loading || !state.value.canAnalyze) return
+        state.update { it.copy(analyzing = true, error = null) }
         viewModelScope.launch {
-            state.update { it.copy(analyzing = true, error = null) }
             try { repository.analyzeAndSave(taskId, actorId) }
             catch (e: CancellationException) { throw e }
-            catch (e: Exception) { state.update { it.copy(error = e.message ?: "分析失败") } }
+            catch (e: Exception) { state.update { it.copy(error = e.message ?: "分析失败，原结果保留") } }
             finally { state.update { it.copy(analyzing = false) } }
         }
     }

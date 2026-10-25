@@ -25,7 +25,6 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -96,7 +95,7 @@ class AiAnalysisTest {
     fun reanalyze_replacesPreviousResults() = runBlocking<Unit> {
         analysis.analyzeAndSave(task, supervisor)
         analysis.analyzeAndSave(task, supervisor)
-        assertEquals(3, analysis.observeResults(task).first().size)
+        assertEquals(3, analysis.observeResults(task, supervisor).first().size)
         assertEquals(4, db.aiEvidenceDao().observeByTask(task).first().size)
     }
 
@@ -106,7 +105,7 @@ class AiAnalysisTest {
         review.saveCorrection(target.id, supervisor, "  ")
         review.saveCorrection(target.id, supervisor, "导入环节偏短")
 
-        val records = review.observeCorrections(target.id).first()
+        val records = review.observeCorrections(target.id, supervisor).first()
         assertEquals(listOf("导入环节偏短", target.content), records.map { it.correctedContent })
         assertEquals(listOf(false, true), records.map { it.accepted })
         assertTrue(records.all { it.reviewerId == supervisor })
@@ -125,7 +124,7 @@ class AiAnalysisTest {
     fun inProgressTask_cannotBeAnalyzed() = runBlocking<Unit> {
         db.taskDao().updateStatus(task, TaskStatus.IN_PROGRESS)
         expectDenied { analysis.analyzeAndSave(task, supervisor) }
-        assertTrue(analysis.observeResults(task).first().isEmpty())
+        assertTrue(analysis.observeResults(task, supervisor).first().isEmpty())
     }
 
     @Test
@@ -137,10 +136,7 @@ class AiAnalysisTest {
     }
 
     private suspend fun expectDenied(block: suspend () -> Unit) {
-        try {
-            block()
-            fail("应当拒绝")
-        } catch (_: IllegalStateException) {
-        }
+        val failure = runCatching { block() }.exceptionOrNull()
+        assertTrue("应当拒绝，实际为 $failure", failure is IllegalArgumentException || failure is IllegalStateException)
     }
 }

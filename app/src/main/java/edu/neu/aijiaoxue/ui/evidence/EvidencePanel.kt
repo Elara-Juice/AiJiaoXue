@@ -20,7 +20,7 @@ fun EvidencePanel(evidences: List<AiEvidence>) {
             val source = when {
                 evidence.materialId != null -> "材料"
                 evidence.eventId != null -> "互动事件"
-                else -> "参与状态"
+                else -> "说明或时间信息（未绑定可访问的材料／事件）"
             }
             Text("$time$source · ${evidence.description}", style = MaterialTheme.typography.bodySmall)
         }

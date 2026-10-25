@@ -154,7 +154,7 @@ fun AppNavHost() {
                     navController.navigate(Routes.historyDetail(entry.taskId())) {
                         popUpTo(Routes.evaluation(entry.taskId())) { inclusive = true }
                     }
-                })
+                }, onAnalysis = { navController.navigate(Routes.analysis(entry.taskId())) })
             }
             guarded(navController, Routes.HISTORY, ADMIN_SUPERVISOR) {
                 val model = moduleViewModel { db, actor -> HistoryViewModel(EvaluationRepository(db), actor) }
@@ -168,9 +168,15 @@ fun AppNavHost() {
             // ui/analysis、ui/evidence（孙浩然，Sprint 2）：采集结束后从采集页进入
             guarded(navController, Routes.ANALYSIS, SUPERVISOR, taskIdArg) { entry ->
                 val model = moduleViewModel { db, actor ->
-                    AnalysisViewModel(AIAnalysisRepository(db, MockAIAnalyzer()), AiEvidenceRepository(db.aiEvidenceDao()), actor, entry.taskId())
+                    AnalysisViewModel(AIAnalysisRepository(db, MockAIAnalyzer()), AiEvidenceRepository(db), actor, entry.taskId())
                 }
-                AnalysisScreen(model, { navController.popBackStack() }, { navController.navigate(Routes.aiReview(it)) })
+                AnalysisScreen(model, { navController.popBackStack() }, { navController.navigate(Routes.aiReview(it)) }, {
+                    val route = Routes.evaluation(entry.taskId())
+                    // Return to the existing draft VM so an old second instance cannot overwrite edits.
+                    if (!navController.popBackStack(route, false)) {
+                        navController.navigate(route) { launchSingleTop = true }
+                    }
+                })
             }
             // US27：AI 结果人工审核
             guarded(navController, Routes.AI_REVIEW, SUPERVISOR, analysisIdArg) { entry ->

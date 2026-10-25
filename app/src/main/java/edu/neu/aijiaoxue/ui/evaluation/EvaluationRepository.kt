@@ -5,6 +5,7 @@ import edu.neu.aijiaoxue.data.AppDatabase
 import edu.neu.aijiaoxue.data.dao.HistoryRow
 import edu.neu.aijiaoxue.data.entity.*
 import edu.neu.aijiaoxue.data.model.*
+import edu.neu.aijiaoxue.data.repository.ReviewedAnalysisProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
@@ -28,6 +29,7 @@ data class ClassroomRecord(
     val materials: List<Material>,
     val events: List<InteractionEvent>,
     val engagements: List<EngagementRecord>,
+    val reviewedAnalyses: List<ReviewedAnalysisSnapshot> = emptyList(),
 )
 
 class EvaluationRepository(private val db: AppDatabase) {
@@ -44,12 +46,18 @@ class EvaluationRepository(private val db: AppDatabase) {
                 }
                 val course = requireNotNull(db.courseDao().getById(task.courseId))
                 val evaluation = evaluations.getByTask(taskId) ?: Evaluation(taskId = taskId)
+                val reviewed = if (evaluation.status == EvalStatus.SUBMITTED) {
+                    db.improvementSuggestionDao().publicationForEvaluation(evaluation.id)?.let {
+                        db.improvementSuggestionDao().snapshots(it.id)
+                    }.orEmpty()
+                } else ReviewedAnalysisProvider(db).forSupervisor(actorId, taskId)
                 ClassroomRecord(
                     task, course, db.userDao().getById(course.teacherId)?.name.orEmpty(),
                     db.userDao().getById(task.supervisorId)?.name.orEmpty(),
                     EvaluationDraft(evaluation, if (evaluation.id == 0L) emptyList() else evaluations.getIssues(evaluation.id)),
                     db.captureDao().getMaterials(taskId), db.captureDao().observeEvents(taskId).first(),
                     db.captureDao().observeEngagements(taskId).first(),
+                    reviewed,
                 )
             }
         }
@@ -91,6 +99,8 @@ class EvaluationRepository(private val db: AppDatabase) {
                     check(evaluations.submit(id, taskId, requireNotNull(total), EvalRules.gradeOf(total), System.currentTimeMillis())) {
                         "提交失败，请重新打开评价"
                     }
+                    // US38：正式评价与其审核依据同时发布，失败则整笔提交回滚。
+                    ReviewedAnalysisProvider(db).publish(actorId, taskId, id)
                 }
             }
         }

@@ -1,0 +1,220 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuites tests="114" failures="1" errors="0" skipped="0" time="0.000" timestamp="2026-10-24T07:46:24" hostname="localhost">
+  <testsuite name="edu.neu.aijiaoxue.EndToEndTest" tests="1" failures="0" errors="0" skipped="0" time="45.703" timestamp="2026-10-24T07:46:24" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5560" />
+    </properties>
+    <testcase name="mainChain_11Steps" classname="edu.neu.aijiaoxue.EndToEndTest" time="45.703" />
+  </testsuite>
+  <testsuite name="edu.neu.aijiaoxue.ExampleInstrumentedTest" tests="1" failures="0" errors="0" skipped="0" time="0.010" timestamp="2026-10-24T07:46:24" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5560" />
+    </properties>
+    <testcase name="useAppContext" classname="edu.neu.aijiaoxue.ExampleInstrumentedTest" time="0.010" />
+  </testsuite>
+  <testsuite name="edu.neu.aijiaoxue.LoginFlowTest" tests="4" failures="0" errors="0" skipped="0" time="12.112" timestamp="2026-10-24T07:46:24" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5560" />
+    </properties>
+    <testcase name="admin_landsOnAdminHome" classname="edu.neu.aijiaoxue.LoginFlowTest" time="2.665" />
+    <testcase name="supervisor_landsOnSupervisorHome" classname="edu.neu.aijiaoxue.LoginFlowTest" time="2.483" />
+    <testcase name="wrongPassword_andUnknownAccount_showSameMessage" classname="edu.neu.aijiaoxue.LoginFlowTest" time="3.916" />
+    <testcase name="teacher_landsOnTeacherHome_thenLogoutReturnsToLogin" classname="edu.neu.aijiaoxue.LoginFlowTest" time="3.048" />
+  </testsuite>
+  <testsuite name="edu.neu.aijiaoxue.Sprint1NavigationTest" tests="2" failures="0" errors="0" skipped="0" time="5.847" timestamp="2026-10-24T07:46:24" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5560" />
+    </properties>
+    <testcase name="adminCanOpenHistoryAndReadFullRecordThroughRealNavigation" classname="edu.neu.aijiaoxue.Sprint1NavigationTest" time="3.044" />
+    <testcase name="teacherCanOpenTodoAndReturnHomeThroughRealNavigation" classname="edu.neu.aijiaoxue.Sprint1NavigationTest" time="2.803" />
+  </testsuite>
+  <testsuite name="edu.neu.aijiaoxue.Sprint1RepositoryTest" tests="15" failures="0" errors="0" skipped="0" time="1.098" timestamp="2026-10-24T07:46:24" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5560" />
+    </properties>
+    <testcase name="confirmationLocksContentButAllowsOwnedStatusUpdateAndTrace" classname="edu.neu.aijiaoxue.Sprint1RepositoryTest" time="0.216" />
+    <testcase name="historyIncludesMaterialsEventsAndEngagementWithoutMutatingThem" classname="edu.neu.aijiaoxue.Sprint1RepositoryTest" time="0.062" />
+    <testcase name="focusRequiresOwnSubmittedFeedbackAndRealIssueIds" classname="edu.neu.aijiaoxue.Sprint1RepositoryTest" time="0.111" />
+    <testcase name="firstDraftRejectsOtherSupervisorAndTeacher" classname="edu.neu.aijiaoxue.Sprint1RepositoryTest" time="0.043" />
+    <testcase name="discardedReferenceIsNotRecreatedAndNoSuggestionCanUseAddedMeasure" classname="edu.neu.aijiaoxue.Sprint1RepositoryTest" time="0.113" />
+    <testcase name="todosFilterByStatusSortByDateAndRespectOverdueBoundaries" classname="edu.neu.aijiaoxue.Sprint1RepositoryTest" time="0.065" />
+    <testcase name="measuresValidateContentsDatesAndForeignItemIds" classname="edu.neu.aijiaoxue.Sprint1RepositoryTest" time="0.103" />
+    <testcase name="taskStateAndSpoofedTaskIdAreRejected" classname="edu.neu.aijiaoxue.Sprint1RepositoryTest" time="0.027" />
+    <testcase name="scoringAndIssuesPersistAndDoNotDuplicateDuringRapidEdits" classname="edu.neu.aijiaoxue.Sprint1RepositoryTest" time="0.118" />
+    <testcase name="moreThanThreeFocusesAndTeacherAddedItemsAreAllowed" classname="edu.neu.aijiaoxue.Sprint1RepositoryTest" time="0.054" />
+    <testcase name="submissionCompletesArrangementAndLateDraftCannotOverwrite" classname="edu.neu.aijiaoxue.Sprint1RepositoryTest" time="0.022" />
+    <testcase name="invalidScoreAndMissingRequirementsDoNotPartiallySubmit" classname="edu.neu.aijiaoxue.Sprint1RepositoryTest" time="0.018" />
+    <testcase name="changingFocusPreservesRetainedIdsAndNeedsConsentBeforeDeletingMeasures" classname="edu.neu.aijiaoxue.Sprint1RepositoryTest" time="0.035" />
+    <testcase name="historyFiltersDateBoundariesKeywordAndActorScope" classname="edu.neu.aijiaoxue.Sprint1RepositoryTest" time="0.038" />
+    <testcase name="draftsSurviveDatabaseCloseAndReopen" classname="edu.neu.aijiaoxue.Sprint1RepositoryTest" time="0.073" />
+  </testsuite>
+  <testsuite name="edu.neu.aijiaoxue.Sprint1UiTest" tests="6" failures="0" errors="0" skipped="0" time="27.023" timestamp="2026-10-24T07:46:24" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5560" />
+    </properties>
+    <testcase name="fastTypingSurvivesViewModelDestructionAndImmediateReopen" classname="edu.neu.aijiaoxue.Sprint1UiTest" time="1.239" />
+    <testcase name="classroomPhotoAndAacAudioOpenAndCorruptPhotoReportsError" classname="edu.neu.aijiaoxue.Sprint1UiTest" time="5.730" />
+    <testcase name="focusOverThreeWarnsWithoutBlockingAndRemovalCanBeCancelled" classname="edu.neu.aijiaoxue.Sprint1UiTest" time="2.614" />
+    <testcase name="historySearchShowsEmptyStateAndMissingMaterialsAreReadable" classname="edu.neu.aijiaoxue.Sprint1UiTest" time="2.662" />
+    <testcase name="focusPlanAndTodoFlowUsesDatePickerTracksSourcesAndNavigates" classname="edu.neu.aijiaoxue.Sprint1UiTest" time="7.983" />
+    <testcase name="evaluationValidatesCancelsThenSubmitsLatestEditAndLocks" classname="edu.neu.aijiaoxue.Sprint1UiTest" time="6.795" />
+  </testsuite>
+  <testsuite name="edu.neu.aijiaoxue.data.DaoQueriesTest" tests="11" failures="0" errors="0" skipped="0" time="0.546" timestamp="2026-10-24T07:46:24" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5560" />
+    </properties>
+    <testcase name="feedback_onlyOwnSubmitted" classname="edu.neu.aijiaoxue.data.DaoQueriesTest" time="0.032" />
+    <testcase name="history_filtersByKeywordAndDateRange" classname="edu.neu.aijiaoxue.data.DaoQueriesTest" time="0.053" />
+    <testcase name="todos_traceBackToItemAndCourse_andConfirmOnlyOnce" classname="edu.neu.aijiaoxue.data.DaoQueriesTest" time="0.081" />
+    <testcase name="improvement_focusThenConfirm" classname="edu.neu.aijiaoxue.data.DaoQueriesTest" time="0.042" />
+    <testcase name="captureLifecycle_andEventCounts" classname="edu.neu.aijiaoxue.data.DaoQueriesTest" time="0.118" />
+    <testcase name="taskRows_filterAndCounts" classname="edu.neu.aijiaoxue.data.DaoQueriesTest" time="0.083" />
+    <testcase name="evaluation_draftSubmitLocksAndCompletesTask" classname="edu.neu.aijiaoxue.data.DaoQueriesTest" time="0.061" />
+    <testcase name="historyDetail_showsSupervisorAndClass_andChecksOwnership" classname="edu.neu.aijiaoxue.data.DaoQueriesTest" time="0.031" />
+    <testcase name="courseRows_searchByTeacherName_andCountsCompletedOnly" classname="edu.neu.aijiaoxue.data.DaoQueriesTest" time="0.022" />
+    <testcase name="uncoveredRows_excludesCoursesCompletedThisSemester" classname="edu.neu.aijiaoxue.data.DaoQueriesTest" time="0.014" />
+    <testcase name="createTask_generatesCode_rejectsDuplicate_claimsArrangement" classname="edu.neu.aijiaoxue.data.DaoQueriesTest" time="0.009" />
+  </testsuite>
+  <testsuite name="edu.neu.aijiaoxue.data.DemoDataTest" tests="7" failures="0" errors="0" skipped="0" time="0.101" timestamp="2026-10-24T07:46:24" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5560" />
+    </properties>
+    <testcase name="resetRestoresInitialData" classname="edu.neu.aijiaoxue.data.DemoDataTest" time="0.039" />
+    <testcase name="uncoveredThisSemester" classname="edu.neu.aijiaoxue.data.DemoDataTest" time="0.007" />
+    <testcase name="usersAndPasswords" classname="edu.neu.aijiaoxue.data.DemoDataTest" time="0.011" />
+    <testcase name="tasksAndOverdue" classname="edu.neu.aijiaoxue.data.DemoDataTest" time="0.006" />
+    <testcase name="coursesMatchDoc" classname="edu.neu.aijiaoxue.data.DemoDataTest" time="0.008" />
+    <testcase name="evaluationsAndFeedback" classname="edu.neu.aijiaoxue.data.DemoDataTest" time="0.021" />
+    <testcase name="seedsOnlyOnce" classname="edu.neu.aijiaoxue.data.DemoDataTest" time="0.009" />
+  </testsuite>
+  <testsuite name="edu.neu.aijiaoxue.sprint2.AiUpstreamSecurityTest" tests="6" failures="0" errors="0" skipped="0" time="0.078" timestamp="2026-10-24T07:46:24" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5560" />
+    </properties>
+    <testcase name="changedCaptureDuringAnalysisKeepsPreviousResults" classname="edu.neu.aijiaoxue.sprint2.AiUpstreamSecurityTest" time="0.012" />
+    <testcase name="allRepositoriesRejectOtherActorsWithoutChangingRecords" classname="edu.neu.aijiaoxue.sprint2.AiUpstreamSecurityTest" time="0.019" />
+    <testcase name="failedVerifiedWriteRollsBackCorrectionInsert" classname="edu.neu.aijiaoxue.sprint2.AiUpstreamSecurityTest" time="0.008" />
+    <testcase name="legacyReviewStaysUnknownAndInProgressCannotAnalyze" classname="edu.neu.aijiaoxue.sprint2.AiUpstreamSecurityTest" time="0.010" />
+    <testcase name="reanalysisReplacesOldReviewAndDoesNotFabricateEvidence" classname="edu.neu.aijiaoxue.sprint2.AiUpstreamSecurityTest" time="0.018" />
+    <testcase name="actualActorAndDerivedAcceptedAreSavedWithVerified" classname="edu.neu.aijiaoxue.sprint2.AiUpstreamSecurityTest" time="0.011" />
+  </testsuite>
+  <testsuite name="edu.neu.aijiaoxue.sprint2.Sprint2ImprovementTest" tests="15" failures="0" errors="0" skipped="0" time="0.470" timestamp="2026-10-24T07:46:24" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5560" />
+    </properties>
+    <testcase name="removingFocusDropsOnlyItsCandidatesAndRejectsLateAdoption" classname="edu.neu.aijiaoxue.sprint2.Sprint2ImprovementTest" time="0.022" />
+    <testcase name="confirmationLocksSuggestionsAndMeasuresButOwnedTodoStatusStillWorks" classname="edu.neu.aijiaoxue.sprint2.Sprint2ImprovementTest" time="0.027" />
+    <testcase name="sourceAndAdoptionSurviveDatabaseCloseAndReopen" classname="edu.neu.aijiaoxue.sprint2.Sprint2ImprovementTest" time="0.040" />
+    <testcase name="laterReviewCannotBackfillAnAlreadyPublishedEmptyVersion" classname="edu.neu.aijiaoxue.sprint2.Sprint2ImprovementTest" time="0.008" />
+    <testcase name="teacherAccessRequiresOwnPublishedFeedbackAndTaskScopedSuggestionIds" classname="edu.neu.aijiaoxue.sprint2.Sprint2ImprovementTest" time="0.028" />
+    <testcase name="noAiKeepsOriginalManualEvaluationFocusPlanAndTodoChain" classname="edu.neu.aijiaoxue.sprint2.Sprint2ImprovementTest" time="0.025" />
+    <testcase name="slowGenerationCannotWriteAfterPlanConfirmation" classname="edu.neu.aijiaoxue.sprint2.Sprint2ImprovementTest" time="0.017" />
+    <testcase name="unreviewedAndLegacyAnonymousCorrectionsAreNotPublished" classname="edu.neu.aijiaoxue.sprint2.Sprint2ImprovementTest" time="0.013" />
+    <testcase name="correctedFalseIsValidAndPublishedTextIsTheReviewedVersion" classname="edu.neu.aijiaoxue.sprint2.Sprint2ImprovementTest" time="0.013" />
+    <testcase name="slowGenerationCannotWriteAfterFocusChanges" classname="edu.neu.aijiaoxue.sprint2.Sprint2ImprovementTest" time="0.021" />
+    <testcase name="perItemSuggestionsAdoptIdempotentlyAndCannotCrossItemLinks" classname="edu.neu.aijiaoxue.sprint2.Sprint2ImprovementTest" time="0.027" />
+    <testcase name="dismissalSurvivesRefreshAndExplicitRestoreDoesNotCreateMeasure" classname="edu.neu.aijiaoxue.sprint2.Sprint2ImprovementTest" time="0.073" />
+    <testcase name="editingSuggestionUsesItsOwnOriginalAndRepeatAdoptionPreservesHumanEdit" classname="edu.neu.aijiaoxue.sprint2.Sprint2ImprovementTest" time="0.068" />
+    <testcase name="suggestionFailureLeavesManualPlanningAvailable" classname="edu.neu.aijiaoxue.sprint2.Sprint2ImprovementTest" time="0.049" />
+    <testcase name="laterCorrectionAndReanalysisDoNotChangePublishedSnapshotOrConfirmedMeasure" classname="edu.neu.aijiaoxue.sprint2.Sprint2ImprovementTest" time="0.039" />
+  </testsuite>
+  <testsuite name="edu.neu.aijiaoxue.sprint2.Sprint2MigrationTest" tests="3" failures="0" errors="0" skipped="0" time="1.054" timestamp="2026-10-24T07:46:24" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5560" />
+    </properties>
+    <testcase name="version1KeepsManualDraftConfirmedPlanAndTodo" classname="edu.neu.aijiaoxue.sprint2.Sprint2MigrationTest" time="0.616" />
+    <testcase name="version2KeepsManualDataAndLegacyAi" classname="edu.neu.aijiaoxue.sprint2.Sprint2MigrationTest" time="0.206" />
+    <testcase name="version3KeepsManualDataAndReviewedAi" classname="edu.neu.aijiaoxue.sprint2.Sprint2MigrationTest" time="0.232" />
+  </testsuite>
+  <testsuite name="edu.neu.aijiaoxue.sprint2.Sprint2UiTest" tests="4" failures="1" errors="0" skipped="0" time="13.595" timestamp="2026-10-24T07:46:24" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5560" />
+    </properties>
+    <testcase name="reviewedReferenceDoesNotScoreAndRefreshPreservesManualDraft" classname="edu.neu.aijiaoxue.sprint2.Sprint2UiTest" time="2.905" />
+    <testcase name="suggestionCanBeDismissedRestoredEditedConfirmedAndTracedInTodo" classname="edu.neu.aijiaoxue.sprint2.Sprint2UiTest" time="4.636">
+      <failure>kotlin.UninitializedPropertyAccessException: lateinit property todo has not been initialized
+	at edu.neu.aijiaoxue.sprint2.Sprint2UiTest.suggestionCanBeDismissedRestoredEditedConfirmedAndTracedInTodo$lambda$43(Sprint2UiTest.kt:175)
+	at edu.neu.aijiaoxue.sprint2.Sprint2UiTest$$ExternalSyntheticLambda20.invoke(D8$$SyntheticClass:0)
+	at androidx.compose.ui.test.AndroidComposeUiTestEnvironment$AndroidComposeUiTestImpl.waitUntil(ComposeUiTest.android.kt:801)
+	at androidx.compose.ui.test.junit4.AndroidComposeTestRule.waitUntil(AndroidComposeTestRule.android.kt:378)
+	at edu.neu.aijiaoxue.sprint2.Sprint2UiTest.suggestionCanBeDismissedRestoredEditedConfirmedAndTracedInTodo(Sprint2UiTest.kt:175)
+</failure>
+    </testcase>
+    <testcase name="leavingDrainsRapidEditsBeforeNewViewModelAdoptsSuggestion" classname="edu.neu.aijiaoxue.sprint2.Sprint2UiTest" time="2.059" />
+    <testcase name="failedSuggestionGenerationStillAllowsManualPlanAndConfirmation" classname="edu.neu.aijiaoxue.sprint2.Sprint2UiTest" time="3.995" />
+  </testsuite>
+  <testsuite name="edu.neu.aijiaoxue.ui.F1FeedbackRegressionTest" tests="11" failures="0" errors="0" skipped="0" time="22.949" timestamp="2026-10-24T07:46:24" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5560" />
+    </properties>
+    <testcase name="us02_detailShowsCoreInfo_missingFieldShowsUnfilled" classname="edu.neu.aijiaoxue.ui.F1FeedbackRegressionTest" time="1.465" />
+    <testcase name="us02_adminHasNoCreateTaskButton" classname="edu.neu.aijiaoxue.ui.F1FeedbackRegressionTest" time="1.486" />
+    <testcase name="us01_searchByTeacherAndCourseName_trimsSpaces_showsEmptyHint" classname="edu.neu.aijiaoxue.ui.F1FeedbackRegressionTest" time="2.475" />
+    <testcase name="us04_requiredFields_createUnique_rejectDuplicate" classname="edu.neu.aijiaoxue.ui.F1FeedbackRegressionTest" time="4.103" />
+    <testcase name="us33_otherTeacherCannotOpenFeedback" classname="edu.neu.aijiaoxue.ui.F1FeedbackRegressionTest" time="1.369" />
+    <testcase name="us02_historyCountsCompletedOnly_andCreateEntry" classname="edu.neu.aijiaoxue.ui.F1FeedbackRegressionTest" time="1.466" />
+    <testcase name="us05_uncoveredFilter_addArrangementWithKeyFocus_rejectDuplicate" classname="edu.neu.aijiaoxue.ui.F1FeedbackRegressionTest" time="2.842" />
+    <testcase name="us06_listCountsOverdue_andFilterByStatus" classname="edu.neu.aijiaoxue.ui.F1FeedbackRegressionTest" time="3.228" />
+    <testcase name="us05_duplicateArrangement_isRejectedByViewModel" classname="edu.neu.aijiaoxue.ui.F1FeedbackRegressionTest" time="1.198" />
+    <testcase name="us33_teacherSeesOwnSubmittedFeedback_unreadThenRead" classname="edu.neu.aijiaoxue.ui.F1FeedbackRegressionTest" time="1.514" />
+    <testcase name="us33_detailShowsStructuredEvaluation_andMarksRead" classname="edu.neu.aijiaoxue.ui.F1FeedbackRegressionTest" time="1.803" />
+  </testsuite>
+  <testsuite name="edu.neu.aijiaoxue.ui.capture.CaptureEngagementTest" tests="6" failures="0" errors="0" skipped="0" time="1.733" timestamp="2026-10-24T07:46:24" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5560" />
+    </properties>
+    <testcase name="recordEngagement_outOfRangeIsNotSaved" classname="edu.neu.aijiaoxue.ui.capture.CaptureEngagementTest" time="0.586" />
+    <testcase name="deleteMaterial_blockedAfterEvaluationSubmitted" classname="edu.neu.aijiaoxue.ui.capture.CaptureEngagementTest" time="0.522" />
+    <testcase name="deleteMaterial_removesFileThenRecord" classname="edu.neu.aijiaoxue.ui.capture.CaptureEngagementTest" time="0.018" />
+    <testcase name="recordEngagement_savesWithTimeAndTask" classname="edu.neu.aijiaoxue.ui.capture.CaptureEngagementTest" time="0.013" />
+    <testcase name="deleteMaterial_allowedWhilePendingEvaluation" classname="edu.neu.aijiaoxue.ui.capture.CaptureEngagementTest" time="0.076" />
+    <testcase name="recordEngagement_blockedAfterClassEnded" classname="edu.neu.aijiaoxue.ui.capture.CaptureEngagementTest" time="0.518" />
+  </testsuite>
+  <testsuite name="edu.neu.aijiaoxue.ui.capture.CaptureInteractionTest" tests="6" failures="0" errors="0" skipped="0" time="5.937" timestamp="2026-10-24T07:46:24" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5560" />
+    </properties>
+    <testcase name="mark_recordsTimeAndCounts" classname="edu.neu.aijiaoxue.ui.capture.CaptureInteractionTest" time="0.021" />
+    <testcase name="undoEntryExpiresAfterFiveSeconds" classname="edu.neu.aijiaoxue.ui.capture.CaptureInteractionTest" time="5.820" />
+    <testcase name="editNoteAndDelete_inRecordList" classname="edu.neu.aijiaoxue.ui.capture.CaptureInteractionTest" time="0.020" />
+    <testcase name="reenter_restoresEventsAndKeepsClassStart" classname="edu.neu.aijiaoxue.ui.capture.CaptureInteractionTest" time="0.017" />
+    <testcase name="markOther_savesFirstThenOpensNoteDialog" classname="edu.neu.aijiaoxue.ui.capture.CaptureInteractionTest" time="0.021" />
+    <testcase name="undoWithinWindow_removesOnlyLastEvent" classname="edu.neu.aijiaoxue.ui.capture.CaptureInteractionTest" time="0.038" />
+  </testsuite>
+  <testsuite name="edu.neu.aijiaoxue.ui.capture.CaptureMaterialDeleteTest" tests="4" failures="0" errors="0" skipped="0" time="7.700" timestamp="2026-10-24T07:46:24" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5560" />
+    </properties>
+    <testcase name="completedTask_showsNoDeleteButton" classname="edu.neu.aijiaoxue.ui.capture.CaptureMaterialDeleteTest" time="1.449" />
+    <testcase name="activeRecording_hasNoDeleteButtonUntilStopped" classname="edu.neu.aijiaoxue.ui.capture.CaptureMaterialDeleteTest" time="2.404" />
+    <testcase name="cancelDelete_keepsFileAndRecord" classname="edu.neu.aijiaoxue.ui.capture.CaptureMaterialDeleteTest" time="1.925" />
+    <testcase name="missingFileMaterial_canBeDeleted" classname="edu.neu.aijiaoxue.ui.capture.CaptureMaterialDeleteTest" time="1.922" />
+  </testsuite>
+  <testsuite name="edu.neu.aijiaoxue.ui.capture.CapturePhotoTest" tests="4" failures="0" errors="0" skipped="0" time="2.093" timestamp="2026-10-24T07:46:24" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5560" />
+    </properties>
+    <testcase name="importFromGallery_copiesAsJpeg_andMarksImported" classname="edu.neu.aijiaoxue.ui.capture.CapturePhotoTest" time="0.520" />
+    <testcase name="takePhoto_savesMaterialAndOpensTypeDialog" classname="edu.neu.aijiaoxue.ui.capture.CapturePhotoTest" time="0.125" />
+    <testcase name="importUnreadableFile_showsNoMaterial" classname="edu.neu.aijiaoxue.ui.capture.CapturePhotoTest" time="0.862" />
+    <testcase name="cancelCamera_deletesEmptyFile_andAllowsRetry" classname="edu.neu.aijiaoxue.ui.capture.CapturePhotoTest" time="0.586" />
+  </testsuite>
+  <testsuite name="edu.neu.aijiaoxue.ui.capture.CaptureRecordingTest" tests="5" failures="0" errors="0" skipped="0" time="17.557" timestamp="2026-10-24T07:46:24" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5560" />
+    </properties>
+    <testcase name="manyEvents_recordListScrollsToEveryEvent" classname="edu.neu.aijiaoxue.ui.capture.CaptureRecordingTest" time="1.545" />
+    <testcase name="record_pause_resume_stop_savesAudioForTask" classname="edu.neu.aijiaoxue.ui.capture.CaptureRecordingTest" time="9.521" />
+    <testcase name="otherSupervisor_isBlocked" classname="edu.neu.aijiaoxue.ui.capture.CaptureRecordingTest" time="1.167" />
+    <testcase name="enter_cleansUpUnfinishedAudioWithoutFile" classname="edu.neu.aijiaoxue.ui.capture.CaptureRecordingTest" time="1.487" />
+    <testcase name="endClass_whileRecording_savesAudioAndMovesToPendingEvaluation" classname="edu.neu.aijiaoxue.ui.capture.CaptureRecordingTest" time="3.837" />
+  </testsuite>
+  <testsuite name="edu.neu.aijiaoxue.ui.course.MyTasksTest" tests="3" failures="0" errors="0" skipped="0" time="4.455" timestamp="2026-10-24T07:46:24" hostname="localhost">
+    <properties>
+      <property name="device" value="emulator-5560" />
+    </properties>
+    <testcase name="overdueNotStartedTask_isMarked" classname="edu.neu.aijiaoxue.ui.course.MyTasksTest" time="1.359" />
+    <testcase name="continueButtons_routeByStatus" classname="edu.neu.aijiaoxue.ui.course.MyTasksTest" time="1.715" />
+    <testcase name="onlyOwnTasksAreListed" classname="edu.neu.aijiaoxue.ui.course.MyTasksTest" time="1.381" />
+  </testsuite>
+</testsuites>

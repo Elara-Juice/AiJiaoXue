@@ -20,7 +20,8 @@ import androidx.room.PrimaryKey
 data class AiCorrection(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val analysisId: Long,
-    val reviewerId: Long,
+    /** 历史版本没有记录审核人时保持 null；不能倒填任务负责人作为审核事实。 */
+    val reviewerId: Long? = null,
     val originalContent: String,
     val correctedContent: String,
     /** 督导确认 AI 结论无需修改。 */
