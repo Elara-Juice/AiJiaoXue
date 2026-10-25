@@ -66,7 +66,8 @@ fun AnalysisScreen(
                     taskId
                 )
 
-            }
+            },
+            enabled = !state.analyzing
 
         ) {
 
@@ -139,38 +140,13 @@ fun AnalysisScreen(
                     "可信度：${result.confidence}"
             )
 
-            Button(
-
-                onClick = {
-
-                    onReview(
-
-                        result.id,
-
-                        result.content
-
-                    )
-
-                }
-
-            ){
-
-                Text(
-                    "审核AI结果"
-                )
-
-            }
-
             Spacer(
                 modifier = Modifier.height(24.dp)
             )
+        }
 
-
-            EvidencePanel(
-                evidences = evidences
-            )
-
-
+        if (evidences.isNotEmpty()) {
+            EvidencePanel(evidences = evidences)
         }
 
 
