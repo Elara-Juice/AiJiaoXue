@@ -221,7 +221,16 @@ fun AppNavHost() {
             guarded(navController, Routes.IMPROVE_TODO, TEACHER) {
                 val model = moduleViewModel { db, actor -> ImproveTodoViewModel(ImprovementRepository(db), actor) }
                 ImproveTodoScreen(model, { navController.popBackStack() },
-                    { navController.navigate(Routes.improvePlan(it)) }, { navController.navigate(Routes.feedbackDetail(it)) })
+                    { navController.navigate(Routes.improvePlan(it)) }, { navController.navigate(Routes.feedbackDetail(it)) },
+                    onExecution = { navController.navigate(Routes.improveExecution(it)) })
+            }
+            guarded(navController, Routes.IMPROVE_EXECUTION, TEACHER, taskIdArg) { entry ->
+                val context = LocalContext.current.applicationContext
+                val model = moduleViewModel { db, actor ->
+                    val repository = ImprovementExecutionRepository(db)
+                    ImproveExecutionViewModel(repository, ImprovementEvidenceStore(context, repository), actor, entry.taskId())
+                }
+                ImproveExecutionScreen(model, { navController.popBackStack() })
             }
         }
     }

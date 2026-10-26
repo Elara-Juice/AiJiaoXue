@@ -6,6 +6,9 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import edu.neu.aijiaoxue.data.dao.ImprovementSuggestionDao
+import edu.neu.aijiaoxue.data.dao.ImprovementExecutionDao
+import edu.neu.aijiaoxue.data.entity.ImprovementExecution
+import edu.neu.aijiaoxue.data.entity.ImprovementEvidence
 import edu.neu.aijiaoxue.data.entity.ImprovementSuggestion
 import edu.neu.aijiaoxue.data.entity.ReviewPublication
 import edu.neu.aijiaoxue.data.entity.ReviewedAnalysisSnapshot
@@ -37,7 +40,7 @@ import edu.neu.aijiaoxue.data.entity.SupervisionTask
 import edu.neu.aijiaoxue.data.entity.User
 
 /**
- * Sprint 2 团队 v3 与个人 v4 均已交付，统一升级 v5 并保留各自历史数据。
+ * 保留 Sprint 2 的 v1..4→v5 升级路径，再追加 v6 的实施记录和证据。
  */
 @Database(
     entities = [
@@ -49,8 +52,9 @@ import edu.neu.aijiaoxue.data.entity.User
         AiAnalysisResult::class, AiEvidence::class, AiCorrection::class,
         ReviewPublication::class, ReviewedAnalysisSnapshot::class, ImprovementSuggestion::class,
         LegacyAiMigrationArchive::class,
+        ImprovementExecution::class, ImprovementEvidence::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -65,10 +69,11 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun aiEvidenceDao(): AiEvidenceDao
     abstract fun aiCorrectionDao(): AiCorrectionDao
     abstract fun improvementSuggestionDao(): ImprovementSuggestionDao
+    abstract fun improvementExecutionDao(): ImprovementExecutionDao
 
     companion object {
         const val NAME = "aijiaoxue.db"
-        val MIGRATIONS: Array<Migration> = Sprint2Migrations.ALL
+        val MIGRATIONS: Array<Migration> = Sprint2Migrations.ALL + Sprint3Migrations.MIGRATION_5_6
 
         @Volatile private var instance: AppDatabase? = null
 

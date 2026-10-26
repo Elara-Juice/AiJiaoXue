@@ -9,6 +9,8 @@ import androidx.test.platform.app.InstrumentationRegistry
 import edu.neu.aijiaoxue.data.AppDatabase
 import edu.neu.aijiaoxue.data.model.*
 import edu.neu.aijiaoxue.ui.improve.ImprovementRepository
+import edu.neu.aijiaoxue.ui.improve.ImprovementExecutionRepository
+import edu.neu.aijiaoxue.ui.improve.ExecutionInput
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
@@ -26,6 +28,7 @@ class Sprint2MigrationTest {
     @Test fun version2KeepsManualDataAndLegacyAi() = migrate(2)
     @Test fun version3KeepsManualDataAndReviewedAi() = migrate(3)
     @Test fun version4KeepsPublishedSourcesAdoptionDismissalAndConfirmedTodo() = migrate(4)
+    @Test fun version5KeepsFrozenSourcesAndCanRecordActualImplementation() = migrate(5)
     @Test fun version4ArchivesInvalidAiWithoutLosingPersonalData() = migrate(4, invalidAi = true)
 
     private fun migrate(version: Int, invalidAi: Boolean = false) = runBlocking {
@@ -69,7 +72,7 @@ class Sprint2MigrationTest {
         val db = Room.databaseBuilder(context, AppDatabase::class.java, name)
             .addMigrations(*AppDatabase.MIGRATIONS).build()
         try {
-            assertEquals(5, db.openHelper.writableDatabase.version)
+            assertEquals(6, db.openHelper.writableDatabase.version)
             assertEquals("旧教师", db.userDao().getById(2)!!.name)
             assertEquals("旧课程", db.courseDao().getById(1)!!.name)
             assertEquals("tasks/1/photo/legacy.jpg", db.captureDao().getMaterial(1)!!.filePath)
@@ -80,7 +83,7 @@ class Sprint2MigrationTest {
             assertEquals(PlanStatus.CONFIRMED, confirmed.plan!!.status)
             assertEquals("旧已确认措施", confirmed.measures.single().content)
             assertEquals(MeasureStatus.IN_PROGRESS, confirmed.measures.single().status)
-            if (version == 4) assertEquals(1L, confirmed.measures.single().suggestionId)
+            if (version >= 4) assertEquals(1L, confirmed.measures.single().suggestionId)
             else assertNull(confirmed.measures.single().suggestionId)
             assertEquals("旧重点1", confirmed.items.single().description)
             val draft = repo.load(2, 2)
@@ -88,7 +91,7 @@ class Sprint2MigrationTest {
             assertEquals("旧草稿措施", draft.measures.single().content)
             assertEquals(1, repo.todos(2, false, null).first().size)
             assertEquals(1L, repo.todos(2, false, null).first().single().measureId)
-            if (version == 4) {
+            if (version >= 4) {
                 assertTrue(confirmed.reviewPublished)
                 val snapshot = confirmed.reviewedAnalyses.single()
                 assertEquals("v4-frozen-review", snapshot.versionKey)
@@ -124,6 +127,12 @@ class Sprint2MigrationTest {
                 if (version >= 3) assertEquals(1L, correction.reviewerId)
                 else assertNull(correction.reviewerId)
             }
+            val executions = ImprovementExecutionRepository(db)
+            assertTrue("旧计划不能被迁移成虚构的实际做法", executions.load(2, 1).executions.isEmpty())
+            val executionId = executions.append(2, 1, 1, ExecutionInput(
+                implementationNote = "升级后实施记录", actualAdjustment = "增加分组讨论并记录过程",
+                implementedAt = System.currentTimeMillis() - 1000, requestKey = "after-migration"))
+            assertEquals(executionId, executions.load(2, 1).executions.single().execution.id)
             verifyArchive(db, originalAiRows, invalidAi)
             verifyConstraints(db, version)
             if (invalidAi) {
@@ -203,7 +212,7 @@ class Sprint2MigrationTest {
             insert("improvement_measures", "id" to id, "planId" to id, "itemId" to id,
                 "content" to if (id == 1L) "旧已确认措施" else "旧草稿措施", "source" to "MODIFIED",
                 "dueDate" to "2026-11-01", "status" to if (id == 1L) "IN_PROGRESS" else "NOT_STARTED",
-                "suggestionId" to if (version == 4 && id == 1L) 1L else null)
+                "suggestionId" to if (version >= 4 && id == 1L) 1L else null)
         }
         insert("materials", "id" to 1L, "taskId" to 1L, "type" to "PPT",
             "filePath" to "tasks/1/photo/legacy.jpg", "capturedAt" to 100L, "offsetMs" to 0L)
@@ -217,7 +226,7 @@ class Sprint2MigrationTest {
             insert("ai_corrections", "id" to 1L, "analysisId" to 1L, "reviewerId" to 1L,
                 "originalContent" to "旧AI分析", "correctedContent" to "旧人工修正", "accepted" to 0, "createdAt" to 4000L)
         }
-        if (version == 4) {
+        if (version >= 4) {
             insert("review_publications", "id" to 1L, "evaluationId" to 1L, "taskId" to 1L,
                 "supervisorId" to 1L, "publishedAt" to 5000L)
             insert("reviewed_analysis_snapshots", "id" to 1L, "publicationId" to 1L, "analysisId" to 1L,
@@ -336,7 +345,7 @@ class Sprint2MigrationTest {
             sql.execSQL("DELETE FROM ai_analysis_results WHERE id=1")
             assertTrue(db.aiEvidenceDao().getByAnalysis(1).isEmpty())
             assertTrue(db.aiCorrectionDao().observeCorrections(1).first().isEmpty())
-            if (version == 4) {
+            if (version >= 4) {
                 val after = ImprovementRepository(db).load(2, 1)
                 assertEquals("已发布人工结论", after.reviewedAnalyses.single().effectiveContent)
                 assertEquals(2, after.suggestions.size)

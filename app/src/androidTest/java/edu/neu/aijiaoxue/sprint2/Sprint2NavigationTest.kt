@@ -15,6 +15,7 @@ import edu.neu.aijiaoxue.data.model.*
 import edu.neu.aijiaoxue.ui.evaluation.EvaluationDraft
 import edu.neu.aijiaoxue.ui.evaluation.EvaluationRepository
 import edu.neu.aijiaoxue.ui.improve.ImprovementRepository
+import edu.neu.aijiaoxue.ui.improve.ImprovementExecutionRepository
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.*
@@ -75,6 +76,12 @@ class Sprint2NavigationTest {
         runBlocking { db.withTransaction {
             val sql = db.openHelper.writableDatabase
             // Do not reset shared demo data: remove only this test's rows, child first.
+            sql.execSQL("""DELETE FROM improvement_evidences WHERE executionId IN (
+                SELECT x.id FROM improvement_executions x JOIN improvement_measures m ON m.id=x.measureId
+                JOIN improvement_plans p ON p.id=m.planId WHERE p.taskId=?)""", arrayOf(task))
+            sql.execSQL("""DELETE FROM improvement_executions WHERE measureId IN (
+                SELECT m.id FROM improvement_measures m JOIN improvement_plans p ON p.id=m.planId
+                WHERE p.taskId=?)""", arrayOf(task))
             sql.execSQL("DELETE FROM improvement_plans WHERE taskId = ?", arrayOf(task))
             sql.execSQL("DELETE FROM review_publications WHERE taskId = ?", arrayOf(task))
             sql.execSQL("DELETE FROM evaluations WHERE taskId = ?", arrayOf(task))
@@ -210,6 +217,23 @@ class Sprint2NavigationTest {
         awaitDb { ImprovementRepository(db).load(teacher, task).measures.single().status == MeasureStatus.IN_PROGRESS }
         assertEquals(candidate.reviewVersionKey,
             runBlocking { ImprovementRepository(db).load(teacher, task).suggestions.single().reviewVersionKey })
+
+        // US43/44 extends the real login -> feedback -> confirmed plan -> todo journey.
+        clickIn("todo-list", hasTestTag("todo-execution-${measure.id}"))
+        waitTag("execution-list")
+        for ((tag, text) in listOf("execution-note" to "在本轮课堂完成讨论后的随机汇报",
+            "execution-adjustment" to "将教师直接讲解改为学生先解释再由教师补充")) {
+            rule.onNodeWithTag("execution-list").performScrollToNode(hasTestTag(tag))
+            rule.onNodeWithTag(tag).performTextReplacement(text)
+            closeSoftKeyboard()
+        }
+        clickIn("execution-list", hasTestTag("execution-save"))
+        awaitDb { ImprovementExecutionRepository(db).load(teacher, task).executions.size == 1 }
+        val execution = runBlocking { ImprovementExecutionRepository(db).load(teacher, task).executions.single() }
+        rule.onNodeWithTag("execution-list").performScrollToNode(hasTestTag("execution-history-${execution.execution.id}"))
+        rule.onNodeWithTag("execution-history-${execution.execution.id}").assertIsDisplayed()
+        assertEquals(measure.content, runBlocking { ImprovementRepository(db).load(teacher, task).measures.single().content })
+        back(); waitTag("todo-list")
         back(); waitTag("plan-list")
         rule.onNodeWithTag("plan-list").performScrollToNode(hasText("查看改进待办"))
         rule.waitUntil(20_000) {

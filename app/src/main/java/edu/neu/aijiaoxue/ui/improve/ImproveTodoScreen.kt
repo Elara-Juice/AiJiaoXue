@@ -18,7 +18,8 @@ import edu.neu.aijiaoxue.ui.evaluation.*
 import kotlinx.coroutines.delay
 
 @Composable
-fun ImproveTodoScreen(viewModel: ImproveTodoViewModel, onBack: () -> Unit, onPlan: (Long) -> Unit, onFeedback: (Long) -> Unit) {
+fun ImproveTodoScreen(viewModel: ImproveTodoViewModel, onBack: () -> Unit, onPlan: (Long) -> Unit, onFeedback: (Long) -> Unit,
+    onExecution: ((Long) -> Unit)? = null) {
     val state by viewModel.uiState.collectAsState()
     val today by produceState(DateFormats.today()) {
         while (true) { value = DateFormats.today(); delay(60_000) }
@@ -65,6 +66,10 @@ fun ImproveTodoScreen(viewModel: ImproveTodoViewModel, onBack: () -> Unit, onPla
                     Row {
                         TextButton(onClick = { onPlan(row.taskId) }) { Text("查看原计划") }
                         TextButton(onClick = { onFeedback(row.taskId) }) { Text("查看督导反馈") }
+                    }
+                    onExecution?.let { navigate ->
+                        OutlinedButton(onClick = { navigate(row.taskId) }, enabled = state.busyId == null,
+                            modifier = Modifier.testTag("todo-execution-${row.measureId}")) { Text("记录改进落实与证据") }
                     }
                 }
             }
