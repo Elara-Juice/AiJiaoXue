@@ -45,9 +45,13 @@ import edu.neu.aijiaoxue.data.entity.InteractionEvent
 import edu.neu.aijiaoxue.data.entity.Material
 import edu.neu.aijiaoxue.data.entity.SupervisionTask
 import edu.neu.aijiaoxue.data.entity.User
+import edu.neu.aijiaoxue.data.entity.TeachingHighlight
+import edu.neu.aijiaoxue.data.entity.TeachingAdoption
+import edu.neu.aijiaoxue.data.dao.TeachingSupportDao
+import edu.neu.aijiaoxue.data.dao.GovernanceDao
 
 /**
- * 保留 Sprint 2 的 v1..4→v5 升级路径，再追加 v6 的实施记录和证据。
+ * 保留 v1 起的历史升级路径，v6 实施证据、v7 复评、v8 教学亮点与策略采纳。
  */
 @Database(
     entities = [
@@ -62,8 +66,9 @@ import edu.neu.aijiaoxue.data.entity.User
         ImprovementExecution::class, ImprovementEvidence::class,
         // Sprint 3（李奕萱）：复评关联、正式指标快照与改善核验
         MetricSnapshot::class, ReviewLink::class, IssueVerification::class,
+        TeachingHighlight::class, TeachingAdoption::class,
     ],
-    version = 7,
+    version = 8,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -83,11 +88,13 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun reviewLinkDao(): ReviewLinkDao
     abstract fun issueVerificationDao(): IssueVerificationDao
     abstract fun reviewSourceDao(): ReviewSourceDao
+    abstract fun teachingSupportDao(): TeachingSupportDao
+    abstract fun governanceDao(): GovernanceDao
 
     companion object {
         const val NAME = "aijiaoxue.db"
         val MIGRATIONS: Array<Migration> = Sprint2Migrations.ALL + Sprint3Migrations.MIGRATION_5_6 +
-            Sprint3ReviewMigrations.MIGRATION_6_7
+            Sprint3ReviewMigrations.MIGRATION_6_7 + TeachingSupportMigrations.MIGRATION_7_8
 
         @Volatile private var instance: AppDatabase? = null
 

@@ -11,6 +11,7 @@ import edu.neu.aijiaoxue.data.model.*
 import edu.neu.aijiaoxue.ui.improve.ImprovementRepository
 import edu.neu.aijiaoxue.ui.improve.ImprovementExecutionRepository
 import edu.neu.aijiaoxue.ui.improve.ExecutionInput
+import edu.neu.aijiaoxue.ui.growth.TeachingSupportRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
@@ -29,6 +30,8 @@ class Sprint2MigrationTest {
     @Test fun version3KeepsManualDataAndReviewedAi() = migrate(3)
     @Test fun version4KeepsPublishedSourcesAdoptionDismissalAndConfirmedTodo() = migrate(4)
     @Test fun version5KeepsFrozenSourcesAndCanRecordActualImplementation() = migrate(5)
+    @Test fun version6KeepsExecutionHistoryAndEvidence() = migrate(6)
+    @Test fun version7KeepsMetricsReviewAndVerification() = migrate(7)
     @Test fun version4ArchivesInvalidAiWithoutLosingPersonalData() = migrate(4, invalidAi = true)
 
     private fun migrate(version: Int, invalidAi: Boolean = false) = runBlocking {
@@ -72,7 +75,7 @@ class Sprint2MigrationTest {
         val db = Room.databaseBuilder(context, AppDatabase::class.java, name)
             .addMigrations(*AppDatabase.MIGRATIONS).build()
         try {
-            assertEquals(7, db.openHelper.writableDatabase.version)
+            assertEquals(8, db.openHelper.writableDatabase.version)
             assertEquals("旧教师", db.userDao().getById(2)!!.name)
             assertEquals("旧课程", db.courseDao().getById(1)!!.name)
             assertEquals("tasks/1/photo/legacy.jpg", db.captureDao().getMaterial(1)!!.filePath)
@@ -128,11 +131,33 @@ class Sprint2MigrationTest {
                 else assertNull(correction.reviewerId)
             }
             val executions = ImprovementExecutionRepository(db)
-            assertTrue("旧计划不能被迁移成虚构的实际做法", executions.load(2, 1).executions.isEmpty())
+            val oldExecutions = executions.load(2, 1).executions
+            if (version >= 6) {
+                val oldExecution = oldExecutions.single()
+                assertEquals(1L, oldExecution.execution.id)
+                assertEquals("旧实施说明", oldExecution.execution.implementationNote)
+                assertEquals("旧实际调整", oldExecution.execution.actualAdjustment)
+                assertEquals(7000L, oldExecution.execution.implementedAt)
+                assertEquals(2L, oldExecution.execution.recordedBy)
+                assertEquals("legacy-execution", oldExecution.execution.requestKey)
+                val evidence = oldExecution.evidence.single()
+                assertEquals("tasks/1/improvement/1/legacy.pdf", evidence.relativePath)
+                assertEquals("旧实施附件.pdf", evidence.displayName)
+                assertEquals("application/pdf", evidence.mimeType)
+                assertEquals(123L, evidence.byteSize)
+                assertEquals("旧实施证据说明", evidence.description)
+                assertEquals("legacy-evidence", evidence.requestKey)
+            } else {
+                assertTrue("旧计划不能被迁移成虚构的实际做法", oldExecutions.isEmpty())
+            }
+            verifyReviewHistory(db, version)
             val executionId = executions.append(2, 1, 1, ExecutionInput(
                 implementationNote = "升级后实施记录", actualAdjustment = "增加分组讨论并记录过程",
                 implementedAt = System.currentTimeMillis() - 1000, requestKey = "after-migration"))
-            assertEquals(executionId, executions.load(2, 1).executions.single().execution.id)
+            val afterExecutions = executions.load(2, 1).executions
+            assertEquals(oldExecutions.size + 1, afterExecutions.size)
+            assertEquals("升级后实施记录", afterExecutions.single { it.execution.id == executionId }.execution.implementationNote)
+            verifyTeachingSupport(db)
             verifyArchive(db, originalAiRows, invalidAi)
             verifyConstraints(db, version)
             if (invalidAi) {
@@ -186,6 +211,7 @@ class Sprint2MigrationTest {
                     is Int -> row.put(key, value)
                     is Long -> row.put(key, value)
                     is Float -> row.put(key, value)
+                    is Double -> row.put(key, value)
                     else -> error("未支持的fixture值：$key=$value")
                 }
             }
@@ -197,10 +223,12 @@ class Sprint2MigrationTest {
         for (id in 1L..3L) {
             insert("supervision_tasks", "id" to id, "code" to "LEGACY-$id", "courseId" to 1L,
                 "supervisorId" to 1L, "supervisionDate" to "2026-10-07", "period" to id.toString(),
-                "type" to "REGULAR", "status" to if (id == 3L) "PENDING_EVALUATION" else "COMPLETED")
+                "type" to if (version >= 7 && id == 2L) "FOLLOW_UP" else "REGULAR",
+                "status" to if (id == 3L) "PENDING_EVALUATION" else "COMPLETED")
             insert("evaluations", "id" to id, "taskId" to id, "contentScore" to 5, "designScore" to 4,
                 "interactionScore" to 3, "engagementScore" to 4, "totalScore" to 81, "grade" to "GOOD",
-                "suggestions" to "旧督导建议", "overallOpinion" to if (id == 3L) "旧人工草稿" else "旧正式评价",
+                "suggestions" to "旧督导建议", "strengths" to "旧正式亮点",
+                "overallOpinion" to if (id == 3L) "旧人工草稿" else "旧正式评价",
                 "status" to if (id == 3L) "DRAFT" else "SUBMITTED", "submittedAt" to if (id == 3L) null else 1000L)
             insert("evaluation_issues", "id" to id, "evaluationId" to id, "description" to "旧问题$id", "dimension" to "INTERACTION")
         }
@@ -242,6 +270,31 @@ class Sprint2MigrationTest {
                     "dismissedAt" to if (id == 2L) 6500L else null)
             }
         }
+        if (version >= 6) {
+            insert("improvement_executions", "id" to 1L, "measureId" to 1L,
+                "implementationNote" to "旧实施说明", "actualAdjustment" to "旧实际调整",
+                "implementedAt" to 7000L, "recordedBy" to 2L, "createdAt" to 7100L,
+                "requestKey" to "legacy-execution")
+            insert("improvement_evidences", "id" to 1L, "executionId" to 1L,
+                "relativePath" to "tasks/1/improvement/1/legacy.pdf", "displayName" to "旧实施附件.pdf",
+                "mimeType" to "application/pdf", "byteSize" to 123L, "description" to "旧实施证据说明",
+                "createdAt" to 7200L, "requestKey" to "legacy-evidence")
+        }
+        if (version >= 7) {
+            for (id in 1L..2L) {
+                insert("metric_snapshots", "id" to id, "taskId" to id,
+                    "metricKey" to "ENGAGEMENT_RATE", "value" to if (id == 1L) 60.0 else 75.0,
+                    "unit" to "%", "denominator" to "实到人数合计", "denominatorValue" to 30.0,
+                    "sampling" to "旧课堂参与采样", "methodVersion" to "legacy-v7", "sampleCount" to 3,
+                    "scopeStartAt" to 100L, "scopeEndAt" to 200L, "createdAt" to 8000L + id)
+            }
+            insert("review_links", "id" to 1L, "originTaskId" to 1L, "originIssueId" to 1L,
+                "followUpTaskId" to 2L, "teacherId" to 2L, "originIssueSnapshot" to "旧问题1",
+                "originDimension" to "INTERACTION", "createdBy" to 1L, "createdAt" to 8100L)
+            insert("issue_verifications", "id" to 1L, "linkId" to 1L, "verdict" to "IMPROVED",
+                "basis" to "旧人工核验依据", "verifierId" to 1L, "verifiedAt" to 8200L,
+                "beforeSnapshotId" to 1L, "afterSnapshotId" to 2L)
+        }
         if (invalidAi) {
             check(version == 4)
             insert("materials", "id" to 2L, "taskId" to 2L, "type" to "PPT", "filePath" to "tasks/2/other.jpg")
@@ -276,6 +329,70 @@ class Sprint2MigrationTest {
             db.execSQL("DELETE FROM ai_corrections WHERE id=300")
             db.execSQL("DELETE FROM ai_analysis_results WHERE id=100")
         }
+    }
+
+    private fun verifyReviewHistory(db: AppDatabase, version: Int) {
+        val sql = db.openHelper.readableDatabase
+        if (version < 7) {
+            for (table in listOf("metric_snapshots", "review_links", "issue_verifications")) {
+                sql.query("SELECT COUNT(*) FROM $table").use {
+                    assertTrue(it.moveToFirst())
+                    assertEquals("迁移不得生成虚构的历史 $table", 0, it.getInt(0))
+                }
+            }
+            return
+        }
+        sql.query("SELECT id,taskId,value,denominatorValue,methodVersion,sampling,sampleCount,scopeStartAt,scopeEndAt FROM metric_snapshots ORDER BY id").use {
+            assertEquals(2, it.count)
+            while (it.moveToNext()) {
+                assertEquals(it.getLong(0), it.getLong(1))
+                assertEquals(if (it.getLong(0) == 1L) 60.0 else 75.0, it.getDouble(2), 0.0)
+                assertEquals(30.0, it.getDouble(3), 0.0)
+                assertEquals("legacy-v7", it.getString(4))
+                assertEquals("旧课堂参与采样", it.getString(5))
+                assertEquals(3, it.getInt(6))
+                assertEquals(100L, it.getLong(7))
+                assertEquals(200L, it.getLong(8))
+            }
+        }
+        sql.query("SELECT originTaskId,originIssueId,followUpTaskId,teacherId,originIssueSnapshot,originDimension FROM review_links WHERE id=1").use {
+            assertTrue(it.moveToFirst())
+            assertEquals(1L, it.getLong(0)); assertEquals(1L, it.getLong(1))
+            assertEquals(2L, it.getLong(2)); assertEquals(2L, it.getLong(3))
+            assertEquals("旧问题1", it.getString(4)); assertEquals("INTERACTION", it.getString(5))
+        }
+        sql.query("SELECT linkId,verdict,basis,verifierId,verifiedAt,beforeSnapshotId,afterSnapshotId FROM issue_verifications WHERE id=1").use {
+            assertTrue(it.moveToFirst())
+            assertEquals(1L, it.getLong(0)); assertEquals("IMPROVED", it.getString(1))
+            assertEquals("旧人工核验依据", it.getString(2)); assertEquals(1L, it.getLong(3))
+            assertEquals(8200L, it.getLong(4)); assertEquals(1L, it.getLong(5)); assertEquals(2L, it.getLong(6))
+        }
+    }
+
+    private suspend fun verifyTeachingSupport(db: AppDatabase) {
+        val support = TeachingSupportRepository(db)
+        val initial = support.load(2, 2)
+        assertTrue("迁移不得虚构教师亮点", initial.highlights.isEmpty())
+        assertTrue("迁移不得自动采用策略", initial.adoptions.isEmpty())
+        support.saveHighlight(2, 1, "升级后可复用做法")
+        val highlight = support.load(2, 1).highlights.single()
+        assertEquals("旧正式亮点", highlight.sourceText)
+        assertEquals("升级后可复用做法", highlight.practice)
+        val draft = support.load(2, 2)
+        val item = draft.selected!!.items.single()
+        // 旧问题文字较笼统，不要求规则替它制造策略；复用升级后本人保存的正式亮点。
+        val choice = support.choices(draft, item).first { it.key.startsWith("highlight:") }
+        val measureId = support.adopt(2, 2, item.id, choice.key, "升级后修改采用的策略")
+        val reloaded = support.load(2, 2)
+        val adoption = reloaded.adoptions.single()
+        assertEquals(measureId, adoption.measureId)
+        assertEquals(choice.key, adoption.sourceKey)
+        assertEquals(choice.content, adoption.originalContent)
+        assertEquals(choice.reference, adoption.sourceReference)
+        assertEquals("旧重点2", adoption.problemSnapshot)
+        val reloadedPlan = requireNotNull(reloaded.selected)
+        assertEquals("升级后修改采用的策略", reloadedPlan.measures.single { it.id == measureId }.content)
+        assertEquals("旧草稿措施", reloadedPlan.measures.single { it.id == 2L }.content)
     }
 
     private fun verifyArchive(db: AppDatabase, originalRows: Map<Pair<String, Long>, JSONObject>, invalidAi: Boolean) {

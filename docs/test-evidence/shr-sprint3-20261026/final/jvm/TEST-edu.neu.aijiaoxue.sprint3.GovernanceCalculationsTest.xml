@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="edu.neu.aijiaoxue.sprint3.GovernanceCalculationsTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-26T08:32:15.297Z" hostname="LAPTOP-904CKOOQ" time="0.006">
+  <properties/>
+  <testcase name="choosesAnExistingCommonVersionInsteadOfMixingNewAndOldMethods" classname="edu.neu.aijiaoxue.sprint3.GovernanceCalculationsTest" time="0.004"/>
+  <testcase name="groupsCoursesAndTeachersAndSortsPeriodsNumerically" classname="edu.neu.aijiaoxue.sprint3.GovernanceCalculationsTest" time="0.001"/>
+  <testcase name="missingDataAndDifferentUnitsNeverProduceZeroOrDelta" classname="edu.neu.aijiaoxue.sprint3.GovernanceCalculationsTest" time="0.0"/>
+  <testcase name="deduplicatesWholeClassLinksAndBreaksSameTimeTiesByVerificationId" classname="edu.neu.aijiaoxue.sprint3.GovernanceCalculationsTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -201,6 +201,8 @@ class ReviewRepository(private val db: AppDatabase) {
      */
     suspend fun captureSnapshots(actorId: Long, taskId: Long): Int = withContext(Dispatchers.IO) {
         val task = sourceDao.followUpTaskForActor(actorId, taskId) ?: return@withContext 0
+        // 正式评价提交前不能占用不可覆盖的快照唯一键，否则缺测值会阻塞正式值。
+        if (sourceDao.submittedEvaluationForActor(actorId, taskId) == null) return@withContext 0
         val snapshots = buildSnapshots(actorId, task)
         var inserted = 0
         snapshots.forEach { snapshot ->

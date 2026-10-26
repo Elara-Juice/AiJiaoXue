@@ -10,6 +10,7 @@ on:
       - feature/yzj-sprint2-improve
       # Sprint 3 候选分支：D8/D9 要求同一候选版本能在 CI 上构建通过
       - feature/lyx-sprint3-review
+      - feature/shr-sprint3-governance
 
 jobs:
   build:

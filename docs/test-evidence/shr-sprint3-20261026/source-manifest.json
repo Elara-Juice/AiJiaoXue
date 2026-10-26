@@ -1,0 +1,1102 @@
+[
+  {
+    "path": ".github/workflows/main.yml",
+    "sha256": "71ffbba7dcf0618f918791ae48fd104959794013b9dbc33d3c22798fea766a96",
+    "bytes": 975
+  },
+  {
+    "path": "Build-Sprint2.ps1",
+    "sha256": "111b916cf2122fa5c76e21594649e9e4816909b029bf3e7bf35d476489b4d17b",
+    "bytes": 2571
+  },
+  {
+    "path": "app/build.gradle.kts",
+    "sha256": "b5ddd8f0623791cd6277b82694e00d7db30868c298bb27c53d9314823e8b0b70",
+    "bytes": 2060
+  },
+  {
+    "path": "app/schemas/edu.neu.aijiaoxue.data.AppDatabase/1.json",
+    "sha256": "54b81f73fbbecdd8d7effdcaed483654e529bc9666f2cf87e7af97f06e72b451",
+    "bytes": 33709
+  },
+  {
+    "path": "app/schemas/edu.neu.aijiaoxue.data.AppDatabase/2.json",
+    "sha256": "ce4bd659e04c1f7c6c2a2d35a1beb7c7ba907e8f72a5c4d4752380fcefff35df",
+    "bytes": 38914
+  },
+  {
+    "path": "app/schemas/edu.neu.aijiaoxue.data.AppDatabase/3.json",
+    "sha256": "ceb59d6ef8275c2399fc72191679b4fbc76320cd4117e7293e6eb3cdda88274f",
+    "bytes": 44309
+  },
+  {
+    "path": "app/schemas/edu.neu.aijiaoxue.data.AppDatabase/4.json",
+    "sha256": "150936d95bcb3f05bbdc3467e943a9a858482c513b5e3dbd7965e9710bef635b",
+    "bytes": 49349
+  },
+  {
+    "path": "app/schemas/edu.neu.aijiaoxue.data.AppDatabase/5.json",
+    "sha256": "b415f1ceeeafd76bf7a6df51da94b86bc9108016644b705aad48054f2d9ff6da",
+    "bytes": 56790
+  },
+  {
+    "path": "app/schemas/edu.neu.aijiaoxue.data.AppDatabase/6.json",
+    "sha256": "b9c5696b947843b5984ea151940f1ff992898f863f3ea5d7d0de7ac7f1b613b6",
+    "bytes": 63357
+  },
+  {
+    "path": "app/schemas/edu.neu.aijiaoxue.data.AppDatabase/7.json",
+    "sha256": "51654ee9fa010af60947b6c6d0991adab0b4ae08d2794695a1a87bf5c7b2aa06",
+    "bytes": 75923
+  },
+  {
+    "path": "app/schemas/edu.neu.aijiaoxue.data.AppDatabase/8.json",
+    "sha256": "7275876db755ae0a62beda1d08a4ab94cebf76a6ea3c00fb354bd488ad4d2ef4",
+    "bytes": 79362
+  },
+  {
+    "path": "app/src/androidTest/assets/migration-schemas/1.json",
+    "sha256": "54b81f73fbbecdd8d7effdcaed483654e529bc9666f2cf87e7af97f06e72b451",
+    "bytes": 33709
+  },
+  {
+    "path": "app/src/androidTest/assets/migration-schemas/2.json",
+    "sha256": "ce4bd659e04c1f7c6c2a2d35a1beb7c7ba907e8f72a5c4d4752380fcefff35df",
+    "bytes": 38914
+  },
+  {
+    "path": "app/src/androidTest/assets/migration-schemas/3.json",
+    "sha256": "ceb59d6ef8275c2399fc72191679b4fbc76320cd4117e7293e6eb3cdda88274f",
+    "bytes": 44309
+  },
+  {
+    "path": "app/src/androidTest/assets/migration-schemas/4.json",
+    "sha256": "150936d95bcb3f05bbdc3467e943a9a858482c513b5e3dbd7965e9710bef635b",
+    "bytes": 49349
+  },
+  {
+    "path": "app/src/androidTest/assets/migration-schemas/5.json",
+    "sha256": "b415f1ceeeafd76bf7a6df51da94b86bc9108016644b705aad48054f2d9ff6da",
+    "bytes": 56790
+  },
+  {
+    "path": "app/src/androidTest/assets/migration-schemas/6.json",
+    "sha256": "b9c5696b947843b5984ea151940f1ff992898f863f3ea5d7d0de7ac7f1b613b6",
+    "bytes": 63357
+  },
+  {
+    "path": "app/src/androidTest/assets/migration-schemas/7.json",
+    "sha256": "51654ee9fa010af60947b6c6d0991adab0b4ae08d2794695a1a87bf5c7b2aa06",
+    "bytes": 75923
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/EndToEndTest.kt",
+    "sha256": "0ad22e4be133e9ce09044113ca7e18c52a2be8f26e3c3c8def31bd5035a5cc55",
+    "bytes": 29939
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/ExampleInstrumentedTest.kt",
+    "sha256": "2fe53ff43dbdbbb246752b011c0021dc7634d714e7bdac1eed3f347ef631a80f",
+    "bytes": 684
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/LoginFlowTest.kt",
+    "sha256": "1498e696526557d5a5b2042dca41f1dade0583bb5356aa87cdd17c9241ff7d04",
+    "bytes": 3181
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/Sprint1Fixture.kt",
+    "sha256": "7b7377b17b560fd29f156742ab18420c39f980f8c4371a58827b39ce58c693f3",
+    "bytes": 4356
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/Sprint1MediaFixture.kt",
+    "sha256": "8fe66872ab8fcfe0cd948249a8b6d220d05945e5919e84a3999e9c028466dd81",
+    "bytes": 5771
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/Sprint1NavigationTest.kt",
+    "sha256": "707a3ab31fee3411b2383459a6cf472aad39a46df4a815222b07c6e3937ed322",
+    "bytes": 2204
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/Sprint1RepositoryTest.kt",
+    "sha256": "4e8569124ae5f12b190e50d5054ffb3802e4cf9d4fd132bc1532615c4100109c",
+    "bytes": 14527
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/Sprint1UiTest.kt",
+    "sha256": "9b6b1b9f71d90f84111db3ae7cc717d1bb0aacc7a65d9957ddab4e2aecf0c2cb",
+    "bytes": 16353
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/data/AiAnalysisTest.kt",
+    "sha256": "4534a7afd6637298c82962facd59b48e4f8afb7910e6aef55f9279b803ef52e9",
+    "bytes": 15403
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/data/DaoQueriesTest.kt",
+    "sha256": "dd5880f6d4b6df04805996c8a7fef5dec4078a3fbeda982843567362e09db47a",
+    "bytes": 18824
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/data/DemoDataTest.kt",
+    "sha256": "0c97f11bfea0cd193964de2d50515e4f97d9f02fb5d28c6348368093f525f9a0",
+    "bytes": 8636
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/sprint2/AiUpstreamSecurityTest.kt",
+    "sha256": "5b91abfb9133e989b8e58878f1d13729f1d01e7a92cde8ccdf57b0a53058a533",
+    "bytes": 14480
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/sprint2/Sprint2ImprovementTest.kt",
+    "sha256": "f6846cbf563a270cefc380d4382f464ea5ea8bfc25f31c3e1bfa30dd3b9f3ae5",
+    "bytes": 23890
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/sprint2/Sprint2MigrationTest.kt",
+    "sha256": "76bd5f94f8ed6aeee36855b8e776a8a90e9c7cb0b672f646cf89f3b19033561b",
+    "bytes": 31325
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/sprint2/Sprint2NavigationTest.kt",
+    "sha256": "567da88a15f605cf817604f84e96806b1dae4a40b915026b8db8adc0917ba0be",
+    "bytes": 14704
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/sprint2/Sprint2UiTest.kt",
+    "sha256": "0d209eb415ea1bb00ffcfcc873dfdbd478c8827819bcc7999552a0aed442e3ad",
+    "bytes": 15039
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/sprint3/Sprint3EvidenceTest.kt",
+    "sha256": "2425890788eddaffa796924ba973146a7a5d6c909879af8bbe9d498b138208a4",
+    "bytes": 8782
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/sprint3/Sprint3ExecutionTest.kt",
+    "sha256": "59e6d837e529c3c18ea331044cc737c24fa655d3623dbfc3f871fa6c262177e6",
+    "bytes": 10646
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/sprint3/Sprint3ExecutionUiTest.kt",
+    "sha256": "0e0f95aa5974961943fa102a55d37bd81849129ae3ed3490d77ac7ef00ca919e",
+    "bytes": 10360
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/sprint3/Sprint3GovernanceTest.kt",
+    "sha256": "d53664a8cf7afa0bafb88352812e1858d271c9dae48fa5f005f393073a7fcf57",
+    "bytes": 9951
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/sprint3/Sprint3GovernanceUiTest.kt",
+    "sha256": "d8fe8378beb76b8602bad41fad22cd15eb4fa102c15c0db7c18b4a5c7ff73b41",
+    "bytes": 3553
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/sprint3/Sprint3ReviewMigrationTest.kt",
+    "sha256": "4a7d22a1cb76dac3f6046383cf9129692b64abd6dc90522dd3196fb04ffee298",
+    "bytes": 8867
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/sprint3/Sprint3ReviewTest.kt",
+    "sha256": "038a15755a87ba321ea4e11374487d4baa42c7096cf489685763e79ed5dfd0f6",
+    "bytes": 14971
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/sprint3/TeachingSupportTest.kt",
+    "sha256": "2243584cbeda985766b30144517a08bbf35e0b97fce047762276fb880f4b0139",
+    "bytes": 6155
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/sprint3/TeachingSupportUiTest.kt",
+    "sha256": "57b0b0e3479de2f529f99a82261ee295c4e9fe16545d57e4d0782c583c13ae06",
+    "bytes": 14128
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/ui/F1FeedbackRegressionTest.kt",
+    "sha256": "f543629652ef937143bf4909228be874193db4c0f6970a8940fc02d56ba33ea4",
+    "bytes": 21573
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/ui/capture/CaptureEngagementTest.kt",
+    "sha256": "97061197e6615a427a58e718694421d63867b2f36b67208b5c29bd18b6e452ed",
+    "bytes": 7518
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/ui/capture/CaptureInteractionTest.kt",
+    "sha256": "9ae034db6c66651a235e5d4bb6ce39a6ac117d89a3cb9e14f0ce0cb128822d7d",
+    "bytes": 9300
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/ui/capture/CaptureMaterialDeleteTest.kt",
+    "sha256": "748db60515948ea0fe0acad7d2ba3ac55a7a7cb66ece0b42adb8ee28f2107e6b",
+    "bytes": 8768
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/ui/capture/CapturePhotoTest.kt",
+    "sha256": "b229ecb30c5d38118b16515eda7e582ff82391cd79e6ee6b278f4ac20bd56160",
+    "bytes": 8716
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/ui/capture/CaptureRecordingTest.kt",
+    "sha256": "6b4d3d4adafc787da62cb3b2800ba4617d689a4eff109d20920d29e378448670",
+    "bytes": 11678
+  },
+  {
+    "path": "app/src/androidTest/java/edu/neu/aijiaoxue/ui/course/MyTasksTest.kt",
+    "sha256": "f79b8386a8ac98a0d78c3941c5423b3594ec62cf1e2bf9146cdc08355ee8ee62",
+    "bytes": 5801
+  },
+  {
+    "path": "app/src/main/AndroidManifest.xml",
+    "sha256": "afd9d593a702b73f4615bee8ec8d67fcf78921c083a61867eb8718fd9d6740ad",
+    "bytes": 2124
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/MainActivity.kt",
+    "sha256": "f79b3841f0d99a46442a207b53a0a8fe5a72c0f1127dc1ef8a36e84ecbb1cd44",
+    "bytes": 1111
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/AppDatabase.kt",
+    "sha256": "00a6783121cb758da75be74605a32c613ce061f58165510a834e0550f339e39f",
+    "bytes": 5192
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/DemoData.kt",
+    "sha256": "09a79c4e99b60c7c76823df61ce392b21dd7e0ef9477c5ac1ed591813a57f89b",
+    "bytes": 9449
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/FileStore.kt",
+    "sha256": "926039b951d1e38371de4f3c3a7ef3800bf750cd8c61ac16b8b5742469b555be",
+    "bytes": 5466
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/PasswordHasher.kt",
+    "sha256": "9ea8a70ee6eac21468febe756537996f4d18890e5b96d2c6324a5c4de9e240a6",
+    "bytes": 624
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/Session.kt",
+    "sha256": "151c544d7adf9bda1a0b608b24ad69397882791b1d24b7f98640dcdd9944505a",
+    "bytes": 2643
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/Sprint2Migrations.kt",
+    "sha256": "f934f569fdd693fccfaa7c75fa6945eefbe40586831bc4fe08c33ec2f9534e8f",
+    "bytes": 12823
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/Sprint3Migrations.kt",
+    "sha256": "4dd77d3e287af0eaba540912fa86988581841532bc2f18a9aa52032c583eeac3",
+    "bytes": 2032
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/Sprint3ReviewMigrations.kt",
+    "sha256": "4895542025d1ab3427e857019328aaef06f908fd01e43ef8fc05ba4accc97bb9",
+    "bytes": 4189
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/TeachingSupportMigrations.kt",
+    "sha256": "77569adbf70e1fea805a852e94a3fbd5df7f4abda2e7e8336da1f22d595b41b8",
+    "bytes": 1711
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/ai/AIAnalyzer.kt",
+    "sha256": "48a90c472035757a7b56293249c4c40f75f4522e13613e87b40ce1dc936b5448",
+    "bytes": 519
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/ai/AIResult.kt",
+    "sha256": "ca75ff81a54d9c09142967fa6fee8a964235ef72fdb0f855e78e36553c866b8c",
+    "bytes": 864
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/ai/MockAIAnalyzer.kt",
+    "sha256": "7696f57321679b40558b3a8cde438fc6b107675641cd60124a171c98b0451923",
+    "bytes": 15420
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/analysis/ParticipationAnalysis.kt",
+    "sha256": "f471c3973264bab1458853a6071730badcca61f8d69f4bbaeab94a8a9d8a92ec",
+    "bytes": 17797
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/dao/AiAnalysisDao.kt",
+    "sha256": "a6470695a27e06ae77e31eaa7561d914f5bc9a43ffc277140f3faaf9f369feee",
+    "bytes": 2642
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/dao/AiCorrectionDao.kt",
+    "sha256": "ff239d2287c414be49a2902561910b09258baab4e0c23c6b70f9af3cf401a729",
+    "bytes": 1229
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/dao/AiEvidenceDao.kt",
+    "sha256": "e41ccba3f562345e132f780a6354054703b668e91691f047d9ebc6e4673ee3f8",
+    "bytes": 1748
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/dao/Daos.kt",
+    "sha256": "8265d4fd75f56af7b363eca52767a7916ff2163b0fb5d63b2613a96d4cdbe6ee",
+    "bytes": 34622
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/dao/GovernanceDao.kt",
+    "sha256": "ef91a59fae34ce3c6e34d3dbef6441863535555279e0ff164f980cf2abdbf103",
+    "bytes": 5810
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/dao/ImprovementExecutionDao.kt",
+    "sha256": "74552799c79d4a971b597311d232476f55e4d602853f5be375ee23076dacbeb9",
+    "bytes": 4203
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/dao/ImprovementSuggestionDao.kt",
+    "sha256": "1c03f24292c459200cbe81ecbc4c1eac9c6f1fd2b6ab33c6e8fc225298b9b9c4",
+    "bytes": 1238
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/dao/ReviewDaos.kt",
+    "sha256": "ef5223d218e393a9174d0e3924e47fddc8a328e6bd8252f213823d5e4222ca28",
+    "bytes": 4932
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/dao/ReviewRows.kt",
+    "sha256": "37e1efb11613f343abff97af87fbe1a41459e9dd1f1113feae97bd623a0bce88",
+    "bytes": 940
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/dao/ReviewSourceDao.kt",
+    "sha256": "6a20cc3a19f513122570fb30eef18ec55b26dad8c860c7cdde142c25ca885244",
+    "bytes": 10123
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/dao/Rows.kt",
+    "sha256": "a8bafc09029b89f6ddfc72fe1ae43ded73e9b95ae9c076452ab306f0ed52a03a",
+    "bytes": 4244
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/dao/TeachingSupportDao.kt",
+    "sha256": "80aaf0f1bed18cba5a0fab96398c53b50934c40175177bc182b24fa6663dccef",
+    "bytes": 1856
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/entity/AiAnalysisResult.kt",
+    "sha256": "7e8ec1f55159e1c4df42ca449225a3268d9fcfa9b7d634af20727b382ab98cbe",
+    "bytes": 1198
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/entity/AiCorrection.kt",
+    "sha256": "3616bf269ca4f351fab6081749b430fa4a8a65a0ae992d45be3e007ecee555b5",
+    "bytes": 1145
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/entity/AiEvidence.kt",
+    "sha256": "ff432a4c6c5c2d769a213f87df660dd002b7065cde003578937175bb0c1c4d13",
+    "bytes": 1492
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/entity/Entities.kt",
+    "sha256": "034d6aa05a4d8f5ea825dfdc9f39bfdf180c5857346527e75ebff9a47856bd19",
+    "bytes": 9825
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/entity/ImprovementEvidence.kt",
+    "sha256": "97202a7bd813e57c3839beaf99a1c8dbbc450bb25859a4bbd76019c02211d268",
+    "bytes": 868
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/entity/ImprovementExecution.kt",
+    "sha256": "5450d2fd7d67d8e4e43540468444518b77f6f5a8b6e9b6c534cc27ae71f95222",
+    "bytes": 974
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/entity/ImprovementSuggestion.kt",
+    "sha256": "0de153ffcedc755cc7ec59145715786c0018958db6ac175dc708808f748da80c",
+    "bytes": 2335
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/entity/LegacyAiMigrationArchive.kt",
+    "sha256": "c43a28042e548dd85758caf9dcb30c87aa4bf37572148cc9669599d98003b22e",
+    "bytes": 807
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/entity/ReviewEntities.kt",
+    "sha256": "90613d55a6bcc8cb3cb416540819d3956320d163d1c8e5aba8cd77f909e2217c",
+    "bytes": 5089
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/entity/TeachingSupport.kt",
+    "sha256": "4a7ce55f40eebd39b0a1fd6d52369ef06a7120982e8b7e125a8c83da0aff2b7c",
+    "bytes": 1460
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/model/Enums.kt",
+    "sha256": "952db2def3cff226f4ac4b5284d272652da215e333d841b3c63188f271b0e281",
+    "bytes": 5681
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/model/Rules.kt",
+    "sha256": "69407a4c6edf08b98ef408bbea43135c6c465df307b43d122a3effbb29a44344",
+    "bytes": 11009
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/repository/AIAnalysisRepository.kt",
+    "sha256": "cbdbee6a259c59f0823ebe9039331db20bb1a5ad3b6689c9df6149644ba117fa",
+    "bytes": 6089
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/repository/AiCorrectionRepository.kt",
+    "sha256": "5599bf9fb305b6930787bc5369d63f4c344d40137a0211477d694c8db01f996d",
+    "bytes": 1828
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/repository/AiEvidenceRepository.kt",
+    "sha256": "6e923924a15e487c9db236955edd1e0a082a13ab541715bae83522cb6c95b3fc",
+    "bytes": 999
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/repository/GovernanceRepository.kt",
+    "sha256": "04381f3657704f0854b0c639cbcc5aac693804560b467cb9c4f60699e8fd78fe",
+    "bytes": 8604
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/repository/ReviewRepository.kt",
+    "sha256": "d01fa7347e28bbb0011f3b92c6e70bff075dc05a6dd71f3331dcd8a23c754150",
+    "bytes": 22529
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/data/repository/ReviewedAnalysisProvider.kt",
+    "sha256": "fc91de8ae934c276b1cddf358ea5ef3984142daa785cae428af3f9d7124bcc98",
+    "bytes": 4772
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/navigation/AdminHomeScreen.kt",
+    "sha256": "a0b51ded027904a7dc762ff8401aa1235e8592de718b846a3b52cbac113a2666",
+    "bytes": 915
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/navigation/AppNavHost.kt",
+    "sha256": "fabc2324f88d452738264e4df439198ea09cd4390d2aae2d3454734e4cae1afe",
+    "bytes": 17500
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/navigation/HomeScaffold.kt",
+    "sha256": "ebd4ac3a054fe98c571f56cee48d3aa41c76b2babe0b5aae8233e763272600b4",
+    "bytes": 3687
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/navigation/PendingScreen.kt",
+    "sha256": "693013faafafaecd10f647d0ffe8777acf4290641daa93a210c626e46b3efcf6",
+    "bytes": 1348
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/navigation/Routes.kt",
+    "sha256": "bd6fb3e35a7d67ad62adaa92fa3e45cd75f799b61473e7eb6b6fd24d57910dd9",
+    "bytes": 3477
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/navigation/SupervisorHomeScreen.kt",
+    "sha256": "cc9623341ab12cbe56759cd417d69f733d6023977244dc863e0029917be96b7f",
+    "bytes": 800
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/navigation/TeacherHomeScreen.kt",
+    "sha256": "0098f409ed9b8e636f3841767ef75e43fa178665f419eb61821609bf76f5c232",
+    "bytes": 1600
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/analysis/AIReviewScreen.kt",
+    "sha256": "84f1b689e3e171c232680a9e11800dbb2ab1a6e6ea008b8f8f49eec690f66420",
+    "bytes": 5341
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/analysis/AIReviewViewModel.kt",
+    "sha256": "d2c2cbc58c6babbb40e8d7b6fd2191e8a74189b6c54fdd8d38bd399c74a31fda",
+    "bytes": 2780
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/analysis/AnalysisScreen.kt",
+    "sha256": "81d852e4b58ae5893e8994e83175750a285394df383e03228a16cb32d4a9d59a",
+    "bytes": 5848
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/analysis/AnalysisViewModel.kt",
+    "sha256": "9d11d5a681c9793303e49fc53b99670a2fa45aa4f216dbb7d6eb2580b5d9fe6e",
+    "bytes": 3026
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/arrange/.gitkeep",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/arrange/ArrangementScreen.kt",
+    "sha256": "0c80bd8673015ec72a661d5cffa613ccb86e232dec43c324a28911b41dc9689c",
+    "bytes": 4898
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/arrange/ArrangementViewModel.kt",
+    "sha256": "3bc96ffbeba9b181a3d24cdddc3ac273b86cc14a99e32abe920877cbcf137747",
+    "bytes": 3876
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/arrange/TaskProgressScreen.kt",
+    "sha256": "213f2529e163608bd53200af6d8197cb7b95bb4e1d390bf92855f3656e49cd02",
+    "bytes": 6713
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/arrange/TaskProgressViewModel.kt",
+    "sha256": "048a8b3f0fbd2e010e859da05733f872a3ab18d707bd69925a23488f0f5e6585",
+    "bytes": 2562
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/capture/AudioPlayer.kt",
+    "sha256": "db8220936d4468eae5a0b0cb6ef5afd7cdac7a65e7edcae16c1b50dc38ec916b",
+    "bytes": 1180
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/capture/AudioRecorder.kt",
+    "sha256": "045d2ce0969217ae21e266f8c47af9aa2ffac7eefbb8378049a9b74fb642614d",
+    "bytes": 9047
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/capture/CaptureScreen.kt",
+    "sha256": "149cc18bfcc5e73cfac77eb7138c16e7e107cc25a923c99fa922f29a86fdb5b2",
+    "bytes": 25685
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/capture/CaptureViewModel.kt",
+    "sha256": "854bbd6cb551a7e49109977a057a693f578fc790c94253993389d42b560534fd",
+    "bytes": 23565
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/capture/InteractionPanel.kt",
+    "sha256": "8c49b948a5843d36cea241a27cf1f9878954651bbd75b10cc40daf3f8f5ad8e3",
+    "bytes": 12876
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/capture/PhotoCapture.kt",
+    "sha256": "b1a210e506f8a52ee786f5158b51852b8a574f6a0d025426a64860649c9c252a",
+    "bytes": 13976
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/capture/RecordingService.kt",
+    "sha256": "e8648dce5b72c181d5671a965b1ae5857bc8f072954baac42d4be9f29b037404",
+    "bytes": 2000
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/course/.gitkeep",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/course/CourseDetailScreen.kt",
+    "sha256": "a0666f321505a596efd8033e4504a2138242d590dd8ec5f6af3f98f000ed13db",
+    "bytes": 3174
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/course/CourseDetailViewModel.kt",
+    "sha256": "91de54506a44e6e752f1c970fa61f15e55c0aa798850ec40e516b6f6a4679594",
+    "bytes": 703
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/course/CourseSearchScreen.kt",
+    "sha256": "cc75eaedde580dc83f484e201db03a2fff25e715db4cb7056fca54c3353790d7",
+    "bytes": 3452
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/course/CourseSearchViewModel.kt",
+    "sha256": "e4dd72a6af34c2ea034fa3c8d17314a9acd6ec908f2404c658db91b5a742c17b",
+    "bytes": 1387
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/course/MyTasksScreen.kt",
+    "sha256": "0e964eb16b28d0b9773103433d12cdd6ca44d5cdfabc8f2d465dcab6e89368f8",
+    "bytes": 6847
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/course/MyTasksViewModel.kt",
+    "sha256": "0fe2ea0dc1f0bc0f4edca8a5d0f7b1816e570c520b9f3ecb205a6b664b4594a1",
+    "bytes": 2534
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/course/TaskCreateScreen.kt",
+    "sha256": "b7373a8ad8989dc7deb3d6d37dea5e7877e3a62e675fa46a857b57d4052ff770",
+    "bytes": 6490
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/course/TaskCreateViewModel.kt",
+    "sha256": "00c77dc10b81723bc720561dad2d01fc478602ab2cf2508533e66e6f80255893",
+    "bytes": 4945
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/engagement/.gitkeep",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/engagement/EngagementPanel.kt",
+    "sha256": "10f1daf658f42587d12557fabdfc55ce481db49653cb53226d55cdc1e12e8680",
+    "bytes": 9799
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/engagement/MaterialList.kt",
+    "sha256": "e8fbdc39b35890e5617af96e75ced635c4a1e6e730f59edd66360cb51c5839f9",
+    "bytes": 1583
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/evaluation/.gitkeep",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/evaluation/ClassroomReference.kt",
+    "sha256": "392cba715f2ca3c3f87f8cd97cfe447a5bb8a0d804c47c64bab73ca157f369e3",
+    "bytes": 8144
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/evaluation/EvaluationRepository.kt",
+    "sha256": "214de22f7ec9a990494c94350f9e254788bb816da7cc6417043b7ed30a705985",
+    "bytes": 6977
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/evaluation/EvaluationScreen.kt",
+    "sha256": "16834c182d85398e2c694d44cdadfd568d8263e4d31e005b7e9be667e1210a08",
+    "bytes": 8090
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/evaluation/EvaluationViewModel.kt",
+    "sha256": "422f6f5e9205cbbd2b2dc7fa8570c831322a53e7fb38b216e4f43925b867cae5",
+    "bytes": 6528
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/evaluation/HistoryDetailScreen.kt",
+    "sha256": "1b8ca7de261d62e8cd809bcaf81939e976b8ff5947a3a60447fe76bd9101c434",
+    "bytes": 2867
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/evaluation/HistoryDetailViewModel.kt",
+    "sha256": "5b9a96c58bdfa3e4b988af13be46bc166796d9c3773183edc244ddfb4bc39177",
+    "bytes": 1079
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/evaluation/HistoryScreen.kt",
+    "sha256": "8b737b56001483a8a78e364745f8939044111f2c59d0dd00ff033b72fcca2938",
+    "bytes": 2674
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/evaluation/HistoryViewModel.kt",
+    "sha256": "c77e225ff456296014bd71949ef41e4bcc07de89e4e4636b8a8294d0daf67994",
+    "bytes": 1681
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/evaluation/IssueEditor.kt",
+    "sha256": "dfba7e6f36ed2670bdc2b98043fbbe5c7c3a7dd8ba4ac487191a106cd26e978c",
+    "bytes": 1918
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/evaluation/ModuleUi.kt",
+    "sha256": "ff10e4c3a21c30772d20a37d7d7f9fcceef0396a1c13051f2d16bdc890b54a82",
+    "bytes": 4745
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/evaluation/ScoreSection.kt",
+    "sha256": "6a8daa1546a19ef8a96eb62b3a57ef3a9fe192a6dc63a85f02900f15327014da",
+    "bytes": 1419
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/evidence/EvidencePanel.kt",
+    "sha256": "5168a54c6dd1656898bdd83ebd77dc6fde6af21f1f5fc2ce1db55dbc08a8371b",
+    "bytes": 1364
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/feedback/.gitkeep",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/feedback/FeedbackDetailScreen.kt",
+    "sha256": "1256a3ae3932797abb7a0c3e2ee2790f46760905c8e924be794ab3a249023a48",
+    "bytes": 4522
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/feedback/FeedbackDetailViewModel.kt",
+    "sha256": "24d2ba8f183f1e539770bfa7bbce64a81d0e32e83cedaf5bc89d290059168edd",
+    "bytes": 2325
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/feedback/FeedbackListScreen.kt",
+    "sha256": "1e43b08cff6b0cea75a902d96e5c720accf449d34d1f8aa0e9b79e604dbeb8a0",
+    "bytes": 2936
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/feedback/FeedbackListViewModel.kt",
+    "sha256": "83d0250927078148edb8d632802433567e4d2610231e82b0b0a9243316f320ac",
+    "bytes": 816
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/governance/GovernanceScreen.kt",
+    "sha256": "6b8778d57addb1f548cb75cb4fb802c9953c86b031b856bbb8efaefab9c2929f",
+    "bytes": 9036
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/governance/GovernanceSourceScreen.kt",
+    "sha256": "32699daa2fc6ec54582f9a219395196241edda7e3e988984e8bc81530d8e9574",
+    "bytes": 4051
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/governance/GovernanceSourceViewModel.kt",
+    "sha256": "4b9338f94e7d226b965d2bfa2f178b3466d4e10b5ee66b32067ccbc1475f3bd2",
+    "bytes": 1375
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/governance/GovernanceViewModel.kt",
+    "sha256": "11c4da622a32538305ecd1a87f59b8fcd2bd1cd53b0e74a802ba440eb1384c32",
+    "bytes": 1553
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/growth/TeachingSupportCatalog.kt",
+    "sha256": "f08755850ae9c0c5a41b9d78e510b1e850a3c0a06631c766229742d3592850e3",
+    "bytes": 10789
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/growth/TeachingSupportRepository.kt",
+    "sha256": "1bab0bc04fd1919bdc89fc043f58379823f07bc870d9df89f6eeb9a347c2189f",
+    "bytes": 5796
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/growth/TeachingSupportScreen.kt",
+    "sha256": "4640dc714b97df08b6601141e5cddd619935ac7a0c0e6e02989ae56095513eed",
+    "bytes": 8010
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/growth/TeachingSupportViewModel.kt",
+    "sha256": "b3686207e350bc9702870c57bf3288c2be54518a3a9903cdb2e532b817a23d68",
+    "bytes": 2196
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/improve/.gitkeep",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/improve/ImproveExecutionScreen.kt",
+    "sha256": "7cbaf787d36604e07fc61a0d5a93c79022bf212a841b7f098408dfc6d7f389fd",
+    "bytes": 15910
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/improve/ImproveExecutionViewModel.kt",
+    "sha256": "1d55ffd9d1b5d7f4d758e8bb5714df283110d4d646ac0458c33ee63142032472",
+    "bytes": 9885
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/improve/ImproveFocusScreen.kt",
+    "sha256": "95afb0e6508419f04d80b8c1e9271cfac91615fef72393a52e8f8c905e6d353d",
+    "bytes": 4828
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/improve/ImproveFocusViewModel.kt",
+    "sha256": "4dafdc26d93923a22b5b77314fc4e5b9dc8bb63cd5c63698e1384109e800f1ef",
+    "bytes": 3850
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/improve/ImprovePlanScreen.kt",
+    "sha256": "4699027a83da3fd241ecc79f28f0a2b33fa41f8d5021f710bb8fbbae85076243",
+    "bytes": 14593
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/improve/ImprovePlanViewModel.kt",
+    "sha256": "3ebf9fe5b9a95d43f8ed57a32e9966a2a8ea1846bb1b30633652c1c0c22b2bf5",
+    "bytes": 10754
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/improve/ImproveTodoScreen.kt",
+    "sha256": "8194d8cd0fe35607eadf061bcbd0c98619727821941ba9bed9eb482cee80b195",
+    "bytes": 5102
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/improve/ImproveTodoViewModel.kt",
+    "sha256": "a97f04c77cc56631afb1ca505351c4d1d91d1e1dca0b74051beabaa1310df323",
+    "bytes": 2095
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/improve/ImprovementEvidenceStore.kt",
+    "sha256": "ee8cba5ae19a5508bf190610f8a562adfc2d91b2d198c26290889affee3aecb2",
+    "bytes": 10603
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/improve/ImprovementExecutionRepository.kt",
+    "sha256": "97eb3f7d85e588dadae2ec8177dcc3e0f91889064dfebfb715ced2e7ab62e54a",
+    "bytes": 9796
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/improve/ImprovementRepository.kt",
+    "sha256": "3728a72ba053c45996fa3e81de0b9a02cd73853575d942ba55c7d76bcf257267",
+    "bytes": 14186
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/improve/ImprovementSuggestionGenerator.kt",
+    "sha256": "8a4292f01fbcaf52356e1bdb441f8613dfd53c876ea6ada9f12da496996234f6",
+    "bytes": 4906
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/login/LoginScreen.kt",
+    "sha256": "6010d8e0ed06f14f85d75ff951c21ac6a7ab7abd9bd2b14fd960e53d71bf3ec4",
+    "bytes": 5746
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/login/LoginViewModel.kt",
+    "sha256": "058a96ae1633ecb3e27f20b7e8a85d33fea49f2ab9ebc70f06586003fcf4a502",
+    "bytes": 2024
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/login/ProfileScreen.kt",
+    "sha256": "1dcd7d767c44e7be7f22f1b6a8cdf52ec9aa615bc02e52db4035397b37cad29a",
+    "bytes": 5329
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/review/ParticipationScreen.kt",
+    "sha256": "a38ebefc59f4f380b523271b237b23bcada24a793a365c46ebad15c5830be2e4",
+    "bytes": 4871
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/review/ParticipationViewModel.kt",
+    "sha256": "bb660aa4b16bf8be3d0bbf9a184d5cef7aa01ad92db44915874f7c043a3caecd",
+    "bytes": 1524
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/review/ReviewDetailScreen.kt",
+    "sha256": "f27be7a0e66169a307cc3e59ee17f2d0d7426a6f585e427efe97e0762828fe6b",
+    "bytes": 9150
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/review/ReviewDetailViewModel.kt",
+    "sha256": "839e875944669fe14b14214bef4f0cd89182712be768d6190d54eb836d1875ab",
+    "bytes": 3983
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/review/ReviewLinkListScreen.kt",
+    "sha256": "6dd41e06860b65fc4bed9d22dc46fdb0f274e01b8ffb6814f122ee6718766bdd",
+    "bytes": 7773
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/review/ReviewLinkListViewModel.kt",
+    "sha256": "906a1aa4ff88e10fbdfe9a44416ec89f7fc4d7f47e879f4220ff1c2bf05cd242",
+    "bytes": 5151
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/theme/Color.kt",
+    "sha256": "3d98a04f59bd1435048d9ca65f0702430f47456f3105e658d502576f733e57bc",
+    "bytes": 291
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/theme/Theme.kt",
+    "sha256": "fc5759cda3b6e0894c12089557aab25c5b2c554fa7fe42bbda23a8198c90f38d",
+    "bytes": 1751
+  },
+  {
+    "path": "app/src/main/java/edu/neu/aijiaoxue/ui/theme/Type.kt",
+    "sha256": "d21b615363c26f511a7c11c386135e5a8803a4e05b57f8a36c852167a8edf4d7",
+    "bytes": 1019
+  },
+  {
+    "path": "app/src/main/keepRules/rules.keep",
+    "sha256": "9e920813dbf36db3bdcc279837aac74db4c80647585a84d3e3f0c23d700105f2",
+    "bytes": 429
+  },
+  {
+    "path": "app/src/main/res/drawable/ic_launcher_background.xml",
+    "sha256": "38381d0d0a64770d992c98e5b5e492555690af40e2fc6ee59e5a1c2a7c0fdcde",
+    "bytes": 5776
+  },
+  {
+    "path": "app/src/main/res/drawable/ic_launcher_foreground.xml",
+    "sha256": "6e3c1bb64d9bec079cf0030d867c58b064d2fb19ca6c5a691543c43134f64a2a",
+    "bytes": 1731
+  },
+  {
+    "path": "app/src/main/res/mipmap-anydpi/ic_launcher.xml",
+    "sha256": "e7c073fbec1a51a73f678b266a1cb207aa6468e3ea1504d24f43591f31d2b7c5",
+    "bytes": 348
+  },
+  {
+    "path": "app/src/main/res/mipmap-anydpi/ic_launcher_round.xml",
+    "sha256": "e7c073fbec1a51a73f678b266a1cb207aa6468e3ea1504d24f43591f31d2b7c5",
+    "bytes": 348
+  },
+  {
+    "path": "app/src/main/res/mipmap-hdpi/ic_launcher.webp",
+    "sha256": "dd00996198640ed28fbc09cdcd7a3807cf8707f3eb255b659634da3ca6a6ff01",
+    "bytes": 1404
+  },
+  {
+    "path": "app/src/main/res/mipmap-hdpi/ic_launcher_round.webp",
+    "sha256": "1ed73f5341a69d3b41c7e02e126803f50cc8c3284adf4bbb737f0c93577aef07",
+    "bytes": 2898
+  },
+  {
+    "path": "app/src/main/res/mipmap-mdpi/ic_launcher.webp",
+    "sha256": "846219e6f72fe9a6c104ca8919cbee36a101e7d2ff8da9da67b689a5888f060d",
+    "bytes": 982
+  },
+  {
+    "path": "app/src/main/res/mipmap-mdpi/ic_launcher_round.webp",
+    "sha256": "4e2c58b91de01130e6479e00cbbaaf6e77cd961dd2c8e303cf13cd077fa92632",
+    "bytes": 1772
+  },
+  {
+    "path": "app/src/main/res/mipmap-xhdpi/ic_launcher.webp",
+    "sha256": "398340dad816fc9a6338cb151a8cf1e45b926f9bfb70628b24c4bd2523cc94d4",
+    "bytes": 1900
+  },
+  {
+    "path": "app/src/main/res/mipmap-xhdpi/ic_launcher_round.webp",
+    "sha256": "91b490aef86574901137f0a252272e1f1add99c1ad709e0696ed68929b88d261",
+    "bytes": 3918
+  },
+  {
+    "path": "app/src/main/res/mipmap-xxhdpi/ic_launcher.webp",
+    "sha256": "58ae87fa0c5b5d1562d27fd648d2c061553fe20e3ed570bde588162d01ea7a27",
+    "bytes": 2884
+  },
+  {
+    "path": "app/src/main/res/mipmap-xxhdpi/ic_launcher_round.webp",
+    "sha256": "3009fad079f5772f30ecd767f98924367fbe0f81c30048d672d4fda2d5ca7d12",
+    "bytes": 5914
+  },
+  {
+    "path": "app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp",
+    "sha256": "f98fef5bc3bfe5b65692c40ad1cbae2bec4faf9f1b249c397626740db71b62d8",
+    "bytes": 3844
+  },
+  {
+    "path": "app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.webp",
+    "sha256": "5faf033745c8c882c43bb1b372d4e4a5890caec63d9892a2e756c954108b85dc",
+    "bytes": 7778
+  },
+  {
+    "path": "app/src/main/res/values/colors.xml",
+    "sha256": "31e0230ab2d96fa128a11705e85e590f3462745dc3c04bc851bc724a445921c1",
+    "bytes": 387
+  },
+  {
+    "path": "app/src/main/res/values/strings.xml",
+    "sha256": "6efe9b0f6fd6bb0396c82f08c40b3cda85f26d2eaae39abf6a24f54a47b09f26",
+    "bytes": 73
+  },
+  {
+    "path": "app/src/main/res/values/themes.xml",
+    "sha256": "7ad53986ca7c183b7444fe12fa348d0a9840b91c8418c0e59df28f6152fc7ebe",
+    "bytes": 155
+  },
+  {
+    "path": "app/src/main/res/xml/backup_rules.xml",
+    "sha256": "facaaef2162be6dd86544a819278042729ed481c38933a410651b81424da7ea7",
+    "bytes": 490
+  },
+  {
+    "path": "app/src/main/res/xml/data_extraction_rules.xml",
+    "sha256": "940f48fb2ba4d9ec5a55671126796fefa71661c0a5d7b434dc1e9be23da41690",
+    "bytes": 569
+  },
+  {
+    "path": "app/src/main/res/xml/file_paths.xml",
+    "sha256": "18a5e9b8a6fadf08ce62cf81ef5ade5a26c5bb7a427d6b52e2edb818be1a949a",
+    "bytes": 208
+  },
+  {
+    "path": "app/src/test/java/edu/neu/aijiaoxue/ExampleUnitTest.kt",
+    "sha256": "e2a27f6c81d2938c68513bd7d47388a6e477e0bb8307e5b31a204d88c7d84c54",
+    "bytes": 357
+  },
+  {
+    "path": "app/src/test/java/edu/neu/aijiaoxue/Sprint1ValidationTest.kt",
+    "sha256": "3c65f8748bb32f58f0c821a085a9576d477a634b83ba8e7a2402339a3b2a30c2",
+    "bytes": 2431
+  },
+  {
+    "path": "app/src/test/java/edu/neu/aijiaoxue/data/RulesTest.kt",
+    "sha256": "b681c5cb2102a02c5a388d76718d873b1016f9e32991371b46da1e8ec8f33ed8",
+    "bytes": 3310
+  },
+  {
+    "path": "app/src/test/java/edu/neu/aijiaoxue/data/ai/AdvancedAnalysisTest.kt",
+    "sha256": "31bd47f199afefe8b3114038a95b9b7acf7d4580eb3f43c5ac7afa031de172af",
+    "bytes": 8278
+  },
+  {
+    "path": "app/src/test/java/edu/neu/aijiaoxue/sprint2/ImprovementSuggestionGeneratorTest.kt",
+    "sha256": "a8137567926419ba560c471a391f6fae677043b8e21f81aed189dd5b285eb5f0",
+    "bytes": 3120
+  },
+  {
+    "path": "app/src/test/java/edu/neu/aijiaoxue/sprint3/GovernanceCalculationsTest.kt",
+    "sha256": "d76eb85ffb4cd4f4118702c942b7db5fe0e8dc6ecdd0008e4b2d7034afdc3f5a",
+    "bytes": 3718
+  },
+  {
+    "path": "app/src/test/java/edu/neu/aijiaoxue/sprint3/MetricRulesTest.kt",
+    "sha256": "fb3eb41f9a368902b2aac5ad6ebe74d1ab6a89567b177155f0f77e5959694dd2",
+    "bytes": 3609
+  },
+  {
+    "path": "app/src/test/java/edu/neu/aijiaoxue/sprint3/ParticipationAnalysisTest.kt",
+    "sha256": "1b32daf27c5ca3d8f82c9db799a75e6037dc3a3780ffccacad89658deabca188",
+    "bytes": 6748
+  },
+  {
+    "path": "app/src/test/java/edu/neu/aijiaoxue/sprint3/TeachingSupportCatalogTest.kt",
+    "sha256": "ae68d00df146fe8e55d66e9c81b618e012aaf3739a9a6782c7e1c7719ec5bac3",
+    "bytes": 5456
+  },
+  {
+    "path": "build.gradle.kts",
+    "sha256": "4b05e75267e64c69de47e601e96cdc214d2ec910347dfb6d0f0bab1666b1bdd4",
+    "bytes": 263
+  },
+  {
+    "path": "gradle.properties",
+    "sha256": "bb09346b8c1e920223864ade57029bd6e44a95b6c84539974f053b9da9119285",
+    "bytes": 1138
+  },
+  {
+    "path": "gradle/gradle-daemon-jvm.properties",
+    "sha256": "0c1930722202bec01874360fcb8f1272c84cba9fd8f4a99c86858af1671fe39e",
+    "bytes": 1150
+  },
+  {
+    "path": "gradle/libs.versions.toml",
+    "sha256": "127c7fac4659faeae8fb721e3202ccdb1145f96091d35d93b14780642dce0d03",
+    "bytes": 2510
+  },
+  {
+    "path": "gradle/wrapper/gradle-wrapper.jar",
+    "sha256": "76805e32c009c0cf0dd5d206bddc9fb22ea42e84db904b764f3047de095493f3",
+    "bytes": 45457
+  },
+  {
+    "path": "gradle/wrapper/gradle-wrapper.properties",
+    "sha256": "dfb346f3268085a42c99157471306bcee29908134f5b9997b15f1954e09411ab",
+    "bytes": 378
+  },
+  {
+    "path": "gradlew",
+    "sha256": "8cd81d7a40a14119b8e9e64647e02822b3511e9e4a536ab92c88daa3b0e170bc",
+    "bytes": 8979
+  },
+  {
+    "path": "gradlew.bat",
+    "sha256": "1d297e00bd21de3ace22b4d7f2de1f9dfa858883d66bbf7c1ccbecccec8f4f3b",
+    "bytes": 2937
+  },
+  {
+    "path": "settings.gradle.kts",
+    "sha256": "e195499c5b4f0a2878f4166c702075486178ab659514846b0a96a4345a9f7f91",
+    "bytes": 646
+  }
+]

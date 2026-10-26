@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="edu.neu.aijiaoxue.data.ai.AdvancedAnalysisTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-26T08:32:15.241Z" hostname="LAPTOP-904CKOOQ" time="0.046">
+  <properties/>
+  <testcase name="us21ReportsInsufficientInputWhenOnlyOneTimePointExists" classname="edu.neu.aijiaoxue.data.ai.AdvancedAnalysisTest" time="0.031"/>
+  <testcase name="reviewedUs18AndUs21ResultsRetainTypeContentAndEvidenceSummary" classname="edu.neu.aijiaoxue.data.ai.AdvancedAnalysisTest" time="0.009"/>
+  <testcase name="us18FindsRepeatedExpressionInRecordedNotes" classname="edu.neu.aijiaoxue.data.ai.AdvancedAnalysisTest" time="0.002"/>
+  <testcase name="us18EvidenceTracesRepeatedTextToSourceAndClassPosition" classname="edu.neu.aijiaoxue.data.ai.AdvancedAnalysisTest" time="0.001"/>
+  <testcase name="us18ReportsInsufficientInputWithoutInventingConclusion" classname="edu.neu.aijiaoxue.data.ai.AdvancedAnalysisTest" time="0.001"/>
+  <testcase name="unreviewedOrMismatchedCorrectionCannotBecomeFormalSnapshot" classname="edu.neu.aijiaoxue.data.ai.AdvancedAnalysisTest" time="0.001"/>
+  <testcase name="us21DoesNotCreateAnIntervalWithoutTimedSources" classname="edu.neu.aijiaoxue.data.ai.AdvancedAnalysisTest" time="0.001"/>
+  <testcase name="us21BuildsTransitionIntervalsFromMaterialsAndEvents" classname="edu.neu.aijiaoxue.data.ai.AdvancedAnalysisTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

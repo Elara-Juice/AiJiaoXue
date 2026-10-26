@@ -1,0 +1,87 @@
+[
+  {
+    "path": "failure-photo-offset/build-and-test.log",
+    "sha256": "2d5fd176b71ca632a224438ef70ceb7159c7f6e3379bcb61fe045537dfbcbc67",
+    "bytes": 5876
+  },
+  {
+    "path": "failure-photo-offset/README.md",
+    "sha256": "afbfeb8a38df5d4fff3341d102aa57aacc97b2f7968c0cf2cc15b354b8923198",
+    "bytes": 294
+  },
+  {
+    "path": "failure-photo-offset/TEST-AiJiaoXue_API37(AVD) - 17.xml",
+    "sha256": "fd0402ab58d3910a1dc929881edfa778fcb214a024233cea750081928e521eb4",
+    "bytes": 36049
+  },
+  {
+    "path": "final/build-and-test.log",
+    "sha256": "719aa0ef8ffa50768c234b1d32552f9b557fc05068fb9990be49c4a684667a73",
+    "bytes": 5209
+  },
+  {
+    "path": "final/device/TEST-AiJiaoXue_API37(AVD) - 17.xml",
+    "sha256": "d5c1d7826dffd82c1bc451943f01cf43e3908b20661b1cb7e1be280d0120fb7d",
+    "bytes": 34857
+  },
+  {
+    "path": "final/jvm/TEST-edu.neu.aijiaoxue.data.ai.AdvancedAnalysisTest.xml",
+    "sha256": "684665a111c9269de595be5a42ac2392abf86ccffdf8cace56064c5ec4d30427",
+    "bytes": 1521
+  },
+  {
+    "path": "final/jvm/TEST-edu.neu.aijiaoxue.data.RulesTest.xml",
+    "sha256": "239465f8674fd2980a602870b495efa30ed8393d8b2c3352d45e4104be975987",
+    "bytes": 1011
+  },
+  {
+    "path": "final/jvm/TEST-edu.neu.aijiaoxue.ExampleUnitTest.xml",
+    "sha256": "fb2cbe3ccac104a80fa1dffc8f62c375120014aaeb29ba7c5d7a25b9ee2b5da1",
+    "bytes": 430
+  },
+  {
+    "path": "final/jvm/TEST-edu.neu.aijiaoxue.Sprint1ValidationTest.xml",
+    "sha256": "279f409f0cb209dbc242869d40c8af5ebb4cdcb657be741e3a72c938dc7adaf9",
+    "bytes": 1308
+  },
+  {
+    "path": "final/jvm/TEST-edu.neu.aijiaoxue.sprint2.ImprovementSuggestionGeneratorTest.xml",
+    "sha256": "4597a8ad2a565572932f9a353af8b37338f73767fcb4f66073d341d242ee6082",
+    "bytes": 881
+  },
+  {
+    "path": "final/jvm/TEST-edu.neu.aijiaoxue.sprint3.GovernanceCalculationsTest.xml",
+    "sha256": "993c4743e4bff113c92dab494ff44858b9b023db69a4c7771a7c4150afcb5fd4",
+    "bytes": 977
+  },
+  {
+    "path": "final/jvm/TEST-edu.neu.aijiaoxue.sprint3.MetricRulesTest.xml",
+    "sha256": "e996e42d296630952d6fa76104963bb75fb870fe8ba0c4e492c41b56b71da280",
+    "bytes": 1279
+  },
+  {
+    "path": "final/jvm/TEST-edu.neu.aijiaoxue.sprint3.ParticipationAnalysisTest.xml",
+    "sha256": "a2884b0aa21bca83c84929b87f3ac2163ad8e24f072a4ce9e8c903bad0b5495a",
+    "bytes": 1331
+  },
+  {
+    "path": "final/jvm/TEST-edu.neu.aijiaoxue.sprint3.TeachingSupportCatalogTest.xml",
+    "sha256": "479bf9b754eed6cbb56a365348837d2fbb919b7154492e029ae3c4da5ffb25d1",
+    "bytes": 1596
+  },
+  {
+    "path": "README.md",
+    "sha256": "c4e2010cb98a7ba8f42b06533cde35eb14b73bfe3659f1728b4c0b69e3317112",
+    "bytes": 1885
+  },
+  {
+    "path": "source-manifest.json",
+    "sha256": "951dced09f097e3d81763e6d8cb8b47311ac1dd40585fddbcf283f308dcbcdc1",
+    "bytes": 40934
+  },
+  {
+    "path": "summary.json",
+    "sha256": "7a46221af7a6da588d678c2c2f2f4ef74caf02d0f672e0b55879fd6fc3d4e32c",
+    "bytes": 981
+  }
+]

@@ -46,6 +46,9 @@ import edu.neu.aijiaoxue.ui.evaluation.*
 import edu.neu.aijiaoxue.ui.improve.*
 import edu.neu.aijiaoxue.ui.review.*
 import edu.neu.aijiaoxue.data.repository.ReviewRepository
+import edu.neu.aijiaoxue.ui.growth.*
+import edu.neu.aijiaoxue.ui.governance.*
+import edu.neu.aijiaoxue.data.repository.GovernanceRepository
 
 private val ADMIN = setOf(Role.ADMIN)
 private val SUPERVISOR = setOf(Role.SUPERVISOR)
@@ -237,6 +240,24 @@ fun AppNavHost() {
             }
 
             // ui/review（李奕萱，Sprint 3）：US24/US25 多源参与与异常环节、US45 指标比较、US46 改善核验
+            guarded(navController, Routes.TEACHING_SUPPORT, TEACHER) {
+                val model = moduleViewModel { db, actor -> TeachingSupportViewModel(TeachingSupportRepository(db), actor) }
+                TeachingSupportScreen(model, { navController.popBackStack() },
+                    { navController.navigate(Routes.improveFocus(it)) },
+                    { navController.navigate(Routes.improvePlan(it)) },
+                    { navController.navigate(Routes.feedbackDetail(it)) })
+            }
+            guarded(navController, Routes.GOVERNANCE, setOf(Role.ADMIN, Role.TEACHER)) {
+                val model = moduleViewModel { db, actor -> GovernanceViewModel(GovernanceRepository(db), actor) }
+                GovernanceScreen(model, { navController.popBackStack() },
+                    { navController.navigate(Routes.governanceSource(it)) })
+            }
+            guarded(navController, Routes.GOVERNANCE_SOURCE, setOf(Role.ADMIN, Role.TEACHER), taskIdArg) { entry ->
+                val model = moduleViewModel { db, actor -> GovernanceSourceViewModel(GovernanceRepository(db), actor, entry.taskId()) }
+                GovernanceSourceScreen(model, { navController.popBackStack() },
+                    { navController.navigate(Routes.governanceSource(it)) })
+            }
+
             guarded(navController, Routes.REVIEW_LIST, ALL) {
                 val model = moduleViewModel { db, actor -> ReviewLinkListViewModel(ReviewRepository(db), actor) }
                 ReviewLinkListScreen(model, { navController.popBackStack() },
