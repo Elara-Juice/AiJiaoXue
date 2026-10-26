@@ -25,6 +25,7 @@ fun TeacherHomeScreen(onNavigate: (String) -> Unit) {
         entries = listOf(
             HomeEntry("督导反馈", "查看本人课程的督导评价，制定改进计划", Routes.FEEDBACK_LIST, badge = unread),
             HomeEntry("改进待办", "跟踪改进措施的完成情况", Routes.IMPROVE_TODO),
+            HomeEntry("指标比较", "查看复评关联与前后指标变化", Routes.REVIEW_LIST),
         ),
         onNavigate = onNavigate,
     )

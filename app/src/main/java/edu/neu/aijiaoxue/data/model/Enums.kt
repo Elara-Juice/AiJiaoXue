@@ -128,3 +128,47 @@ enum class AiAnalysisType(val label: String) {
     INTERACTION("师生互动"),
     ENGAGEMENT("学生参与"),
 }
+
+/**
+ * Sprint 3 US45：可比较的课堂指标。单位、分母与口径版本见 Rules.kt 的 [MetricRules]，
+ * 这里只列指标本身，不在页面里另起一套口径。
+ */
+enum class MetricKey(val label: String) {
+    /** 学生参与率：由参与状态记录统计，单位为百分比。 */
+    ENGAGEMENT_RATE("学生参与率"),
+    /** 师生互动密度：单位时间内的互动次数，反映课堂节奏。 */
+    INTERACTION_DENSITY("师生互动密度"),
+    /** 督导评价总分：来自已提交的正式评价。 */
+    EVALUATION_TOTAL("督导评价总分"),
+}
+
+/**
+ * Sprint 3 US24：多源参与分析的数据来源。至少两类来源同时存在才允许形成结论，
+ * 来源名称用于在界面上标注每条结论出自哪类记录。
+ */
+enum class DataSourceKind(val label: String) {
+    ENGAGEMENT_RECORD("参与状态记录"),
+    INTERACTION_EVENT("互动事件"),
+    MATERIAL("课堂材料"),
+    EVALUATION("正式评价"),
+}
+
+/** Sprint 3 US25：参与异常的类型。 */
+enum class AnomalyType(val label: String) {
+    /** 连续多条记录为低头/走神。 */
+    DISTRACTION_RUN("连续走神"),
+    /** 记录到的参与比例低于阈值。 */
+    LOW_ENGAGEMENT("参与比例偏低"),
+    /** 一段时间内没有任何互动事件。 */
+    NO_INTERACTION("长时间无互动"),
+}
+
+/**
+ * Sprint 3 US46：重点问题改善核验结论。“措施已完成”只说明执行了措施，
+ * 不等于问题已改善，结论只能由人工核验后写入。
+ */
+enum class VerificationVerdict(val label: String) {
+    IMPROVED("问题已改善"),
+    NOT_IMPROVED("问题未改善"),
+    CONTINUE_OBSERVING("继续观察"),
+}
