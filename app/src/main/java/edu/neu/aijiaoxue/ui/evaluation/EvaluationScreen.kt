@@ -66,6 +66,8 @@ fun EvaluationScreen(viewModel: EvaluationViewModel, onBack: () -> Unit, onHisto
                                     "BOPPPS" -> "BOPPPS 教学结构"
                                     "INTERACTION" -> "课堂互动"
                                     "ENGAGEMENT" -> "课堂参与"
+                                    "VERBAL_REPETITION" -> "口头表达"
+                                    "TEACHING_TRANSITION" -> "教学环节衔接"
                                     "CONTENT" -> "教学内容"
                                     else -> analysis.type
                                 }, style = MaterialTheme.typography.titleSmall)
