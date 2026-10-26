@@ -9,6 +9,13 @@ import edu.neu.aijiaoxue.data.dao.ImprovementSuggestionDao
 import edu.neu.aijiaoxue.data.dao.ImprovementExecutionDao
 import edu.neu.aijiaoxue.data.entity.ImprovementExecution
 import edu.neu.aijiaoxue.data.entity.ImprovementEvidence
+import edu.neu.aijiaoxue.data.entity.IssueVerification
+import edu.neu.aijiaoxue.data.entity.MetricSnapshot
+import edu.neu.aijiaoxue.data.entity.ReviewLink
+import edu.neu.aijiaoxue.data.dao.IssueVerificationDao
+import edu.neu.aijiaoxue.data.dao.MetricSnapshotDao
+import edu.neu.aijiaoxue.data.dao.ReviewLinkDao
+import edu.neu.aijiaoxue.data.dao.ReviewSourceDao
 import edu.neu.aijiaoxue.data.entity.ImprovementSuggestion
 import edu.neu.aijiaoxue.data.entity.ReviewPublication
 import edu.neu.aijiaoxue.data.entity.ReviewedAnalysisSnapshot
@@ -53,8 +60,10 @@ import edu.neu.aijiaoxue.data.entity.User
         ReviewPublication::class, ReviewedAnalysisSnapshot::class, ImprovementSuggestion::class,
         LegacyAiMigrationArchive::class,
         ImprovementExecution::class, ImprovementEvidence::class,
+        // Sprint 3（李奕萱）：复评关联、正式指标快照与改善核验
+        MetricSnapshot::class, ReviewLink::class, IssueVerification::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -70,10 +79,15 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun aiCorrectionDao(): AiCorrectionDao
     abstract fun improvementSuggestionDao(): ImprovementSuggestionDao
     abstract fun improvementExecutionDao(): ImprovementExecutionDao
+    abstract fun metricSnapshotDao(): MetricSnapshotDao
+    abstract fun reviewLinkDao(): ReviewLinkDao
+    abstract fun issueVerificationDao(): IssueVerificationDao
+    abstract fun reviewSourceDao(): ReviewSourceDao
 
     companion object {
         const val NAME = "aijiaoxue.db"
-        val MIGRATIONS: Array<Migration> = Sprint2Migrations.ALL + Sprint3Migrations.MIGRATION_5_6
+        val MIGRATIONS: Array<Migration> = Sprint2Migrations.ALL + Sprint3Migrations.MIGRATION_5_6 +
+            Sprint3ReviewMigrations.MIGRATION_6_7
 
         @Volatile private var instance: AppDatabase? = null
 

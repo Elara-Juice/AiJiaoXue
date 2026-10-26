@@ -6,6 +6,7 @@ import edu.neu.aijiaoxue.data.dao.HistoryRow
 import edu.neu.aijiaoxue.data.entity.*
 import edu.neu.aijiaoxue.data.model.*
 import edu.neu.aijiaoxue.data.repository.ReviewedAnalysisProvider
+import edu.neu.aijiaoxue.data.repository.ReviewRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
@@ -101,6 +102,8 @@ class EvaluationRepository(private val db: AppDatabase) {
                     }
                     // US38：正式评价与其审核依据同时发布，失败则整笔提交回滚。
                     ReviewedAnalysisProvider(db).publish(actorId, taskId, id)
+                    // TD-07: freeze this task's formal metric snapshots as part of evaluation submission.
+                    ReviewRepository(db).captureSnapshots(actorId, taskId)
                 }
             }
         }

@@ -59,9 +59,17 @@ object Routes {
     const val AI_REVIEW = "ai_review/{analysisId}"
     fun aiReview(analysisId: Long) = "ai_review/$analysisId"
 
+    // ui/review（李奕萱，Sprint 3）：复评关联、指标比较、参与分析
+    const val REVIEW_LIST = "review/list"
+    const val REVIEW_DETAIL = "review/detail/{linkId}"
+    fun reviewDetail(linkId: Long) = "review/detail/$linkId"
+    const val REVIEW_PARTICIPATION = "review/participation/{taskId}"
+    fun reviewParticipation(taskId: Long) = "review/participation/$taskId"
+
     const val ARG_TASK_ID = "taskId"
     const val ARG_COURSE_ID = "courseId"
     const val ARG_ANALYSIS_ID = "analysisId"
+    const val ARG_LINK_ID = "linkId"
 
     /** F0：登录后按角色进入对应首页；越权访问时也回到这里。 */
     fun homeOf(role: Role) = when (role) {

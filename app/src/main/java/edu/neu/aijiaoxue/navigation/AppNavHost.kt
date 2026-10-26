@@ -44,6 +44,8 @@ import edu.neu.aijiaoxue.ui.login.LoginScreen
 import edu.neu.aijiaoxue.ui.login.ProfileScreen
 import edu.neu.aijiaoxue.ui.evaluation.*
 import edu.neu.aijiaoxue.ui.improve.*
+import edu.neu.aijiaoxue.ui.review.*
+import edu.neu.aijiaoxue.data.repository.ReviewRepository
 
 private val ADMIN = setOf(Role.ADMIN)
 private val SUPERVISOR = setOf(Role.SUPERVISOR)
@@ -54,6 +56,7 @@ private val ALL = Role.entries.toSet()
 private val taskIdArg = listOf(navArgument(Routes.ARG_TASK_ID) { type = NavType.LongType })
 private val analysisIdArg = listOf(navArgument(Routes.ARG_ANALYSIS_ID) { type = NavType.LongType })
 private val courseIdArg = listOf(navArgument(Routes.ARG_COURSE_ID) { type = NavType.LongType })
+private val linkIdArg = listOf(navArgument(Routes.ARG_LINK_ID) { type = NavType.LongType })
 
 fun NavBackStackEntry.taskId(): Long = requireNotNull(arguments).getLong(Routes.ARG_TASK_ID)
 fun NavBackStackEntry.courseId(): Long = requireNotNull(arguments).getLong(Routes.ARG_COURSE_ID)
@@ -231,6 +234,25 @@ fun AppNavHost() {
                     ImproveExecutionViewModel(repository, ImprovementEvidenceStore(context, repository), actor, entry.taskId())
                 }
                 ImproveExecutionScreen(model, { navController.popBackStack() })
+            }
+
+            // ui/review（李奕萱，Sprint 3）：US24/US25 多源参与与异常环节、US45 指标比较、US46 改善核验
+            guarded(navController, Routes.REVIEW_LIST, ALL) {
+                val model = moduleViewModel { db, actor -> ReviewLinkListViewModel(ReviewRepository(db), actor) }
+                ReviewLinkListScreen(model, { navController.popBackStack() },
+                    { navController.navigate(Routes.reviewDetail(it)) })
+            }
+            guarded(navController, Routes.REVIEW_DETAIL, ALL, linkIdArg) { entry ->
+                val linkId = requireNotNull(entry.arguments).getLong(Routes.ARG_LINK_ID)
+                val model = moduleViewModel { db, actor -> ReviewDetailViewModel(ReviewRepository(db), actor, linkId) }
+                ReviewDetailScreen(model, { navController.popBackStack() },
+                    { navController.navigate(Routes.reviewParticipation(it)) })
+            }
+            guarded(navController, Routes.REVIEW_PARTICIPATION, ADMIN_SUPERVISOR, taskIdArg) { entry ->
+                val model = moduleViewModel { db, actor ->
+                    ParticipationViewModel(ReviewRepository(db), actor, entry.taskId())
+                }
+                ParticipationScreen(model, { navController.popBackStack() })
             }
         }
     }

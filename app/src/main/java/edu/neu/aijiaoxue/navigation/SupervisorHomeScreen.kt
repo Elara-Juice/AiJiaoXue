@@ -10,6 +10,7 @@ fun SupervisorHomeScreen(onNavigate: (String) -> Unit) {
             HomeEntry("课程检索", "按课程名称、教师姓名查找课程", Routes.COURSE_SEARCH),
             HomeEntry("我的督导任务", "继续未完成的采集或评价", Routes.MY_TASKS),
             HomeEntry("历史记录", "查看本人已完成的督导评价", Routes.HISTORY),
+            HomeEntry("复评与核验", "关联原课堂与复评课堂，比较前后指标并核验问题改善", Routes.REVIEW_LIST),
         ),
         onNavigate = onNavigate,
     )
