@@ -14,6 +14,10 @@ object Routes {
     const val HOME_ADMIN = "home/admin"
     const val HOME_SUPERVISOR = "home/supervisor"
     const val HOME_TEACHER = "home/teacher"
+    const val TEACHER_TREND = "teacher_trend"
+    const val QUALITY_OVERVIEW = "quality_overview"
+    const val REUSABLE_PRACTICES = "reusable_practices"
+    const val INTERACTION_STRATEGIES = "interaction_strategies"
 
     // ui/course（王博田）
     const val COURSE_SEARCH = "course/search"

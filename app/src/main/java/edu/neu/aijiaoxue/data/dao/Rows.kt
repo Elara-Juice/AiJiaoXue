@@ -133,3 +133,55 @@ data class EventTypeCount(
     val type: InteractionType,
     val count: Int,
 )
+/**
+ * US47：教师历史教学指标趋势数据。
+ * 一行对应一堂已完成且评价已提交的课堂。
+ */
+data class TeacherTrendRow(
+    val taskId: Long,
+    val courseId: Long,
+    val courseName: String,
+    val teacherId: Long,
+    val teacherName: String,
+    val supervisionDate: String,
+    val totalScore: Int?,
+    val contentScore: Int?,
+    val designScore: Int?,
+    val interactionScore: Int?,
+    val engagementScore: Int?,
+    val submittedAt: Long?
+)
+
+/**
+ * US48：按教师和课程汇总的整体教学质量数据。
+ */
+data class QualityOverviewRow(
+    val teacherId: Long,
+    val teacherName: String,
+    val courseId: Long,
+    val courseName: String,
+    val evaluatedClassCount: Int,
+    val averageTotalScore: Double?,
+    val averageContentScore: Double?,
+    val averageDesignScore: Double?,
+    val averageInteractionScore: Double?,
+    val averageEngagementScore: Double?,
+    val firstEvaluationDate: String?,
+    val lastEvaluationDate: String?
+)
+data class ReusablePracticeCandidateRow(
+    val evaluationId: Long,
+    val courseName: String,
+    val supervisionDate: String,
+    val strengths: String?,
+)
+
+data class SavedReusablePracticeRow(
+    val id: Long,
+    val evaluationId: Long,
+    val courseName: String,
+    val supervisionDate: String,
+    val content: String,
+    val note: String?,
+    val createdAt: Long,
+)

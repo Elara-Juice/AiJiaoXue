@@ -45,6 +45,11 @@ import edu.neu.aijiaoxue.ui.login.ProfileScreen
 import edu.neu.aijiaoxue.ui.evaluation.*
 import edu.neu.aijiaoxue.ui.improve.*
 
+import edu.neu.aijiaoxue.ui.analytics.TeacherTrendScreen
+import edu.neu.aijiaoxue.ui.analytics.QualityOverviewScreen
+import edu.neu.aijiaoxue.ui.improve.ReusablePracticesScreen
+import edu.neu.aijiaoxue.ui.improve.InteractionStrategiesScreen
+
 private val ADMIN = setOf(Role.ADMIN)
 private val SUPERVISOR = setOf(Role.SUPERVISOR)
 private val TEACHER = setOf(Role.TEACHER)
@@ -93,7 +98,67 @@ fun AppNavHost() {
             guarded(navController, Routes.HOME_ADMIN, ADMIN) { AdminHomeScreen(navController::navigate) }
             guarded(navController, Routes.HOME_SUPERVISOR, SUPERVISOR) { SupervisorHomeScreen(navController::navigate) }
             guarded(navController, Routes.HOME_TEACHER, TEACHER) { TeacherHomeScreen(navController::navigate) }
+            guarded(
+                navController,
+                Routes.TEACHER_TREND,
+                TEACHER
+            ) {
+                val teacherId = Session.currentUser?.id
 
+                if (teacherId != null) {
+                    TeacherTrendScreen(
+                        teacherId = teacherId,
+                        onBack = {
+                            navController.popBackStack()
+                        }
+                    )
+                } else {
+                    pending(
+                        navController,
+                        "教师教学趋势 US47"
+                    )
+                }
+                guarded(
+                    navController,
+                    Routes.QUALITY_OVERVIEW,
+                    ADMIN_SUPERVISOR
+                ) {
+                    QualityOverviewScreen(
+                        onBack = {
+                            navController.popBackStack()
+                        }
+                    )
+                }
+                guarded(
+                    navController,
+                    Routes.REUSABLE_PRACTICES,
+                    TEACHER
+                ) {
+                    val teacherId = Session.currentUser?.id
+
+                    if (teacherId != null) {
+                        ReusablePracticesScreen(
+                            teacherId = teacherId,
+                            onBack = {
+                                navController.popBackStack()
+                            }
+                        )
+                    } else {
+                        pending(navController, "教学亮点复用 US37")
+                    }
+                    guarded(
+                        navController,
+                        Routes.INTERACTION_STRATEGIES,
+                        TEACHER
+                    ) {
+                        InteractionStrategiesScreen(
+                            onBack = {
+                                navController.popBackStack()
+                            }
+                        )
+                    }
+                }
+            }
             // ui/course（王博田）
             guarded(navController, Routes.COURSE_SEARCH, SUPERVISOR) {
                 CourseSearchScreen(

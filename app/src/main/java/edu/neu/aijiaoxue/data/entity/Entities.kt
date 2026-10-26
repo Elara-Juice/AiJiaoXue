@@ -266,3 +266,35 @@ data class ImprovementMeasure(
     /** null 表示旧版督导建议或教师自填；关联建议保存不可变的生成依据。 */
     val suggestionId: Long? = null,
 )
+
+/**
+ * 可复用教学亮点做法（US37）
+ */
+@Entity(
+    tableName = "reusable_teaching_practices",
+    foreignKeys = [
+        ForeignKey(
+            entity = Evaluation::class,
+            parentColumns = ["id"],
+            childColumns = ["evaluationId"],
+            onDelete = ForeignKey.CASCADE,
+        )
+    ],
+    indices = [Index("evaluationId")],
+)
+data class ReusableTeachingPractice(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+
+    /** 来源教学评价的 ID */
+    val evaluationId: Long,
+
+    /** 被标记为可复用的教学亮点做法 */
+    val content: String,
+
+    /** 教师补充的复用说明 */
+    val note: String? = null,
+
+    /** 创建时间 */
+    val createdAt: Long = System.currentTimeMillis(),
+)

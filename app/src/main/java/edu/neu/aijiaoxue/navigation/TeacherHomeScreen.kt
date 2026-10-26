@@ -21,11 +21,37 @@ fun TeacherHomeScreen(onNavigate: (String) -> Unit) {
         AppDatabase.get(context).evaluationDao().observeUnreadCount(teacherId)
     }.collectAsState(initial = 0)
 
+
     HomeScaffold(
         entries = listOf(
-            HomeEntry("督导反馈", "查看本人课程的督导评价，制定改进计划", Routes.FEEDBACK_LIST, badge = unread),
-            HomeEntry("改进待办", "跟踪改进措施的完成情况", Routes.IMPROVE_TODO),
+            HomeEntry(
+                "督导反馈",
+                "查看本人课程的督导评价，制定改进计划",
+                Routes.FEEDBACK_LIST,
+                badge = unread
+            ),
+            HomeEntry(
+                "改进待办",
+                "跟踪改进措施的完成情况",
+                Routes.IMPROVE_TODO
+            ),
+            HomeEntry(
+                "教学趋势",
+                "查看本人历次课堂评价和教学指标变化",
+                Routes.TEACHER_TREND
+            ),
+            HomeEntry(
+                "教学亮点复用",
+                "保存并查看值得保留的教学做法",
+                Routes.REUSABLE_PRACTICES
+            ),
+            HomeEntry(
+                "互动改进策略",
+                "针对课堂互动问题查看和调整建议",
+                Routes.INTERACTION_STRATEGIES
+            ),
         ),
         onNavigate = onNavigate,
     )
+
 }

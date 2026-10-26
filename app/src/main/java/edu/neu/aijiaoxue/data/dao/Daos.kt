@@ -27,7 +27,7 @@ import edu.neu.aijiaoxue.data.model.Role
 import edu.neu.aijiaoxue.data.model.TaskCode
 import edu.neu.aijiaoxue.data.model.TaskStatus
 import kotlinx.coroutines.flow.Flow
-
+import edu.neu.aijiaoxue.data.entity.ReusableTeachingPractice
 /*
  * DAO 约定：列表查询返回 Flow（界面自动刷新），单次读写用 suspend。
  * 方法名：observeXxx 返回 Flow，getXxx 单次读取，insert/update/delete 写入。
@@ -536,8 +536,71 @@ interface EvaluationDao {
         if (completeTaskOf(taskId) == 0) throw IllegalStateException("task $taskId is not PENDING_EVALUATION")
         finishArrangementOf(taskId)
         return true
-    }
+    }    /**
+     * US47：查询指定教师已提交评价的历史课堂。
+     * 按课堂日期升序返回，用于分析教学指标变化。
+     */
+    @Query(
+        """
+        SELECT
+            t.id AS taskId,
+            c.id AS courseId,
+            c.name AS courseName,
+            c.teacherId AS teacherId,
+            u.name AS teacherName,
+            t.supervisionDate AS supervisionDate,
+            e.totalScore AS totalScore,
+            e.contentScore AS contentScore,
+            e.designScore AS designScore,
+            e.interactionScore AS interactionScore,
+            e.engagementScore AS engagementScore,
+            e.submittedAt AS submittedAt
+        FROM evaluations e
+        JOIN supervision_tasks t ON t.id = e.taskId
+        JOIN courses c ON c.id = t.courseId
+        JOIN users u ON u.id = c.teacherId
+        WHERE c.teacherId = :teacherId
+          AND e.status = 'SUBMITTED'
+          AND t.status = 'COMPLETED'
+        ORDER BY t.supervisionDate ASC, t.id ASC
+        """
+    )
+    fun observeTeacherTrend(
+        teacherId: Long
+    ): Flow<List<TeacherTrendRow>>
+
+    /**
+     * US48：按教师和课程汇总正式提交的课堂评价。
+     */
+    @Query(
+        """
+        SELECT
+            c.teacherId AS teacherId,
+            u.name AS teacherName,
+            c.id AS courseId,
+            c.name AS courseName,
+            COUNT(e.id) AS evaluatedClassCount,
+            AVG(e.totalScore) AS averageTotalScore,
+            AVG(e.contentScore) AS averageContentScore,
+            AVG(e.designScore) AS averageDesignScore,
+            AVG(e.interactionScore) AS averageInteractionScore,
+            AVG(e.engagementScore) AS averageEngagementScore,
+            MIN(t.supervisionDate) AS firstEvaluationDate,
+            MAX(t.supervisionDate) AS lastEvaluationDate
+        FROM evaluations e
+        JOIN supervision_tasks t ON t.id = e.taskId
+        JOIN courses c ON c.id = t.courseId
+        JOIN users u ON u.id = c.teacherId
+        WHERE e.status = 'SUBMITTED'
+          AND t.status = 'COMPLETED'
+        GROUP BY c.teacherId, u.name, c.id, c.name
+        ORDER BY u.name ASC, c.name ASC
+        """
+    )
+    fun observeQualityOverview():
+            Flow<List<QualityOverviewRow>>
 }
+
 
 @Dao
 interface ImprovementDao {
@@ -738,4 +801,68 @@ interface ImprovementDao {
         """
     )
     suspend fun updateMeasureStatusForTeacher(measureId: Long, teacherId: Long, status: MeasureStatus, at: Long): Int
+
+    /**
+     * US37：查询本人已有正式评价中的教学亮点。
+     * 已保存过亮点的评价不再出现在候选列表中。
+     */
+    @Query(
+        """
+        SELECT
+            e.id AS evaluationId,
+            c.name AS courseName,
+            t.supervisionDate AS supervisionDate,
+            e.strengths AS strengths
+        FROM evaluations e
+        JOIN supervision_tasks t ON t.id = e.taskId
+        JOIN courses c ON c.id = t.courseId
+        WHERE c.teacherId = :teacherId
+          AND e.status = 'SUBMITTED'
+          AND e.strengths IS NOT NULL
+          AND TRIM(e.strengths) <> ''
+          AND NOT EXISTS (
+              SELECT 1
+              FROM reusable_teaching_practices p
+              WHERE p.evaluationId = e.id
+          )
+        ORDER BY t.supervisionDate DESC, e.id DESC
+        """
+    )
+    fun observeReusablePracticeCandidates(
+        teacherId: Long
+    ): Flow<List<ReusablePracticeCandidateRow>>
+
+    /**
+     * US37：查询教师已经保存的可复用教学亮点。
+     */
+    @Query(
+        """
+        SELECT
+            p.id AS id,
+            p.evaluationId AS evaluationId,
+            c.name AS courseName,
+            t.supervisionDate AS supervisionDate,
+            p.content AS content,
+            p.note AS note,
+            p.createdAt AS createdAt
+        FROM reusable_teaching_practices p
+        JOIN evaluations e ON e.id = p.evaluationId
+        JOIN supervision_tasks t ON t.id = e.taskId
+        JOIN courses c ON c.id = t.courseId
+        WHERE c.teacherId = :teacherId
+        ORDER BY p.createdAt DESC
+        """
+    )
+    fun observeReusablePractices(
+        teacherId: Long
+    ): Flow<List<SavedReusablePracticeRow>>
+
+    /**
+     * US37：保存一条可复用教学亮点。
+     */
+    @Insert
+    suspend fun insertReusableTeachingPractice(
+        practice: ReusableTeachingPractice
+    ): Long
+
 }

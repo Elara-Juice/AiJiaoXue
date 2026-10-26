@@ -10,6 +10,11 @@ fun AdminHomeScreen(onNavigate: (String) -> Unit) {
             HomeEntry("督导安排", "查看本学期未督导课程，发布督导安排", Routes.ARRANGEMENT),
             HomeEntry("任务进度", "按课程、督导、状态跟踪督导任务", Routes.TASK_PROGRESS),
             HomeEntry("历史记录", "查看全部已完成督导的评价", Routes.HISTORY),
+            HomeEntry(
+                "教学质量总览",
+                "查看各教师和课程的总体评价情况",
+                Routes.QUALITY_OVERVIEW
+            ),
         ),
         onNavigate = onNavigate,
     )
