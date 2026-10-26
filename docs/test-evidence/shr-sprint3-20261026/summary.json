@@ -1,0 +1,24 @@
+{
+  "jvm": {
+    "tests": 54,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "branch": "feature/shr-sprint3-governance",
+  "base_commit": "b79aefb44921240c9bfc1aab177e3dee6986a5b1",
+  "verification_date": "2026-10-26",
+  "timezone": "Asia/Shanghai",
+  "command": "Build-Sprint2.ps1 -Drive T: -DeviceSerial emulator-5556 -Tasks :app:assembleDebug,:app:testDebugUnitTest,:app:connectedDebugAndroidTest",
+  "apk_sha256": "bc67e78cdbbe8e0ca48a22da28a504d5b8697d7d83fbc9455c80aff6a670d5d0",
+  "apk_bytes": 36174796,
+  "source_state": "测试执行时为未提交工作树；其后用户已明确授权提交、推送并合入main。实际操作结果以Git历史和PR记录为准。",
+  "source_manifest_sha256": "951dced09f097e3d81763e6d8cb8b47311ac1dd40585fddbcf283f308dcbcdc1",
+  "device_environment": "AiJiaoXue_API37 / emulator-5556 / Android 17 API 37",
+  "device": {
+    "tests": 183,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  }
+}

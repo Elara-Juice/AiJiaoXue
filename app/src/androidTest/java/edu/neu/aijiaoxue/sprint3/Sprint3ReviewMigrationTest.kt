@@ -18,7 +18,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Sprint 3（李奕萱）v6 → v7 迁移校验：
+ * Sprint 3 v6 → 当前 v8 累积迁移校验，保留原 v6 → v7 复评表约束验证：
  * 旧数据与来源关联在升级后仍可读，新表建立成功，指标快照在数据库层就是只追加的。
  */
 @RunWith(AndroidJUnit4::class)
@@ -57,7 +57,7 @@ class Sprint3ReviewMigrationTest {
         val db = Room.databaseBuilder(context, AppDatabase::class.java, name)
             .addMigrations(*AppDatabase.MIGRATIONS).build()
         try {
-            assertEquals(7, db.openHelper.writableDatabase.version)
+            assertEquals(8, db.openHelper.writableDatabase.version)
             // 旧数据与来源关联仍然可读
             assertEquals("旧督导", db.userDao().getById(1)!!.name)
             assertEquals("旧课程", db.courseDao().getById(1)!!.name)

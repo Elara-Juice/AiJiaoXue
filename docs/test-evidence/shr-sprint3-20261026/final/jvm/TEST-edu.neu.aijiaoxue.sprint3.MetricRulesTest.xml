@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="edu.neu.aijiaoxue.sprint3.MetricRulesTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-26T08:32:15.305Z" hostname="LAPTOP-904CKOOQ" time="0.001">
+  <properties/>
+  <testcase name="differentDenominatorIsNotCompared" classname="edu.neu.aijiaoxue.sprint3.MetricRulesTest" time="0.0"/>
+  <testcase name="differentClassDurationIsNotCompared" classname="edu.neu.aijiaoxue.sprint3.MetricRulesTest" time="0.0"/>
+  <testcase name="sameSpecProducesDelta" classname="edu.neu.aijiaoxue.sprint3.MetricRulesTest" time="0.0"/>
+  <testcase name="totalScoreIgnoresClassDuration" classname="edu.neu.aijiaoxue.sprint3.MetricRulesTest" time="0.0"/>
+  <testcase name="missingValueIsNotZero" classname="edu.neu.aijiaoxue.sprint3.MetricRulesTest" time="0.0"/>
+  <testcase name="differentUnitIsNotCompared" classname="edu.neu.aijiaoxue.sprint3.MetricRulesTest" time="0.001"/>
+  <testcase name="missingDurationIsReportedAsMissing" classname="edu.neu.aijiaoxue.sprint3.MetricRulesTest" time="0.0"/>
+  <testcase name="differentMethodVersionIsNotCompared" classname="edu.neu.aijiaoxue.sprint3.MetricRulesTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

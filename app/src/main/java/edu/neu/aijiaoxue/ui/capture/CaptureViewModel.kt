@@ -342,7 +342,8 @@ class CaptureViewModel(
                 type = MaterialType.PPT,
                 filePath = path,
                 capturedAt = at,
-                offsetMs = at - start,
+                // 相机文件时间精度或时钟差可略早于开课；保留原时间，课堂偏移从零开始。
+                offsetMs = (at - start).coerceAtLeast(0L),
                 isImported = isImported,
             ),
         )

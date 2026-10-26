@@ -67,6 +67,10 @@ object Routes {
     fun reviewParticipation(taskId: Long) = "review/participation/$taskId"
 
     const val ARG_TASK_ID = "taskId"
+    const val TEACHING_SUPPORT = "growth/support"
+    const val GOVERNANCE = "governance"
+    const val GOVERNANCE_SOURCE = "governance/source/{taskId}"
+    fun governanceSource(taskId: Long) = "governance/source/$taskId"
     const val ARG_COURSE_ID = "courseId"
     const val ARG_ANALYSIS_ID = "analysisId"
     const val ARG_LINK_ID = "linkId"

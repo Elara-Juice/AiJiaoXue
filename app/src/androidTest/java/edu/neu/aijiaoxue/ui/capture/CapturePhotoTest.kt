@@ -106,6 +106,7 @@ class CapturePhotoTest {
         assertFalse(photo.isImported)
         assertTrue(photo.offsetMs >= 0)
         // 拍完立即弹出类型选择
+        withTimeout(5_000) { vm.editingPhotoId.first { it == photo.id } }
         assertEquals(photo.id, vm.editingPhotoId.value)
         assertTrue(vm.editingPhotoIsNew.value)
 
@@ -123,6 +124,22 @@ class CapturePhotoTest {
 
         // 保存后可再次打开（验收③）：文件能解码
         assertTrue(PhotoFiles.decode(FileStore.resolve(context, saved.filePath), 320) != null)
+    }
+
+    @Test
+    fun cameraTimestampBeforeClassStartKeepsSourceTimeAndClampsTimelineOffset() = runBlocking<Unit> {
+        val start = requireNotNull(db.taskDao().getById(taskId)?.classStartAt)
+        val uri = withContext(Dispatchers.Main) { vm.preparePhoto() }!!
+        val file = targetOf(uri)
+        writeJpeg(file)
+        assertTrue(file.setLastModified(start - 2_000))
+        val sourceTime = file.lastModified()
+        withContext(Dispatchers.Main) { vm.onPhotoTaken(true) }
+        val photo = waitForPhotos(1).single()
+        assertEquals(sourceTime, photo.capturedAt)
+        assertEquals(0L, photo.offsetMs)
+        withTimeout(5_000) { vm.editingPhotoId.first { it == photo.id } }
+        assertTrue(vm.editingPhotoIsNew.value)
     }
 
     @Test
