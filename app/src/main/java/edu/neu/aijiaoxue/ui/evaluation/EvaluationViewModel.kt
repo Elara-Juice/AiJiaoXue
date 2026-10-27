@@ -6,6 +6,7 @@ import edu.neu.aijiaoxue.data.entity.Evaluation
 import edu.neu.aijiaoxue.data.entity.EvaluationIssue
 import edu.neu.aijiaoxue.data.model.EvalDimension
 import edu.neu.aijiaoxue.data.model.EvalStatus
+import edu.neu.aijiaoxue.data.model.IssueDeclaration
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.NonCancellable
@@ -78,7 +79,10 @@ class EvaluationViewModel(private val repository: EvaluationRepository, private 
         })
     }
     fun opinion(transform: (Evaluation) -> Evaluation) = edit { it.copy(evaluation = transform(it.evaluation)) }
-    fun addIssue() = edit { it.copy(issues = it.issues + EvaluationIssue(id = nextIssueId--, evaluationId = 0, description = "")) }
+    fun addIssue() = edit { it.copy(evaluation = it.evaluation.copy(issueDeclaration = IssueDeclaration.HAS_ISSUES),
+        issues = it.issues + EvaluationIssue(id = nextIssueId--, evaluationId = 0, description = "")) }
+    fun declareIssues(value: IssueDeclaration) = edit { it.copy(evaluation = it.evaluation.copy(issueDeclaration = value)) }
+    fun declarationNote(value: String) = edit { it.copy(evaluation = it.evaluation.copy(issueDeclarationNote = value)) }
     fun changeIssue(id: Long, transform: (EvaluationIssue) -> EvaluationIssue) = edit {
         it.copy(issues = it.issues.map { issue -> if (issue.id == id) transform(issue) else issue })
     }
@@ -90,7 +94,8 @@ class EvaluationViewModel(private val repository: EvaluationRepository, private 
         val index = when {
             EvalDimension.entries.any { draft.evaluation.scoreOf(it) == null } ->
                 3 + EvalDimension.entries.indexOfFirst { draft.evaluation.scoreOf(it) == null }
-            draft.issues.isEmpty() || draft.issues.any { it.description.isBlank() } -> 8
+            draft.evaluation.issueDeclaration == IssueDeclaration.UNASSESSED ||
+                draft.issues.isEmpty() || draft.issues.any { it.description.isBlank() } -> 8
             else -> 10
         }
         state.update { it.copy(error = error, invalidIndex = if (error == null) null else index, validationAttempt = it.validationAttempt + 1) }

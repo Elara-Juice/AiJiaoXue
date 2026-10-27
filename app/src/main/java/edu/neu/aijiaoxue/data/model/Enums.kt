@@ -124,11 +124,42 @@ enum class SuggestionOrigin(val label: String) {
 
 /** AI 分析类型（Sprint 2）。 */
 enum class AiAnalysisType(val label: String) {
+    CONTENT("课堂知识点"),
+    SYLLABUS_ALIGNMENT("大纲内容对齐"),
+    GOAL_ACTIVITY("目标活动对应"),
+    MATERIAL_SUPPORT("课件板书支撑"),
     BOPPPS("教学环节"),
     INTERACTION("师生互动"),
     ENGAGEMENT("学生参与"),
     VERBAL_REPETITION("口头表达"),
     TEACHING_TRANSITION("教学环节衔接"),
+}
+
+/** 整改：处理状态与教学结论分开；不足输入不能伪装成课堂事实。 */
+enum class ResultState { SUPPORTED, PARTIAL, INSUFFICIENT_INPUT, UNREADABLE, FAILED }
+enum class SourceMode { CLOUD_ASR, CLOUD_MODEL, DETERMINISTIC_RULE, MANUAL, LEGACY }
+enum class AnalysisOperation(val label: String) {
+    LEGACY("历史分析"), TRANSCRIBE("音频转写"), IMAGE_TEXT("图片文字识别"),
+    CONTENT("课堂知识点"), SYLLABUS_ALIGNMENT("大纲对齐"), BOPPPS("BOPPPS结构"),
+    GOAL_ACTIVITY("目标活动对应"), TRANSITION("教学衔接"), MATERIAL_SUPPORT("材料支撑度"),
+    INTERACTION_STATS("互动统计"), PARTICIPATION("参与对照"), EXPRESSION_STATS("表达统计")
+}
+enum class JobState { QUEUED, RUNNING, SUCCEEDED, PARTIAL, FAILED, CANCEL_REQUESTED, CANCELLED, STALE_INPUT, EXPIRED }
+enum class PhaseStatus { DRAFT, CONFIRMED }
+enum class ActivityKind { INTRODUCTION, LECTURE, DISCUSSION, PRACTICE, SUMMARY, OTHER }
+enum class SpeakerRole { TEACHER, STUDENT, UNKNOWN }
+enum class TimeMappingQuality { EXACT, ESTIMATED, UNKNOWN }
+enum class EvidenceKind { MATERIAL, INTERACTION_EVENT, ENGAGEMENT_RECORD, TRANSCRIPT_SEGMENT, MANUAL_PHASE, COURSE_REFERENCE, IMAGE_TEXT, MANUAL_FACT, REVIEWED_ANALYSIS }
+enum class EvidenceAvailability { AVAILABLE, MISSING_FILE, INVALID_REFERENCE, UNKNOWN_CLASS_TIME, SUMMARY_ONLY, FORBIDDEN }
+enum class PhaseLayer { OBSERVED_ACTIVITY, BOPPPS }
+enum class PhaseReadMode { CURRENT_CANDIDATE, PUBLISHED_REPORT }
+enum class BopppsStage(val label: String) {
+    BRIDGE_IN("导入"), OBJECTIVE("目标"), PRE_ASSESSMENT("前测"),
+    PARTICIPATORY_LEARNING("参与式学习"), POST_ASSESSMENT("后测"), SUMMARY("总结"),
+}
+enum class CourseAttentionState(val label: String) {
+    ATTENTION("正式评价触发关注"), NORMAL("未触发关注阈值"),
+    UNDETERMINED("正式分数无法判定"), UNPUBLISHED("尚无正式评价"),
 }
 
 /**
@@ -142,6 +173,7 @@ enum class MetricKey(val label: String) {
     INTERACTION_DENSITY("师生互动密度"),
     /** 督导评价总分：来自已提交的正式评价。 */
     EVALUATION_TOTAL("督导评价总分"),
+    EVALUATION_DESIGN("教学设计分（人工评分）"),
 }
 
 /**
@@ -162,7 +194,7 @@ enum class AnomalyType(val label: String) {
     /** 记录到的参与比例低于阈值。 */
     LOW_ENGAGEMENT("参与比例偏低"),
     /** 一段时间内没有任何互动事件。 */
-    NO_INTERACTION("长时间无互动"),
+    NO_INTERACTION("未标注互动的区间"),
 }
 
 /**
@@ -173,4 +205,31 @@ enum class VerificationVerdict(val label: String) {
     IMPROVED("问题已改善"),
     NOT_IMPROVED("问题未改善"),
     CONTINUE_OBSERVING("继续观察"),
+}
+
+/** v9：空白评价不能被解释成已确认没有问题。 */
+enum class IssueDeclaration(val label: String) {
+    UNASSESSED("尚未确认"), HAS_ISSUES("已记录主要问题"), NO_ISSUES_CONFIRMED("确认本次无主要问题"),
+}
+
+enum class IssuePresence(val label: String) {
+    UNDETERMINED("尚不能确定"), PRESENT("原问题仍存在"), NOT_OBSERVED("本次未再观察到"),
+}
+
+enum class ImprovementExtent(val label: String) {
+    UNDETERMINED("尚不能确定"), NONE("未改善"), PARTIAL("部分改善"), RESOLVED("本次已解决"),
+}
+
+enum class VerificationEvidenceKind(val label: String) {
+    METRIC_PAIR("正式指标对比"), FOLLOW_UP_ISSUE("复评正式问题"),
+    NO_ISSUES_DECLARATION("正式零问题声明"), FOLLOW_UP_OBSERVATION("核验人补充观察"),
+}
+
+enum class VerificationEvidenceRole(val label: String) {
+    PRIMARY("主要依据"), AUXILIARY("辅助依据"),
+}
+
+enum class ReviewChronologyStatus(val label: String) {
+    VALID("授课顺序有效"), SAME_TASK("不能关联同一次课堂"), REVERSED("复评早于原课堂"),
+    OVERLAP("两次课堂节次重叠"), UNKNOWN("日期或同日节次不完整，无法判断授课顺序"),
 }

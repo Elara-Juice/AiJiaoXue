@@ -27,4 +27,6 @@ data class AiCorrection(
     /** 督导确认 AI 结论无需修改。 */
     val accepted: Boolean,
     val createdAt: Long = System.currentTimeMillis(),
+    val originalPayloadHash: String? = null,
+    val correctedPayloadJson: String? = null,
 )

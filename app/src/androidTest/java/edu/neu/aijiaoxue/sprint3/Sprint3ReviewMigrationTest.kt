@@ -57,7 +57,7 @@ class Sprint3ReviewMigrationTest {
         val db = Room.databaseBuilder(context, AppDatabase::class.java, name)
             .addMigrations(*AppDatabase.MIGRATIONS).build()
         try {
-            assertEquals(8, db.openHelper.writableDatabase.version)
+            assertEquals(10, db.openHelper.writableDatabase.version)
             // 旧数据与来源关联仍然可读
             assertEquals("旧督导", db.userDao().getById(1)!!.name)
             assertEquals("旧课程", db.courseDao().getById(1)!!.name)
@@ -71,7 +71,7 @@ class Sprint3ReviewMigrationTest {
             for (table in listOf("metric_snapshots", "review_links", "issue_verifications")) {
                 sql.query("SELECT COUNT(*) FROM $table").use {
                     assertTrue(it.moveToFirst())
-                    assertEquals("升级后 $table 应为空", 0, it.getInt(0))
+                    assertEquals("只回填正式教学设计分，不补旧指标", if (table == "metric_snapshots") 1 else 0, it.getInt(0))
                 }
             }
             // 指标快照在数据库层只追加：同一 (taskId, metricKey, methodVersion) 不能重复

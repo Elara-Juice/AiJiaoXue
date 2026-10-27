@@ -6,6 +6,8 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import edu.neu.aijiaoxue.data.model.MetricKey
 import edu.neu.aijiaoxue.data.model.VerificationVerdict
+import androidx.room.ColumnInfo
+import edu.neu.aijiaoxue.data.model.*
 
 /*
  * Sprint 3（李奕萱）：复评关联、正式指标快照与问题改善核验记录。
@@ -88,6 +90,10 @@ data class ReviewLink(
     val originDimension: String? = null,
     val createdBy: Long,
     val createdAt: Long = System.currentTimeMillis(),
+    val originDimensionKey: EvalDimension? = null,
+    @ColumnInfo(defaultValue = "'UNKNOWN'")
+    val chronologyStatus: ReviewChronologyStatus = ReviewChronologyStatus.UNKNOWN,
+    @ColumnInfo(defaultValue = "0") val chronologyRuleVersion: Int = 0,
 )
 
 /**
@@ -122,4 +128,44 @@ data class IssueVerification(
     val beforeSnapshotId: Long? = null,
     /** 核验所依据的后次指标快照。 */
     val afterSnapshotId: Long? = null,
+    @ColumnInfo(defaultValue = "1") val contractVersion: Int = 1,
+    @ColumnInfo(defaultValue = "'UNDETERMINED'") val presence: IssuePresence = IssuePresence.UNDETERMINED,
+    @ColumnInfo(defaultValue = "'UNDETERMINED'") val extent: ImprovementExtent = ImprovementExtent.UNDETERMINED,
+    val conflictExplanation: String? = null,
+    val contextSnapshotJson: String? = null,
+)
+
+/** 核验时冻结所选来源，不在回看时重新挑选指标或把空列表解释成问题消失。 */
+@Entity(
+    tableName = "issue_verification_evidence",
+    foreignKeys = [
+        ForeignKey(entity = IssueVerification::class, parentColumns = ["id"], childColumns = ["verificationId"], onDelete = ForeignKey.CASCADE),
+        ForeignKey(entity = SupervisionTask::class, parentColumns = ["id"], childColumns = ["sourceTaskId"], onDelete = ForeignKey.SET_NULL),
+        ForeignKey(entity = Evaluation::class, parentColumns = ["id"], childColumns = ["sourceEvaluationId"], onDelete = ForeignKey.SET_NULL),
+        ForeignKey(entity = EvaluationIssue::class, parentColumns = ["id"], childColumns = ["sourceIssueId"], onDelete = ForeignKey.SET_NULL),
+        ForeignKey(entity = MetricSnapshot::class, parentColumns = ["id"], childColumns = ["beforeSnapshotId"], onDelete = ForeignKey.SET_NULL),
+        ForeignKey(entity = MetricSnapshot::class, parentColumns = ["id"], childColumns = ["afterSnapshotId"], onDelete = ForeignKey.SET_NULL),
+    ],
+    indices = [Index(value = ["verificationId", "ordinal"], unique = true), Index("sourceTaskId"),
+        Index("sourceEvaluationId"), Index("sourceIssueId"), Index("beforeSnapshotId"), Index("afterSnapshotId")],
+)
+data class IssueVerificationEvidence(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val verificationId: Long,
+    val ordinal: Int,
+    val kind: VerificationEvidenceKind,
+    val role: VerificationEvidenceRole,
+    val sourceTaskId: Long? = null,
+    val sourceEvaluationId: Long? = null,
+    val sourceIssueId: Long? = null,
+    val beforeSnapshotId: Long? = null,
+    val afterSnapshotId: Long? = null,
+    val metricKey: MetricKey? = null,
+    val relationExplanation: String,
+    val factText: String? = null,
+    /** Epoch milliseconds; both null means the whole dated follow-up lesson. */
+    val scopeStartAt: Long? = null,
+    val scopeEndAt: Long? = null,
+    val snapshotJson: String,
+    val createdAt: Long,
 )

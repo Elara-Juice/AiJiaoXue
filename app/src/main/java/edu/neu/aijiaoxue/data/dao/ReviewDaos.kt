@@ -7,6 +7,7 @@ import androidx.room.Query
 import edu.neu.aijiaoxue.data.entity.IssueVerification
 import edu.neu.aijiaoxue.data.entity.MetricSnapshot
 import edu.neu.aijiaoxue.data.entity.ReviewLink
+import edu.neu.aijiaoxue.data.entity.IssueVerificationEvidence
 
 /*
  * Sprint 3（李奕萱）：复评关联、指标快照与核验记录的数据访问。
@@ -89,7 +90,13 @@ interface IssueVerificationDao {
     @Insert
     suspend fun insert(verification: IssueVerification): Long
 
-    @Query("SELECT v.* FROM issue_verifications v JOIN review_links l ON l.id = v.linkId " + LINK_READ_SCOPE + " AND v.linkId = :linkId ORDER BY v.verifiedAt DESC")
+    @Insert
+    suspend fun insertEvidence(evidence: List<IssueVerificationEvidence>)
+
+    @Query("SELECT ev.* FROM issue_verification_evidence ev JOIN issue_verifications v ON v.id = ev.verificationId JOIN review_links l ON l.id = v.linkId " + LINK_READ_SCOPE + " AND v.linkId = :linkId ORDER BY v.verifiedAt DESC, v.id DESC, ev.ordinal")
+    suspend fun evidenceForLink(actorId: Long, linkId: Long): List<IssueVerificationEvidence>
+
+    @Query("SELECT v.* FROM issue_verifications v JOIN review_links l ON l.id = v.linkId " + LINK_READ_SCOPE + " AND v.linkId = :linkId ORDER BY v.verifiedAt DESC, v.id DESC")
     suspend fun getForLink(actorId: Long, linkId: Long): List<IssueVerification>
 
     @Query("SELECT v.* FROM issue_verifications v JOIN review_links l ON l.id = v.linkId " + LINK_READ_SCOPE + " ORDER BY v.verifiedAt DESC")

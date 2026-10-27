@@ -1,6 +1,9 @@
 package edu.neu.aijiaoxue.data.entity
 
 import androidx.room.Entity
+import androidx.room.ColumnInfo
+import edu.neu.aijiaoxue.data.model.SourceMode
+import edu.neu.aijiaoxue.data.model.ResultState
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -14,6 +17,7 @@ data class ReviewPublication(
     val taskId: Long,
     val supervisorId: Long,
     val publishedAt: Long,
+    val contextSnapshotJson: String? = null,
 )
 
 /** 不向易被重分析删除的 ai_* 表建立级联外键；原始ID仅作历史标识。 */
@@ -35,6 +39,13 @@ data class ReviewedAnalysisSnapshot(
     val evidenceSummary: String,
     val reviewedAt: Long,
     val versionKey: String,
+    @ColumnInfo(defaultValue = "0") val schemaVersion: Int = 0,
+    val originalPayloadJson: String? = null,
+    val effectivePayloadJson: String? = null,
+    val inputFingerprint: String? = null,
+    @ColumnInfo(defaultValue = "'LEGACY'") val sourceMode: SourceMode = SourceMode.LEGACY,
+    val producerJson: String? = null,
+    @ColumnInfo(defaultValue = "'SUPPORTED'") val resultState: ResultState = ResultState.SUPPORTED,
 )
 
 /** 建议正文和依据不覆盖更新；只有用户的放弃状态可变。 */

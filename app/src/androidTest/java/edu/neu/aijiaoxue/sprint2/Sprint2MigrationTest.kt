@@ -75,7 +75,7 @@ class Sprint2MigrationTest {
         val db = Room.databaseBuilder(context, AppDatabase::class.java, name)
             .addMigrations(*AppDatabase.MIGRATIONS).build()
         try {
-            assertEquals(8, db.openHelper.writableDatabase.version)
+            assertEquals(10, db.openHelper.writableDatabase.version)
             assertEquals("旧教师", db.userDao().getById(2)!!.name)
             assertEquals("旧课程", db.courseDao().getById(1)!!.name)
             assertEquals("tasks/1/photo/legacy.jpg", db.captureDao().getMaterial(1)!!.filePath)
@@ -333,16 +333,24 @@ class Sprint2MigrationTest {
 
     private fun verifyReviewHistory(db: AppDatabase, version: Int) {
         val sql = db.openHelper.readableDatabase
+        sql.query("SELECT taskId,value,createdAt FROM metric_snapshots WHERE metricKey='EVALUATION_DESIGN' ORDER BY taskId").use {
+            assertEquals("只从两份旧正式评价回填人工设计分", 2, it.count)
+            while (it.moveToNext()) {
+                assertTrue(it.getLong(0) in 1L..2L)
+                assertEquals(4.0, it.getDouble(1), 0.0)
+                assertEquals(1000L, it.getLong(2))
+            }
+        }
         if (version < 7) {
             for (table in listOf("metric_snapshots", "review_links", "issue_verifications")) {
-                sql.query("SELECT COUNT(*) FROM $table").use {
+                sql.query("SELECT COUNT(*) FROM $table" + if (table == "metric_snapshots") " WHERE metricKey!='EVALUATION_DESIGN'" else "").use {
                     assertTrue(it.moveToFirst())
                     assertEquals("迁移不得生成虚构的历史 $table", 0, it.getInt(0))
                 }
             }
             return
         }
-        sql.query("SELECT id,taskId,value,denominatorValue,methodVersion,sampling,sampleCount,scopeStartAt,scopeEndAt FROM metric_snapshots ORDER BY id").use {
+        sql.query("SELECT id,taskId,value,denominatorValue,methodVersion,sampling,sampleCount,scopeStartAt,scopeEndAt FROM metric_snapshots WHERE metricKey!='EVALUATION_DESIGN' ORDER BY id").use {
             assertEquals(2, it.count)
             while (it.moveToNext()) {
                 assertEquals(it.getLong(0), it.getLong(1))

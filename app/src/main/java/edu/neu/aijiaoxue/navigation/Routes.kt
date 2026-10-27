@@ -7,6 +7,14 @@ import edu.neu.aijiaoxue.data.model.Role
  * 新增路由在此追加，并在群里说一声。带参数的路由用 xxx(id) 生成实际地址。
  */
 object Routes {
+    const val INPUT_WORKSPACE = "inputs/{taskId}"
+    fun inputWorkspace(taskId: Long) = "inputs/$taskId"
+    const val COURSE_REFERENCE = "reference/{courseId}"
+    fun courseReference(courseId: Long) = "reference/$courseId"
+    const val ABNORMAL_COURSES = "governance/abnormal-courses"
+    const val PUBLISHED_EVIDENCE = "report-source/{taskId}/{evidenceId}"
+    const val ARG_EVIDENCE_ID = "evidenceId"
+    fun publishedEvidence(taskId: Long, evidenceId: Long) = "report-source/$taskId/$evidenceId"
     const val LOGIN = "login"
     const val PROFILE = "profile"
 

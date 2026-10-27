@@ -197,7 +197,7 @@ class CaptureViewModel(
             if (m.id == active) continue
             val duration = AudioRecorder.probeDurationMs(FileStore.resolve(ctx, m.filePath))
             if (duration != null && duration > 0) {
-                captureDao.updateMaterial(m.copy(endedAt = m.capturedAt + duration, durationMs = duration))
+                AudioRecorder.recoverMapping(ctx, m, duration)
             } else {
                 FileStore.delete(ctx, m.filePath)
                 captureDao.deleteMaterial(m)

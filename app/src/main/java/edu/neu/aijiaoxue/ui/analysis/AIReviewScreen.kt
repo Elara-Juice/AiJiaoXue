@@ -28,6 +28,7 @@ import edu.neu.aijiaoxue.ui.evaluation.ErrorPage
 import edu.neu.aijiaoxue.ui.evaluation.ModulePage
 import edu.neu.aijiaoxue.ui.evaluation.SectionCard
 import edu.neu.aijiaoxue.ui.evaluation.timeText
+import edu.neu.aijiaoxue.data.ai.AnalysisJson
 
 /** US27：AI 结果人工审核。 */
 @Composable
@@ -57,11 +58,24 @@ fun AIReviewScreen(viewModel: AIReviewViewModel, onBack: () -> Unit) {
             SectionCard("AI 原始结论（${analysis.type.label}）") {
                 Text(analysis.content)
                 Text(
-                    "模拟分析分值 ${analysis.confidence}（不代表可靠概率） · ${if (analysis.verified) "已审核" else "待审核"}",
+                    "${AnalysisJson.summary(analysis.sourceMode.name)} · ${AnalysisJson.summary(analysis.resultState.name)} · ${if (analysis.verified) "已审核" else "待审核"}${if (!analysis.isCurrent) " · 已被新版本替代" else ""}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+            if (analysis.schemaVersion == 1 && analysis.payloadJson != null) {
+                var structured by rememberSaveable(analysis.id, state.corrections.firstOrNull()?.id) { mutableStateOf(state.corrections.firstOrNull()?.correctedPayloadJson ?: analysis.payloadJson) }
+                val manifest = state.manifestJson
+                if (manifest == null) MessageCard("原始分析输入记录缺失，无法作为正式审核依据", error = true)
+                else {
+                    StructuredReviewForm(requireNotNull(structured), manifest, analysis.operation, !state.saving && analysis.isCurrent) { structured = it }
+                    Text("校正结果保留原输入引用；修改结构字段后，正文由有效结构生成。来源过期时须重新分析。")
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = { structured = analysis.payloadJson; viewModel.saveStructured(analysis.payloadJson) }, enabled = !state.saving && analysis.isCurrent, modifier = Modifier.weight(1f).testTag("review-accept")) { Text("确认原结构") }
+                        Button(onClick = { viewModel.saveStructured(requireNotNull(structured)) }, enabled = !state.saving && analysis.isCurrent, modifier = Modifier.weight(1f).testTag("review-save")) { Text("保存结构修正") }
+                    }
+                }
+            } else {
             OutlinedTextField(
                 value = corrected,
                 onValueChange = { corrected = it },
@@ -85,6 +99,7 @@ fun AIReviewScreen(viewModel: AIReviewViewModel, onBack: () -> Unit) {
                     enabled = !state.saving && corrected.isNotBlank(),
                     modifier = Modifier.weight(1f).testTag("review-save"),
                 ) { Text("保存修正") }
+            }
             }
             if (state.savedAt != null) MessageCard("审核结果已保存")
             SectionCard("审核记录") {

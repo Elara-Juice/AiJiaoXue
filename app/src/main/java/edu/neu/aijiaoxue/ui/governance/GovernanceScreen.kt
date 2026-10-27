@@ -63,6 +63,9 @@ fun GovernanceScreen(model: GovernanceViewModel, onBack: () -> Unit, onTask: (Lo
                         Text("有实际实施记录的措施：${summary.executedMeasureCount} 条；实施记录：${summary.executionRecordCount} 条")
                         Text("复评核验：${summary.latestVerifications.size} 组原问题与后续课堂关系，各取最新一次；整堂复评不当作单个问题。")
                         VerificationVerdict.entries.forEach { Text("${it.label}：${summary.verificationCounts[it] ?: 0} 组") }
+                        Text("待重新核验：${summary.pendingVerifications.size} 组（不计入有效结论与改善率）")
+                        Text(summary.improvementRate?.let { "有效改善率：${number(it * 100)}%" } ?: "有效改善率：暂无可计算结果")
+                        Text("口径：有效已改善 ÷（有效已改善 + 有效未改善），继续观察单列。", style = MaterialTheme.typography.bodySmall)
                         if (summary.latestVerifications.isEmpty()) Text("暂无正式复评核验，未由措施完成状态推断成效。")
                     }
                 } }
@@ -89,6 +92,7 @@ fun GovernanceScreen(model: GovernanceViewModel, onBack: () -> Unit, onTask: (Lo
                 } }
                 dashboard.summary?.latestVerifications?.forEach { verification -> item(key = "verification-${verification.verificationId}") {
                     SectionCard("最新核验 · ${verification.verdict.label}") {
+                        verification.ineligibilityReason?.let { MessageCard("待重新核验：$it", true) }
                         Text(verification.originIssueSnapshot)
                         Text("${verification.verifierName} · ${timeText(verification.verifiedAt)}")
                         Text(verification.basis)

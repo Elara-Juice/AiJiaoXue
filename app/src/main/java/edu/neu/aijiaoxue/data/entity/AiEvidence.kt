@@ -40,4 +40,5 @@ data class AiEvidence(
     val startMs: Long? = null,
     val endMs: Long? = null,
     val description: String,
+    val sourceRefJson: String? = null,
 )

@@ -39,6 +39,11 @@ class ImprovementSuggestionGeneratorTest {
             description = "教师其他安排"), null, listOf(review(2, "INTERACTION", "互动分析"))).isEmpty())
     }
 
+    @Test fun insufficientInputDoesNotBecomePositiveImprovementAdvice() = runBlocking {
+        val insufficient = review(4, "INTERACTION", "没有互动来源，输入不足").copy(resultState = ResultState.INSUFFICIENT_INPUT)
+        assertTrue(generator.generate(item, EvalDimension.ENGAGEMENT, listOf(insufficient)).isEmpty())
+    }
+
     @Test fun designAdviceKeepsProblemAndPublishedReviewRatherThanRawOriginal() = runBlocking {
         val problem = item.copy(description = "前测与先备知识不匹配")
         val reviewed = review(3, "BOPPPS", "前测题需覆盖学生先备知识")

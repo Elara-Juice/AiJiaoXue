@@ -33,7 +33,16 @@ data class GovernanceSummary(
     val executedMeasureCount: Int, val executionRecordCount: Int,
     val latestVerifications: List<GovernanceVerificationRow>,
 ) {
-    val verificationCounts: Map<VerificationVerdict, Int> get() = latestVerifications.groupingBy { it.verdict }.eachCount()
+    val verificationCounts: Map<VerificationVerdict, Int> get() = latestVerifications
+        .filter { it.contractVersion == 2 && it.ineligibilityReason == null }.groupingBy { it.verdict }.eachCount()
+    val pendingVerifications: List<GovernanceVerificationRow> get() = latestVerifications
+        .filter { it.contractVersion != 2 || it.ineligibilityReason != null }
+    val improvementRate: Double? get() {
+        val counts = verificationCounts
+        val improved = counts[VerificationVerdict.IMPROVED] ?: 0
+        val decided = improved + (counts[VerificationVerdict.NOT_IMPROVED] ?: 0)
+        return if (decided == 0) null else improved.toDouble() / decided
+    }
 }
 
 data class GovernanceDashboard(
@@ -76,7 +85,7 @@ class GovernanceRepository(private val db: AppDatabase) {
                     issues.distinctBy { it.issueId }.groupingBy { it.dimension }.eachCount(),
                     measures.distinctBy { it.measureId }.groupingBy { it.status }.eachCount(),
                     executions.map { it.measureId }.distinct().size, executions.distinctBy { it.executionId }.size,
-                    GovernanceCalculations.latestVerifications(verifications),
+                    assessVerifications(actorId, verifications),
                 )
             } else null
             GovernanceDashboard(role, filter, options, GovernanceCalculations.trends(tasks, snapshots), summary)
@@ -88,7 +97,20 @@ class GovernanceRepository(private val db: AppDatabase) {
         val ids = listOf(taskId)
         GovernanceTaskDetail(task, dao.snapshots(actorId, ids), dao.issues(actorId, ids),
             dao.measures(actorId, ids), dao.executions(actorId, ids),
-            GovernanceCalculations.latestVerifications(dao.verifications(actorId, ids)))
+            assessVerifications(actorId, dao.verifications(actorId, ids)))
+    }
+
+    private suspend fun assessVerifications(actorId: Long, rows: List<GovernanceVerificationRow>): List<GovernanceVerificationRow> {
+        val service = ReviewVerificationService(db)
+        return GovernanceCalculations.latestVerifications(rows).map { row ->
+            val link = db.reviewLinkDao().getForActor(actorId, row.linkId)
+            val record = db.issueVerificationDao().getForLink(actorId, row.linkId).firstOrNull { it.id == row.verificationId }
+            val reason = if (link == null || record == null) "核验来源不存在或无权访问" else {
+                val evidence = db.issueVerificationDao().evidenceForLink(actorId, row.linkId).filter { it.verificationId == row.verificationId }
+                service.ineligibility(actorId, link, record, evidence)
+            }
+            row.copy(ineligibilityReason = reason)
+        }
     }
 
     private suspend fun authorizedRole(actorId: Long): Role {
@@ -115,11 +137,16 @@ object GovernanceCalculations {
 
     fun trends(tasks: List<GovernanceTaskRow>, snapshots: List<MetricSnapshot>): List<TeacherCourseTrend> = tasks
         .distinctBy { it.taskId }.groupBy { it.teacherId to it.courseId }.values.map { group ->
-            val ordered = group.sortedWith(compareBy<GovernanceTaskRow> { it.supervisionDate }
-                .thenBy { it.period.substringBefore('-').trim().toIntOrNull() ?: Int.MAX_VALUE }.thenBy { it.taskId })
+            val ordered = group.sortedWith(compareBy<GovernanceTaskRow> { ReviewChronologyV1.date(it.supervisionDate) ?: LocalDate.MAX }
+                .thenBy { ReviewChronologyV1.period(it.period)?.first ?: Int.MAX_VALUE }.thenBy { it.taskId })
             val first = ordered.first()
             val pairs = ordered.zipWithNext().flatMap { (before, after) ->
-                MetricKey.entries.map { key -> compare(before.taskId, after.taskId, key, snapshots) }
+                val chronology = ReviewChronologyV1.validate(before.taskId, before.supervisionDate, before.period,
+                    after.taskId, after.supervisionDate, after.period)
+                MetricKey.entries.map { key ->
+                    val pair = compare(before.taskId, after.taskId, key, snapshots)
+                    if (chronology == ReviewChronologyStatus.VALID) pair else pair.copy(outcome = null, note = chronology.label)
+                }
             }
             TeacherCourseTrend(first.teacherId, first.teacherName, first.courseId, first.courseName, ordered, pairs)
         }.sortedWith(compareBy({ it.teacherName }, { it.courseName }, { it.courseId }))

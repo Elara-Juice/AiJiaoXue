@@ -286,7 +286,7 @@ class EndToEndTest {
         assertEquals(TaskStatus.COMPLETED, runBlocking { db.taskDao().getById(taskId)!!.status })
         assertEquals(ArrangementStatus.DONE, arrangementStatus(arrangement.id))
         clickIn(EVALUATION, hasText("查看历史归档"))
-        waitText("历史详情 · 只读")
+        waitText("完整督导报告 · 只读")
 
         // ---------- 8. 督导按教师姓名检索历史记录并打开 ----------
         goHome(SUPERVISOR_HOME)
@@ -296,7 +296,7 @@ class EndToEndTest {
         closeSoftKeyboard()
         rule.onNodeWithText("检索").performClick()
         clickAny(hasText(COURSE_NAME))
-        waitText("历史详情 · 只读")
+        waitText("完整督导报告 · 只读")
         waitText("81 分 · 良好 · 已归档")
         scrollAny(hasText("材料 3 份 · 互动 5 次 · 参与记录 1 条"))
         scrollAny(hasText(OPINION, substring = true))

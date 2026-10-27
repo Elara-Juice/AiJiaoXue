@@ -133,7 +133,7 @@ class Sprint3GovernanceTest {
         assertEquals(setOf("调整1", "调整2"), detail.executions.map { it.actualAdjustment }.toSet())
     }
 
-    @Test fun duplicateWholeClassLinksUseLatestVerificationAndIgnoreUnpublishedFollowUp() = runBlocking {
+    @Test fun duplicateWholeClassLinksUseLatestAndUnpublishedOrLegacyRecordsRemainPending() = runBlocking {
         val origin = formal()
         val followUp = formal(date = "2026-10-22")
         suspend fun link(followUpId: Long) = db.reviewLinkDao().insert(ReviewLink(originTaskId = origin.task,
@@ -149,9 +149,10 @@ class Sprint3GovernanceTest {
         db.issueVerificationDao().insert(IssueVerification(linkId = link(unpublished), verdict = VerificationVerdict.CONTINUE_OBSERVING,
             basis = "尚待正式评价", verifierId = fixture.supervisor, verifiedAt = 3000))
         val summary = repository.load(fixture.admin).summary!!
-        assertEquals(latestId, summary.latestVerifications.single().verificationId)
-        assertEquals(1, summary.verificationCounts[VerificationVerdict.NOT_IMPROVED])
+        assertEquals(latestId, summary.latestVerifications.single { it.followUpTaskId == followUp.task }.verificationId)
+        assertEquals(2, summary.pendingVerifications.size)
+        assertTrue(summary.verificationCounts.isEmpty())
         assertNull(summary.verificationCounts[VerificationVerdict.IMPROVED])
-        assertEquals(followUp.task, repository.sourceDetail(fixture.teacher, origin.task).verifications.single().followUpTaskId)
+        assertEquals(setOf(followUp.task, unpublished), repository.sourceDetail(fixture.teacher, origin.task).verifications.map { it.followUpTaskId }.toSet())
     }
 }

@@ -1,6 +1,10 @@
 package edu.neu.aijiaoxue.data.entity
 
 import androidx.room.Entity
+import androidx.room.ColumnInfo
+import edu.neu.aijiaoxue.data.model.AnalysisOperation
+import edu.neu.aijiaoxue.data.model.ResultState
+import edu.neu.aijiaoxue.data.model.SourceMode
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -31,4 +35,13 @@ data class AiAnalysisResult(
     /** US27：督导已审核（确认或修正）。 */
     val verified: Boolean = false,
     val createdAt: Long = System.currentTimeMillis(),
+    @ColumnInfo(defaultValue = "'LEGACY'") val operation: AnalysisOperation = AnalysisOperation.LEGACY,
+    @ColumnInfo(defaultValue = "0") val schemaVersion: Int = 0,
+    val payloadJson: String? = null,
+    val inputFingerprint: String? = null,
+    val runId: String? = null,
+    @ColumnInfo(defaultValue = "'SUPPORTED'") val resultState: ResultState = ResultState.SUPPORTED,
+    @ColumnInfo(defaultValue = "'LEGACY'") val sourceMode: SourceMode = SourceMode.LEGACY,
+    @ColumnInfo(defaultValue = "1") val isCurrent: Boolean = true,
+    val producerJson: String? = null,
 )

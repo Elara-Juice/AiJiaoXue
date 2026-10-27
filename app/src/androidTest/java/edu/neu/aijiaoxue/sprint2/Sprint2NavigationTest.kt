@@ -10,6 +10,7 @@ import edu.neu.aijiaoxue.MainActivity
 import edu.neu.aijiaoxue.data.AppDatabase
 import edu.neu.aijiaoxue.data.PasswordHasher
 import edu.neu.aijiaoxue.data.Session
+import edu.neu.aijiaoxue.data.ai.AnalysisJson
 import edu.neu.aijiaoxue.data.entity.*
 import edu.neu.aijiaoxue.data.model.*
 import edu.neu.aijiaoxue.ui.evaluation.EvaluationDraft
@@ -17,6 +18,7 @@ import edu.neu.aijiaoxue.ui.evaluation.EvaluationRepository
 import edu.neu.aijiaoxue.ui.improve.ImprovementRepository
 import edu.neu.aijiaoxue.ui.improve.ImprovementExecutionRepository
 import kotlinx.coroutines.runBlocking
+import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -61,7 +63,8 @@ class Sprint2NavigationTest {
             db.captureDao().insertEngagement(EngagementRecord(taskId = task, type = EngagementType.LISTENING,
                 recordedAt = 121_000, offsetMs = 120_000))
             EvaluationRepository(db).save(supervisor, task, EvaluationDraft(
-                Evaluation(taskId = task, contentScore = 4, designScore = 4, interactionScore = 4,
+                Evaluation(taskId = task, issueDeclaration = edu.neu.aijiaoxue.data.model.IssueDeclaration.HAS_ISSUES,
+                    contentScore = 4, designScore = 4, interactionScore = 4,
                     engagementScore = 4, overallOpinion = "测试初始人工草稿"),
                 listOf(EvaluationIssue(evaluationId = 0, description = "互动较少", dimension = EvalDimension.INTERACTION)),
             ))
@@ -135,24 +138,36 @@ class Sprint2NavigationTest {
         closeSoftKeyboard()
         clickIn("evaluation-list", hasTestTag("evaluation-open-analysis"))
         waitTag("analysis_page")
-        clickIn("analysis_page", hasTestTag("analysis-generate"))
-        awaitDb { db.aiAnalysisDao().getByTask(task).size == AiAnalysisType.entries.size }
-        waitText("重新生成模拟分析")
+        // Exercise the real production pipeline using recorded events; this path must never call a cloud service.
+        clickIn("analysis_page", hasTestTag("analysis-run-INTERACTION_STATS"))
+        awaitDb { db.aiAnalysisDao().getByTask(task).singleOrNull()?.operation == AnalysisOperation.INTERACTION_STATS }
+        val localAnalysis = runBlocking { db.aiAnalysisDao().getByTask(task).single() }
+        assertEquals(SourceMode.DETERMINISTIC_RULE, localAnalysis.sourceMode)
+        assertEquals(1, localAnalysis.schemaVersion)
+        assertEquals(1, JSONObject(localAnalysis.payloadJson!!).getJSONArray("activities").getJSONObject(0).getInt("count"))
+        assertNull(runBlocking { db.analysisSourceDao().getJob(localAnalysis.runId!!.toLong()) }!!.serverJobId)
         clickIn("analysis_page", hasTestTag("analysis-review-INTERACTION"))
-        waitTag("review-corrected-content")
+        waitTag("review-structured-note")
         val reviewed = "人工核对：互动应先独立思考，再组织同伴讨论。"
-        rule.onNodeWithTag("review-corrected-content").performScrollTo().performTextReplacement(reviewed)
+        rule.onNodeWithTag("review-structured-note").performScrollTo().performTextReplacement(reviewed)
         closeSoftKeyboard()
         rule.onNodeWithTag("review-save").performScrollTo().performClick()
         waitText("审核结果已保存")
+        val correction = runBlocking { db.aiCorrectionDao().getByAnalysis(localAnalysis.id).first() }
+        assertEquals(supervisor, correction.reviewerId)
+        assertEquals(reviewed, JSONObject(correction.correctedPayloadJson!!).getString("note"))
+        assertEquals(1, JSONObject(correction.correctedPayloadJson!!).getJSONArray("activities").getJSONObject(0).getInt("count"))
+        assertTrue(correction.correctedContent.contains(reviewed))
+        assertEquals(AnalysisJson.summary(JSONObject(correction.correctedPayloadJson!!)), correction.correctedContent)
+        val reviewedContent = correction.correctedContent
         back(); waitTag("analysis_page")
         clickIn("analysis_page", hasTestTag("analysis-enter-evaluation"))
         waitTag("evaluation-list")
         // The route can resume before the database-backed reference refresh completes.
         rule.onNodeWithTag("evaluation-list").performScrollToIndex(1)
-        waitText("审核后有效内容：$reviewed")
-        rule.onNodeWithTag("evaluation-list").performScrollToNode(hasText("审核后有效内容：$reviewed"))
-        rule.onNodeWithText("审核后有效内容：$reviewed").assertIsDisplayed()
+        waitText("审核后有效内容：$reviewedContent")
+        rule.onNodeWithTag("evaluation-list").performScrollToNode(hasText("审核后有效内容：$reviewedContent"))
+        rule.onNodeWithText("审核后有效内容：$reviewedContent").assertIsDisplayed()
         rule.onNodeWithTag("evaluation-list").performScrollToNode(hasTestTag("score-CONTENT-5"))
         rule.onNodeWithTag("score-CONTENT-5").assertIsSelected()
         rule.onNodeWithTag("evaluation-list").performScrollToNode(opinionField)
@@ -165,7 +180,8 @@ class Sprint2NavigationTest {
         val published = runBlocking { EvaluationRepository(db).load(supervisor, task) }
         assertEquals(opinion, published.draft.evaluation.overallOpinion)
         assertEquals(5, published.draft.evaluation.contentScore)
-        assertEquals(reviewed, published.reviewedAnalyses.single().effectiveContent)
+        assertEquals(reviewedContent, published.reviewedAnalyses.single().effectiveContent)
+        assertEquals(reviewed, JSONObject(published.reviewedAnalyses.single().effectivePayloadJson!!).getString("note"))
 
         // One back reaches tasks, not an extra evaluation instance. Keep main's completed-task entry.
         back(); waitText("AI分析")

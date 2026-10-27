@@ -27,7 +27,11 @@ import edu.neu.aijiaoxue.ui.analysis.AIReviewScreen
 import edu.neu.aijiaoxue.ui.analysis.AIReviewViewModel
 import edu.neu.aijiaoxue.ui.analysis.AnalysisScreen
 import edu.neu.aijiaoxue.ui.analysis.AnalysisViewModel
-import edu.neu.aijiaoxue.data.ai.MockAIAnalyzer
+import edu.neu.aijiaoxue.ui.analysis.CloudAnalysisScreen
+import edu.neu.aijiaoxue.ui.analysis.CloudAnalysisViewModel
+import edu.neu.aijiaoxue.ui.input.InputWorkspaceScreen
+import edu.neu.aijiaoxue.ui.input.InputWorkspaceViewModel
+import edu.neu.aijiaoxue.ui.input.PublishedEvidenceScreen
 import edu.neu.aijiaoxue.data.repository.AIAnalysisRepository
 import edu.neu.aijiaoxue.data.repository.AiCorrectionRepository
 import edu.neu.aijiaoxue.data.repository.AiEvidenceRepository
@@ -49,6 +53,7 @@ import edu.neu.aijiaoxue.data.repository.ReviewRepository
 import edu.neu.aijiaoxue.ui.growth.*
 import edu.neu.aijiaoxue.ui.governance.*
 import edu.neu.aijiaoxue.data.repository.GovernanceRepository
+import edu.neu.aijiaoxue.data.repository.AbnormalCourseRepository
 
 private val ADMIN = setOf(Role.ADMIN)
 private val SUPERVISOR = setOf(Role.SUPERVISOR)
@@ -113,6 +118,7 @@ fun AppNavHost() {
                     courseId = entry.courseId(),
                     onBack = { navController.popBackStack() },
                     onCreateTask = { navController.navigate(Routes.taskCreate(it)) },
+                    onCourseReference = { navController.navigate(Routes.courseReference(it)) },
                 )
             }
             guarded(navController, Routes.TASK_CREATE, SUPERVISOR, courseIdArg) { entry ->
@@ -142,6 +148,10 @@ fun AppNavHost() {
             guarded(navController, Routes.TASK_PROGRESS, ADMIN) {
                 TaskProgressScreen(onBack = { navController.popBackStack() })
             }
+            guarded(navController, Routes.ABNORMAL_COURSES, ADMIN) {
+                val model = moduleViewModel { db, actor -> AbnormalCourseViewModel(AbnormalCourseRepository(db), actor) }
+                AbnormalCourseScreen(model, { navController.popBackStack() }, { navController.navigate(Routes.historyDetail(it)) })
+            }
 
             // ui/capture、ui/engagement（李奕萱、孙浩然）
             guarded(navController, Routes.CAPTURE, SUPERVISOR, taskIdArg) { entry ->
@@ -168,21 +178,39 @@ fun AppNavHost() {
             }
             guarded(navController, Routes.HISTORY_DETAIL, ADMIN_SUPERVISOR, taskIdArg) { entry ->
                 val model = moduleViewModel { db, actor -> HistoryDetailViewModel(EvaluationRepository(db), actor, entry.taskId()) }
-                HistoryDetailScreen(model, { navController.popBackStack() })
+                HistoryDetailScreen(model, { navController.popBackStack() },
+                    onEvidence = { navController.navigate(Routes.publishedEvidence(entry.taskId(), it)) },
+                    onParticipation = { navController.navigate(Routes.reviewParticipation(entry.taskId())) })
+            }
+            guarded(navController, Routes.PUBLISHED_EVIDENCE, ADMIN_SUPERVISOR,
+                taskIdArg + navArgument(Routes.ARG_EVIDENCE_ID) { type = NavType.LongType }) { entry ->
+                PublishedEvidenceScreen(Session.requireUser().id, entry.taskId(), requireNotNull(entry.arguments).getLong(Routes.ARG_EVIDENCE_ID)) { navController.popBackStack() }
             }
 
             // ui/analysis、ui/evidence（孙浩然，Sprint 2）：采集结束后从采集页进入
             guarded(navController, Routes.ANALYSIS, SUPERVISOR, taskIdArg) { entry ->
+                val context = LocalContext.current.applicationContext
                 val model = moduleViewModel { db, actor ->
-                    AnalysisViewModel(AIAnalysisRepository(db, MockAIAnalyzer()), AiEvidenceRepository(db), actor, entry.taskId())
+                    CloudAnalysisViewModel(db, context, actor, entry.taskId())
                 }
-                AnalysisScreen(model, { navController.popBackStack() }, { navController.navigate(Routes.aiReview(it)) }, {
+                CloudAnalysisScreen(model, { navController.popBackStack() }, { navController.navigate(Routes.aiReview(it)) }, {
                     val route = Routes.evaluation(entry.taskId())
                     // Return to the existing draft VM so an old second instance cannot overwrite edits.
                     if (!navController.popBackStack(route, false)) {
                         navController.navigate(route) { launchSingleTop = true }
                     }
-                })
+                }, onInputs = { navController.navigate(Routes.inputWorkspace(entry.taskId())) },
+                    onParticipation = { navController.navigate(Routes.reviewParticipation(entry.taskId())) })
+            }
+            guarded(navController, Routes.INPUT_WORKSPACE, SUPERVISOR, taskIdArg) { entry ->
+                val app = LocalContext.current.applicationContext as android.app.Application
+                val model = moduleViewModel { _, actor -> InputWorkspaceViewModel(app, actor, taskId = entry.taskId()) }
+                InputWorkspaceScreen(model) { navController.popBackStack() }
+            }
+            guarded(navController, Routes.COURSE_REFERENCE, ADMIN_SUPERVISOR, courseIdArg) { entry ->
+                val app = LocalContext.current.applicationContext as android.app.Application
+                val model = moduleViewModel { _, actor -> InputWorkspaceViewModel(app, actor, courseId = entry.courseId()) }
+                InputWorkspaceScreen(model) { navController.popBackStack() }
             }
             // US27：AI 结果人工审核
             guarded(navController, Routes.AI_REVIEW, SUPERVISOR, analysisIdArg) { entry ->

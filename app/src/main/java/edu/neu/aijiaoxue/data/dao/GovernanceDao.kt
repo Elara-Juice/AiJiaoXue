@@ -54,11 +54,24 @@ data class GovernanceVerificationRow(
     val verificationId: Long, val linkId: Long, val originTaskId: Long, val originIssueId: Long?,
     val originIssueSnapshot: String, val followUpTaskId: Long, val followUpCode: String,
     val verdict: VerificationVerdict, val basis: String, val verifierName: String, val verifiedAt: Long,
+    val contractVersion: Int = 1,
+    val ineligibilityReason: String? = null,
 )
 
 /** US47/48：每个查询都限制正式数据和读者身份，页面不直接读取无授权的原始 DAO。 */
 @Dao
 interface GovernanceDao {
+    /** US34: admin-only source query. Preserve missing formal scores and separately expose absence of a formal report. */
+    @Query("""SELECT t.id AS taskId,c.id AS courseId,e.id AS evaluationId,c.name AS courseName,
+        c.teacherId,tu.name AS teacherName,t.supervisionDate,t.period,e.totalScore,t.status AS taskStatus
+        FROM supervision_tasks t JOIN courses c ON c.id=t.courseId JOIN users tu ON tu.id=c.teacherId
+        JOIN users u ON u.id=:actorId AND u.role='ADMIN'
+        LEFT JOIN evaluations e ON e.taskId=t.id AND e.status='SUBMITTED'
+        WHERE (:teacherId IS NULL OR c.teacherId=:teacherId) AND (:courseId IS NULL OR c.id=:courseId)
+        AND (:fromDate='' OR t.supervisionDate>=:fromDate) AND (:toDate='' OR t.supervisionDate<=:toDate)
+        ORDER BY t.supervisionDate DESC,t.id DESC""")
+    suspend fun abnormalCandidates(actorId: Long, teacherId: Long?, courseId: Long?, fromDate: String, toDate: String): List<AbnormalCourseRow>
+
     @Query(TASK_COLUMNS + FORMAL_FROM + FORMAL_SCOPE + """
         AND (:teacherId IS NULL OR c.teacherId = :teacherId)
         AND (:courseId IS NULL OR c.id = :courseId)
@@ -90,15 +103,15 @@ interface GovernanceDao {
         FORMAL_SCOPE + " AND t.id IN (:taskIds) ORDER BY x.implementedAt DESC, x.id DESC")
     suspend fun executions(actorId: Long, taskIds: List<Long>): List<GovernanceExecutionRow>
 
-    /** 原课堂按筛选范围选择；后续课堂也必须正式提交。不会将尚在采集的复评计入态势。 */
+    /** 先取所有授权核验，再判断最新一条的有效性，不能提前过滤失效来源而回退旧结论。 */
     @Query("""SELECT v.id AS verificationId, l.id AS linkId, l.originTaskId, l.originIssueId,
         l.originIssueSnapshot, l.followUpTaskId, ft.code AS followUpCode,
-        v.verdict, v.basis, vu.name AS verifierName, v.verifiedAt """ + FORMAL_FROM + """
+        v.verdict, v.basis, vu.name AS verifierName, v.verifiedAt,
+        v.contractVersion, NULL AS ineligibilityReason """ + FORMAL_FROM + """
         JOIN review_links l ON l.originTaskId = t.id AND l.teacherId = c.teacherId
-        JOIN supervision_tasks ft ON ft.id = l.followUpTaskId AND ft.courseId = c.id AND ft.status = 'COMPLETED'
-        JOIN evaluations fe ON fe.taskId = ft.id AND fe.status = 'SUBMITTED'
+        JOIN supervision_tasks ft ON ft.id = l.followUpTaskId
         JOIN issue_verifications v ON v.linkId = l.id
-        JOIN users vu ON vu.id = v.verifierId AND vu.role IN ('ADMIN', 'SUPERVISOR')
+        JOIN users vu ON vu.id = v.verifierId
         """ + FORMAL_SCOPE + " AND t.id IN (:taskIds) ORDER BY v.verifiedAt DESC, v.id DESC")
     suspend fun verifications(actorId: Long, taskIds: List<Long>): List<GovernanceVerificationRow>
 }

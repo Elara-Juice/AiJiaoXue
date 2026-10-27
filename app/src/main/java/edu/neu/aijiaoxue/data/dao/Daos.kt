@@ -509,7 +509,16 @@ interface EvaluationDao {
           AND contentScore IS NOT NULL AND designScore IS NOT NULL
           AND interactionScore IS NOT NULL AND engagementScore IS NOT NULL
           AND overallOpinion IS NOT NULL AND TRIM(overallOpinion) != ''
-          AND EXISTS (SELECT 1 FROM evaluation_issues i WHERE i.evaluationId = :evaluationId)
+           AND contentScore BETWEEN 1 AND 5 AND designScore BETWEEN 1 AND 5
+           AND interactionScore BETWEEN 1 AND 5 AND engagementScore BETWEEN 1 AND 5
+           AND issueDeclaredAt = :at
+           AND issueDeclaredBy = (SELECT supervisorId FROM supervision_tasks WHERE id = evaluations.taskId)
+           AND ((issueDeclaration = 'HAS_ISSUES'
+                 AND EXISTS (SELECT 1 FROM evaluation_issues i WHERE i.evaluationId = :evaluationId)
+                 AND NOT EXISTS (SELECT 1 FROM evaluation_issues i WHERE i.evaluationId = :evaluationId AND TRIM(i.description) = ''))
+                OR (issueDeclaration = 'NO_ISSUES_CONFIRMED'
+                    AND NOT EXISTS (SELECT 1 FROM evaluation_issues i WHERE i.evaluationId = :evaluationId)
+                    AND issueDeclarationNote IS NOT NULL AND TRIM(issueDeclarationNote) != ''))
         """
     )
     suspend fun markSubmitted(evaluationId: Long, totalScore: Int, grade: EvalGrade, at: Long): Int
@@ -532,6 +541,7 @@ interface EvaluationDao {
      */
     @Transaction
     suspend fun submit(evaluationId: Long, taskId: Long, totalScore: Int, grade: EvalGrade, at: Long): Boolean {
+        if (getByTask(taskId)?.id != evaluationId) return false
         if (markSubmitted(evaluationId, totalScore, grade, at) == 0) return false
         if (completeTaskOf(taskId) == 0) throw IllegalStateException("task $taskId is not PENDING_EVALUATION")
         finishArrangementOf(taskId)

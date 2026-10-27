@@ -12,6 +12,7 @@ fun AdminHomeScreen(onNavigate: (String) -> Unit) {
             HomeEntry("历史记录", "查看全部已完成督导的评价", Routes.HISTORY),
             HomeEntry("复评与核验", "查看复评关联、前后指标比较与改善核验记录", Routes.REVIEW_LIST),
             HomeEntry("教学质量态势", "按教师与课程查看趋势、落实情况和复评结果", Routes.GOVERNANCE),
+            HomeEntry("异常课程", "按正式评价筛查低于60分的课堂并下钻报告", Routes.ABNORMAL_COURSES),
         ),
         onNavigate = onNavigate,
     )

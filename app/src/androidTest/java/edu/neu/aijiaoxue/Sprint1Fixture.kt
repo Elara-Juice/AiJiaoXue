@@ -37,7 +37,7 @@ class Sprint1Fixture(val db: AppDatabase) {
             type = SupervisionType.REGULAR, status = TaskStatus.PENDING_EVALUATION))
     }
     fun draft(taskId: Long, suggestions: String? = "每节课增加一次讨论") = EvaluationDraft(
-        Evaluation(taskId = taskId, contentScore = 5, designScore = 4, interactionScore = 3, engagementScore = 4,
+        Evaluation(taskId = taskId, issueDeclaration = IssueDeclaration.HAS_ISSUES, contentScore = 5, designScore = 4, interactionScore = 3, engagementScore = 4,
             contentComment = "概念准确", strengths = "讲解清楚", suggestions = suggestions, overallOpinion = "总体良好，增加学生互动"),
         listOf(EvaluationIssue(evaluationId = 0, description = "互动较少", dimension = EvalDimension.INTERACTION),
             EvaluationIssue(evaluationId = 0, description = "参与不均", dimension = EvalDimension.ENGAGEMENT)),

@@ -254,7 +254,7 @@ class Sprint1UiTest {
         closeSoftKeyboard(); rule.onNodeWithText("检索").performClick(); waitText("没有符合条件的历史记录")
         rule.onNodeWithText("重置条件").performClick(); waitText("测试数据结构")
         rule.onNodeWithText("测试数据结构").performClick()
-        waitText("历史详情 · 只读"); waitText("81 分 · 良好 · 已归档")
+        waitText("完整督导报告 · 只读"); waitText("81 分 · 良好 · 已归档")
         screenshot("history-detail")
         // 详情采用 LazyColumn；先由容器组合屏外项，再定位其内部控件。
         rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("展开课堂记录"))

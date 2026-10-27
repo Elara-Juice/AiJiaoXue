@@ -18,6 +18,7 @@ import edu.neu.aijiaoxue.data.model.ArrangementStatus
 import edu.neu.aijiaoxue.data.model.EvalGrade
 import edu.neu.aijiaoxue.data.model.EvalStatus
 import edu.neu.aijiaoxue.data.model.InteractionType
+import edu.neu.aijiaoxue.data.model.IssueDeclaration
 import edu.neu.aijiaoxue.data.model.ItemSource
 import edu.neu.aijiaoxue.data.model.MeasureSource
 import edu.neu.aijiaoxue.data.model.MaterialType
@@ -303,6 +304,11 @@ class DaoQueriesTest {
         )
         assertFalse(dao.submit(evalId, taskId, 80, EvalGrade.GOOD, 10L))
         dao.upsertIssue(EvaluationIssue(evaluationId = evalId, description = "提问偏少"))
+
+        // v9：实际问题列表不能绕过声明与提交人记录。
+        assertFalse(dao.submit(evalId, taskId, 84, EvalGrade.GOOD, 10L))
+        dao.saveDraft(dao.getByTask(taskId)!!.copy(issueDeclaration = IssueDeclaration.HAS_ISSUES,
+            issueDeclaredBy = supervisor, issueDeclaredAt = 10L))
 
         assertTrue(dao.submit(evalId, taskId, 84, EvalGrade.GOOD, 10L))
         val e = dao.getByTask(taskId)!!

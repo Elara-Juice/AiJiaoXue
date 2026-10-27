@@ -18,6 +18,7 @@ import edu.neu.aijiaoxue.data.model.MetricRules
 import edu.neu.aijiaoxue.data.model.SupervisionType
 import edu.neu.aijiaoxue.data.model.TaskStatus
 import edu.neu.aijiaoxue.data.model.VerificationVerdict
+import edu.neu.aijiaoxue.data.model.*
 import edu.neu.aijiaoxue.data.repository.ReviewRepository
 import edu.neu.aijiaoxue.ui.evaluation.EvaluationDraft
 import kotlinx.coroutines.flow.first
@@ -89,7 +90,7 @@ class Sprint3ReviewTest {
     fun snapshotsAreAppendOnlyAndMissingDataStaysMissing() = runBlocking {
         val origin = classroom(fixture.supervisor, "2026-10-07", "1", SupervisionType.REGULAR, EngagementMode.COUNTS)
         // EvaluationRepository.submit already captures the first immutable snapshot.
-        assertEquals(3, db.metricSnapshotDao().getForTask(fixture.supervisor, origin.taskId).size)
+        assertEquals(4, db.metricSnapshotDao().getForTask(fixture.supervisor, origin.taskId).size)
         val first = db.metricSnapshotDao().getForTask(fixture.supervisor, origin.taskId)
             .first { it.metricKey == MetricKey.ENGAGEMENT_RATE }
         // 参与率 = (18+24+18) / (30+30+30)
@@ -158,15 +159,22 @@ class Sprint3ReviewTest {
             scores = listOf(5, 4, 5, 5))
         val linkId = repo.createLink(fixture.otherSupervisor, followUp.taskId, origin.taskId, origin.issueId)
 
-        // 有可比指标且评价总分提高，可以判定“问题已改善”
-        val receipt = repo.saveVerification(fixture.otherSupervisor, linkId, VerificationVerdict.IMPROVED, "复评评价总分高于原课堂")
+        // 总分提高不能证明原互动问题改善；必须明确事实与仍存在的问题。
+        assertTrue(runCatching { repo.saveVerification(fixture.otherSupervisor, linkId,
+            VerificationVerdict.IMPROVED, "复评评价总分高于原课堂") }.isFailure)
+        val followUpEvaluation = db.evaluationDao().getByTask(followUp.taskId)!!
+        val receipt = repo.saveVerification(fixture.otherSupervisor, linkId, VerificationDraft(
+            VerificationVerdict.IMPROVED, IssuePresence.PRESENT, ImprovementExtent.PARTIAL,
+            "增加了小组讨论，但学生主动提问仍少", listOf(VerificationEvidenceRequest.FollowUpObservation(
+                followUpEvaluation.id, "本次实施两轮小组讨论，学生主动提问仍少", role = VerificationEvidenceRole.PRIMARY,
+                relationExplanation = "观察原互动问题中的讨论机会与主动提问")), "互动数量未变，但讨论参与面扩大，原问题仅部分改善"))
         assertEquals(VerificationVerdict.IMPROVED, receipt.verdict)
 
         // 没有第二次有效课堂时只能保留“继续观察”
         // 评价分数取满分，避免复评课堂较高的评价分被当作改善证据；该场景只验证无正向证据时拒绝“已改善”。
         val lonely = classroom(fixture.supervisor, "2026-10-08", "3", SupervisionType.REGULAR, EngagementMode.NONE,
             scores = listOf(5, 5, 5, 5))
-        val lonelyLink = repo.createLink(fixture.otherSupervisor, followUp.taskId, lonely.taskId, null)
+        val lonelyLink = repo.createLink(fixture.otherSupervisor, followUp.taskId, lonely.taskId, lonely.issueId)
         val observing = repo.saveVerification(fixture.otherSupervisor, lonelyLink, VerificationVerdict.CONTINUE_OBSERVING, "缺少第二次有效课堂")
         assertEquals(VerificationVerdict.CONTINUE_OBSERVING, observing.verdict)
 
@@ -246,7 +254,7 @@ class Sprint3ReviewTest {
         }
         if (submit) {
             val draft = EvaluationDraft(
-                Evaluation(taskId = taskId, contentScore = scores[0], designScore = scores[1],
+                Evaluation(taskId = taskId, issueDeclaration = IssueDeclaration.HAS_ISSUES, contentScore = scores[0], designScore = scores[1],
                     interactionScore = scores[2], engagementScore = scores[3],
                     strengths = "讲解清楚", suggestions = "增加互动", overallOpinion = "总体良好"),
                 issues.mapIndexed { index, text ->

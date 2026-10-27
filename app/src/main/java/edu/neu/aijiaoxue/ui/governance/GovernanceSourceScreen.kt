@@ -56,6 +56,7 @@ fun GovernanceSourceScreen(model: GovernanceSourceViewModel, onBack: () -> Unit,
                 } }
                 detail.verifications.forEach { verification -> item {
                     SectionCard("后续核验 · ${verification.verdict.label}") {
+                        verification.ineligibilityReason?.let { MessageCard("待重新核验：$it", true) }
                         Text(verification.originIssueSnapshot)
                         Text(verification.basis)
                         Text("${verification.verifierName} · ${timeText(verification.verifiedAt)}")

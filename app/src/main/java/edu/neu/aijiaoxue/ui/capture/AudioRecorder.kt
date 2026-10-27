@@ -7,6 +7,7 @@ import android.media.MediaRecorder
 import android.os.Build
 import android.os.SystemClock
 import androidx.core.content.ContextCompat
+import androidx.room.withTransaction
 import edu.neu.aijiaoxue.data.AppDatabase
 import edu.neu.aijiaoxue.data.FileStore
 import edu.neu.aijiaoxue.data.entity.Material
@@ -71,6 +72,7 @@ object AudioRecorder {
     private var material: Material? = null
     private var file: File? = null
     private var appContext: Context? = null
+    private var mapping: AudioMappingJournal? = null
 
     /** 开始一段新录音。成功返回 null，失败返回提示文字。classStartAt 用于计算 offsetMs。 */
     suspend fun start(context: Context, taskId: Long, classStartAt: Long): String? = mutex.withLock {
@@ -92,18 +94,22 @@ object AudioRecorder {
             return "无法开始录音，请检查麦克风是否被其他应用占用"
         }
 
+        val startedAt = System.currentTimeMillis()
+        val elapsed = SystemClock.elapsedRealtime()
         val m = Material(
             taskId = taskId,
             type = MaterialType.AUDIO,
             filePath = path,
-            capturedAt = now,
-            offsetMs = now - classStartAt,
+            capturedAt = startedAt,
+            offsetMs = startedAt - classStartAt,
         )
         val id = AppDatabase.get(ctx).captureDao().insertMaterial(m)
         recorder = r
         file = out
         material = m.copy(id = id)
-        _state.value = State(Status.RECORDING, taskId, id, 0, SystemClock.elapsedRealtime())
+        _state.value = State(Status.RECORDING, taskId, id, 0, elapsed)
+        mapping = AudioMappingJournal(ctx, id, m.offsetMs, elapsed)
+        updateMapping { it.start() }
         startService(ctx)
         null
     }
@@ -112,6 +118,7 @@ object AudioRecorder {
         val r = recorder ?: return@withLock
         if (_state.value.status != Status.RECORDING) return@withLock
         r.pause()
+        updateMapping { it.pause(SystemClock.elapsedRealtime()) }
         _state.update {
             it.copy(status = Status.PAUSED, recordedMs = it.durationAt(SystemClock.elapsedRealtime()), runningSince = null)
         }
@@ -121,6 +128,7 @@ object AudioRecorder {
         val r = recorder ?: return@withLock
         if (_state.value.status != Status.PAUSED) return@withLock
         r.resume()
+        updateMapping { it.resume(SystemClock.elapsedRealtime()) }
         _state.update { it.copy(status = Status.RECORDING, runningSince = SystemClock.elapsedRealtime()) }
     }
 
@@ -133,6 +141,9 @@ object AudioRecorder {
         val out = checkNotNull(file)
         val ctx = checkNotNull(appContext)
         val duration = _state.value.durationAt(SystemClock.elapsedRealtime())
+        val stoppedAtElapsed = SystemClock.elapsedRealtime()
+        val mappingSession = mapping
+        mapping = null
         recorder = null
         material = null
         file = null
@@ -146,19 +157,58 @@ object AudioRecorder {
         } finally {
             r.release()
         }
-        _state.value = State()
-        ctx.stopService(Intent(ctx, RecordingService::class.java))
-
-        val dao = AppDatabase.get(ctx).captureDao()
-        val probed = if (stopped) null else probeDurationMs(out)
+        // 提交前仍保留 materialId；重进采集页不能同时把正在收尾的录音当作崩溃记录恢复。
+        try {
+        val db = AppDatabase.get(ctx)
+        val dao = db.captureDao()
+        val probed = probeDurationMs(out)
         return if (stopped || (probed != null && probed > 0)) {
-            dao.updateMaterial(m.copy(endedAt = System.currentTimeMillis(), durationMs = probed ?: duration))
+            val actualDuration = probed ?: duration
+            val spans = runCatching { mappingSession?.finish(stoppedAtElapsed, actualDuration).orEmpty() }.getOrElse {
+                _messages.emit("录音已保存，时间映射写入失败，课堂位置显示未知")
+                emptyList()
+            }
+            db.withTransaction {
+                dao.updateMaterial(m.copy(endedAt = System.currentTimeMillis(), durationMs = actualDuration))
+                db.analysisSourceDao().insertAudioSpans(spans)
+                db.analysisSourceDao().bumpInputRevision(m.taskId)
+            }
+            AudioMappingJournal.clear(ctx, m.id)
             null
         } else {
             FileStore.delete(ctx, m.filePath)
             dao.deleteMaterial(m)
+            AudioMappingJournal.clear(ctx, m.id)
             "录音时间过短，未保存"
         }
+        } finally {
+            _state.value = State()
+            ctx.stopService(Intent(ctx, RecordingService::class.java))
+        }
+    }
+
+    private suspend fun updateMapping(action: suspend (AudioMappingJournal) -> Unit) {
+        val session = mapping ?: return
+        try { action(session) } catch (e: java.io.IOException) {
+            mapping = null
+            appContext?.let { runCatching { AudioMappingJournal.clear(it, session.materialId) } }
+            _messages.emit("录音继续，时间映射未能保存；本段只能按文件时间定位")
+        }
+    }
+
+    /** 未闭合的最后一段保持未知，绝不把文件时长当成课堂经过时长。 */
+    suspend fun recoverMapping(context: Context, material: Material, durationMs: Long) {
+        val db = AppDatabase.get(context)
+        val spans = AudioMappingJournal.recover(context, material.id, durationMs)
+        db.withTransaction {
+            val current = db.captureDao().getMaterial(material.id) ?: return@withTransaction
+            if (current.endedAt != null) return@withTransaction
+            // 完成标记与映射一起提交；任意一步失败，下次仍能按 unfinished 找回。
+            db.captureDao().updateMaterial(current.copy(endedAt = current.capturedAt + durationMs, durationMs = durationMs))
+            if (db.analysisSourceDao().audioSpans(material.id).isEmpty()) db.analysisSourceDao().insertAudioSpans(spans)
+            db.analysisSourceDao().bumpInputRevision(material.taskId)
+        }
+        AudioMappingJournal.clear(context, material.id)
     }
 
     /** 读取音频文件实际时长；文件损坏或不可读时返回 null。 */

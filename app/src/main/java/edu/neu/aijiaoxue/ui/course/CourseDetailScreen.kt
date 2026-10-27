@@ -29,6 +29,7 @@ fun CourseDetailScreen(
     courseId: Long,
     onBack: () -> Unit,
     onCreateTask: (Long) -> Unit,
+    onCourseReference: ((Long) -> Unit)? = null,
 ) {
     val viewModel: CourseDetailViewModel = viewModel(
         key = "course-detail-$courseId",
@@ -54,6 +55,7 @@ fun CourseDetailScreen(
                 // 王博田缺陷 D04：没有已完成督导是“暂无”，不是漏填
                 Text("最近督导日期：${course.lastSupervisionDate ?: "暂无"}")
                 if (course.hasOpenArrangement) Text("已纳入待督导安排", color = MaterialTheme.colorScheme.primary)
+                onCourseReference?.let { open -> TextButton(onClick = { open(course.id) }) { Text("课程大纲与教学目标") } }
                 if (Session.requireUser().role == Role.SUPERVISOR) {
                     Button(onClick = { onCreateTask(course.id) }, modifier = Modifier.fillMaxWidth()) {
                         Text("创建督导任务")

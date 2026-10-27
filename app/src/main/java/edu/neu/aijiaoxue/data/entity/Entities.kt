@@ -73,10 +73,13 @@ data class Arrangement(
     foreignKeys = [
         ForeignKey(entity = Course::class, parentColumns = ["id"], childColumns = ["courseId"]),
         ForeignKey(entity = User::class, parentColumns = ["id"], childColumns = ["supervisorId"]),
+        ForeignKey(entity = CourseReferenceVersion::class, parentColumns = ["id"], childColumns = ["courseReferenceVersionId"], onDelete = ForeignKey.RESTRICT),
     ],
     indices = [
         Index("courseId"),
         Index("supervisorId"),
+        Index("courseReferenceVersionId"),
+        Index(value = ["analysisCaseId"], unique = true),
         Index(value = ["code"], unique = true),
         // US04：同一督导对同一课程同一日期同一节次不能重复创建
         Index(value = ["supervisorId", "courseId", "supervisionDate", "period"], unique = true),
@@ -99,6 +102,10 @@ data class SupervisionTask(
     val classStartAt: Long? = null,
     val classEndAt: Long? = null,
     val createdAt: Long = System.currentTimeMillis(),
+    val courseReferenceVersionId: Long? = null,
+    val referenceSelectionJson: String? = null,
+    @androidx.room.ColumnInfo(defaultValue = "0") val inputRevision: Long = 0,
+    val analysisCaseId: String? = null,
 )
 
 @Entity(
@@ -190,6 +197,11 @@ data class Evaluation(
     /** 教师首次查看时间，null 表示未读（US33 红点）。 */
     val teacherReadAt: Long? = null,
     val updatedAt: Long = System.currentTimeMillis(),
+    @androidx.room.ColumnInfo(defaultValue = "'UNASSESSED'")
+    val issueDeclaration: edu.neu.aijiaoxue.data.model.IssueDeclaration = edu.neu.aijiaoxue.data.model.IssueDeclaration.UNASSESSED,
+    val issueDeclarationNote: String? = null,
+    val issueDeclaredBy: Long? = null,
+    val issueDeclaredAt: Long? = null,
 ) {
     fun scoreOf(dim: EvalDimension): Int? = when (dim) {
         EvalDimension.CONTENT -> contentScore

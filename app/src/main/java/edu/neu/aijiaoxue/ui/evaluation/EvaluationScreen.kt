@@ -13,6 +13,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import edu.neu.aijiaoxue.data.model.EvalDimension
 import edu.neu.aijiaoxue.data.model.EvalRules
+import edu.neu.aijiaoxue.data.model.IssueDeclaration
 
 @Composable
 fun EvaluationScreen(viewModel: EvaluationViewModel, onBack: () -> Unit, onHistory: () -> Unit, onAnalysis: () -> Unit = {}) {
@@ -49,37 +50,10 @@ fun EvaluationScreen(viewModel: EvaluationViewModel, onBack: () -> Unit, onHisto
             // intentionally remain 3 (scores), 8 (issues), and 10 (overall opinion).
             item { Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 ClassroomReference(record)
-                SectionCard("已审核分析参考") {
-                    Text("分析仅供督导参考，不自动评分、创建问题或替代人工评价。")
-                    Text("当前版本展示规则模拟分析，用于流程验证，尚未接入真实 AI 模型。")
-                    if (!state.readOnly) OutlinedButton(onClick = onAnalysis, enabled = !state.busy,
-                        modifier = Modifier.testTag("evaluation-open-analysis")) { Text("查看与审核分析") }
-                    if (record.reviewedAnalyses.isEmpty()) {
-                        Text("暂无可用的已审核分析，可继续完成人工评价。尚未完成审核或缺少有效审核记录的分析不在此展示。")
-                    } else {
-                        Text(if (state.readOnly) "以下为随本次评价发布的审核快照。" else "以下为当前已审核分析；提交评价时将留存本次参考快照。")
-                        record.reviewedAnalyses.forEach { analysis ->
-                            Column(Modifier.fillMaxWidth().testTag("evaluation-reviewed-${analysis.analysisId}"),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                HorizontalDivider()
-                                Text(when (analysis.type.uppercase()) {
-                                    "BOPPPS" -> "BOPPPS 教学结构"
-                                    "INTERACTION" -> "课堂互动"
-                                    "ENGAGEMENT" -> "课堂参与"
-                                    "VERBAL_REPETITION" -> "口头表达"
-                                    "TEACHING_TRANSITION" -> "教学环节衔接"
-                                    "CONTENT" -> "教学内容"
-                                    else -> analysis.type
-                                }, style = MaterialTheme.typography.titleSmall)
-                                ReadField("分析原文", analysis.originalContent)
-                                ReadField("审核后有效内容", analysis.effectiveContent)
-                                ReadField("证据摘要", analysis.evidenceSummary)
-                                Text("审核时间：${timeText(analysis.reviewedAt)}")
-                                Text("审核来源版本：${analysis.versionKey}")
-                            }
-                        }
-                    }
-                }
+                if (!state.readOnly) OutlinedButton(onClick = onAnalysis, enabled = !state.busy,
+                    modifier = Modifier.testTag("evaluation-open-analysis")) { Text("查看与审核分析") }
+                ReviewedAnalysisSection(record.reviewedAnalyses, state.readOnly, record.publication,
+                    record.publishedFacts, record.publishedEvidence)
             } }
             item {
                 val total = EvalRules.totalScore(evaluation.scores())
@@ -91,7 +65,29 @@ fun EvaluationScreen(viewModel: EvaluationViewModel, onBack: () -> Unit, onHisto
             item { OutlinedTextField(value = evaluation.strengths.orEmpty(),
                 onValueChange = { text -> viewModel.opinion { it.copy(strengths = text) } }, readOnly = !enabled,
                 label = { Text("主要优点（选填）") }, modifier = Modifier.fillMaxWidth()) }
-            item { IssueEditor(state.draft.issues, enabled, viewModel::addIssue, viewModel::changeIssue, viewModel::removeIssue) }
+            item { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("本次问题确认", style = MaterialTheme.typography.titleMedium)
+                if (state.readOnly) {
+                    Text(if (evaluation.issueDeclaration == IssueDeclaration.UNASSESSED)
+                        "历史正式评价，未记录显式零问题声明" else evaluation.issueDeclaration.label)
+                    evaluation.issueDeclarationNote?.let { Text(it) }
+                } else {
+                    listOf(IssueDeclaration.HAS_ISSUES, IssueDeclaration.NO_ISSUES_CONFIRMED).forEach { declaration ->
+                        Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                            RadioButton(selected = evaluation.issueDeclaration == declaration,
+                                onClick = { viewModel.declareIssues(declaration) }, enabled = enabled)
+                            Text(declaration.label)
+                        }
+                    }
+                    if (evaluation.issueDeclaration == IssueDeclaration.NO_ISSUES_CONFIRMED) {
+                        Text("请说明本次观察范围与确认依据；已有问题须自行核对后删除。")
+                        OutlinedTextField(value = evaluation.issueDeclarationNote.orEmpty(),
+                            onValueChange = viewModel::declarationNote, enabled = enabled,
+                            label = { Text("无主要问题确认说明（必填）") }, modifier = Modifier.fillMaxWidth())
+                    }
+                }
+                IssueEditor(state.draft.issues, enabled, viewModel::addIssue, viewModel::changeIssue, viewModel::removeIssue)
+            } }
             item { OutlinedTextField(value = evaluation.suggestions.orEmpty(),
                 onValueChange = { text -> viewModel.opinion { it.copy(suggestions = text) } }, readOnly = !enabled,
                 label = { Text("改进建议（选填）") }, modifier = Modifier.fillMaxWidth()) }

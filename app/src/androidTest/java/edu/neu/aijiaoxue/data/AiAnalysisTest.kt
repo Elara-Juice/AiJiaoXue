@@ -139,7 +139,8 @@ class AiAnalysisTest {
             }
         }
         EvaluationRepository(db).save(supervisor, task, EvaluationDraft(
-            Evaluation(taskId = task, contentScore = 4, designScore = 4, interactionScore = 4, engagementScore = 4,
+            Evaluation(taskId = task, issueDeclaration = edu.neu.aijiaoxue.data.model.IssueDeclaration.HAS_ISSUES,
+                contentScore = 4, designScore = 4, interactionScore = 4, engagementScore = 4,
                 overallOpinion = "根据人工审核的证据关注语言表达和教学组织"),
             listOf(EvaluationIssue(evaluationId = 0, description = "需进一步观察课堂环节安排", dimension = EvalDimension.DESIGN)),
         ), submit = true)
@@ -263,6 +264,9 @@ class AiAnalysisTest {
                     assertEquals(60_000L, result.startMs)
                     assertEquals(130_000L, result.endMs)
                 }
+                AiAnalysisType.CONTENT, AiAnalysisType.SYLLABUS_ALIGNMENT,
+                AiAnalysisType.GOAL_ACTIVITY, AiAnalysisType.MATERIAL_SUPPORT ->
+                    throw AssertionError("旧 Mock 不应生成新类型 ${result.type}")
             }
         }
     }

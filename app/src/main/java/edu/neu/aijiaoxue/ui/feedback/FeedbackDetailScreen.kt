@@ -24,6 +24,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import edu.neu.aijiaoxue.data.model.EvalDimension
+import edu.neu.aijiaoxue.ui.evaluation.ReviewedAnalysisSection
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,6 +66,7 @@ fun FeedbackDetailScreen(taskId: Long, onBack: () -> Unit, onImproveFocus: () ->
                     Text("主要问题", style = MaterialTheme.typography.titleMedium)
                     if (state.issues.isEmpty()) Text("未填写")
                     state.issues.forEachIndexed { index, issue -> Text("${index + 1}. ${issue.description}") }
+                    ReviewedAnalysisSection(state.reviewedAnalyses, true, state.publication, state.facts, showOriginal = false)
                     Button(onClick = onImproveFocus, modifier = Modifier.fillMaxWidth()) { Text("确定改进重点") }
                 }
             }

@@ -49,6 +49,18 @@ import edu.neu.aijiaoxue.data.entity.TeachingHighlight
 import edu.neu.aijiaoxue.data.entity.TeachingAdoption
 import edu.neu.aijiaoxue.data.dao.TeachingSupportDao
 import edu.neu.aijiaoxue.data.dao.GovernanceDao
+import edu.neu.aijiaoxue.data.dao.AnalysisSourceDao
+import edu.neu.aijiaoxue.data.entity.CourseReferenceVersion
+import edu.neu.aijiaoxue.data.entity.AudioTimeSpan
+import edu.neu.aijiaoxue.data.entity.TranscriptVersion
+import edu.neu.aijiaoxue.data.entity.TeachingPhaseVersion
+import edu.neu.aijiaoxue.data.entity.ImageTextVersion
+import edu.neu.aijiaoxue.data.entity.ManualClassroomFact
+import edu.neu.aijiaoxue.data.entity.TermExclusionVersion
+import edu.neu.aijiaoxue.data.entity.AnalysisJob
+import edu.neu.aijiaoxue.data.entity.PublishedFactSnapshot
+import edu.neu.aijiaoxue.data.entity.PublishedEvidenceSnapshot
+import edu.neu.aijiaoxue.data.entity.IssueVerificationEvidence
 
 /**
  * 保留 v1 起的历史升级路径，v6 实施证据、v7 复评、v8 教学亮点与策略采纳。
@@ -67,8 +79,13 @@ import edu.neu.aijiaoxue.data.dao.GovernanceDao
         // Sprint 3（李奕萱）：复评关联、正式指标快照与改善核验
         MetricSnapshot::class, ReviewLink::class, IssueVerification::class,
         TeachingHighlight::class, TeachingAdoption::class,
+        IssueVerificationEvidence::class,
+        CourseReferenceVersion::class, AudioTimeSpan::class, TranscriptVersion::class,
+        TeachingPhaseVersion::class, ImageTextVersion::class, ManualClassroomFact::class,
+        TermExclusionVersion::class, AnalysisJob::class, PublishedFactSnapshot::class,
+        PublishedEvidenceSnapshot::class,
     ],
-    version = 8,
+    version = 10,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -90,11 +107,13 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun reviewSourceDao(): ReviewSourceDao
     abstract fun teachingSupportDao(): TeachingSupportDao
     abstract fun governanceDao(): GovernanceDao
+    abstract fun analysisSourceDao(): AnalysisSourceDao
 
     companion object {
         const val NAME = "aijiaoxue.db"
         val MIGRATIONS: Array<Migration> = Sprint2Migrations.ALL + Sprint3Migrations.MIGRATION_5_6 +
-            Sprint3ReviewMigrations.MIGRATION_6_7 + TeachingSupportMigrations.MIGRATION_7_8
+            Sprint3ReviewMigrations.MIGRATION_6_7 + TeachingSupportMigrations.MIGRATION_7_8 +
+            RemediationV9Migration.MIGRATION_8_9 + RemediationV10Migration.MIGRATION_9_10
 
         @Volatile private var instance: AppDatabase? = null
 

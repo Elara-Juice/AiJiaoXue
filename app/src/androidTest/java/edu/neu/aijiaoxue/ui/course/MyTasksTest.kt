@@ -128,7 +128,7 @@ class MyTasksTest {
         val overdue = createTask("sup01", "2000-01-01", TaskStatus.NOT_STARTED)
         val future = createTask("sup01", "2099-02-05", TaskStatus.NOT_STARTED)
         show()
-        waitFor(code(overdue))
+        rule.waitUntil(10_000) { rule.onAllNodes(hasScrollAction()).fetchSemanticsNodes().isNotEmpty() }
         scrollTo(overdue)
         inCard(overdue, "待开始 · 已逾期").assertExists()
         inCard(overdue, "开始采集").assertExists()

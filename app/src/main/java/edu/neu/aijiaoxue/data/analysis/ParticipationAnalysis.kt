@@ -9,6 +9,8 @@ import edu.neu.aijiaoxue.data.model.AnomalyType
 import edu.neu.aijiaoxue.data.model.DataSourceKind
 import edu.neu.aijiaoxue.data.model.EngagementType
 import edu.neu.aijiaoxue.data.model.EvalDimension
+import edu.neu.aijiaoxue.data.model.SourceMode
+import edu.neu.aijiaoxue.data.model.PhaseLayer
 
 /*
  * Sprint 3（李奕萱）US24 多源参与 / US25 参与异常环节。
@@ -44,6 +46,11 @@ data class PhaseSegment(
     val label: String,
     val startOffsetMs: Long,
     val endOffsetMs: Long,
+    val id: String? = null,
+    val sourceMode: SourceMode? = null,
+    val versionKey: String? = null,
+    val evidenceRefs: List<String> = emptyList(),
+    val layer: PhaseLayer? = null,
 )
 
 /** 一段参与异常：区间、类型、依据，以及定位到的教学环节。 */
@@ -114,9 +121,10 @@ object ParticipationAnalysis {
 
         return ParticipationInsight(
             findings = findings,
-            anomalies = detectAnomalies(input),
+            anomalies = locatePhases(detectAnomalies(input), input.phases),
             availableSourceKinds = kinds,
-            insufficientNote = insufficient,
+            insufficientNote = insufficient ?: if (findings.isEmpty())
+                "已记录多类来源，但缺少可形成对照的有效比例、评分或时间，暂不形成参与结论" else null,
         )
     }
 
@@ -174,6 +182,28 @@ object ParticipationAnalysis {
                     basis = "参与状态记录 ${record.id}（${record.type.label}，偏移 ${record.offsetMs}ms），" +
                         "该前后窗口内互动事件 0 条",
                 )
+            } else {
+                val percent = validPercent(record)
+                if (percent != null && percent >= LOW_ENGAGEMENT_PERCENT && record.type != EngagementType.DISTRACTED) {
+                    val matching = input.events.filter { kotlin.math.abs(it.offsetMs - record.offsetMs) <= CROSS_SOURCE_WINDOW_MS }
+                    findings += ParticipationFinding(
+                        title = "已采样时点的参与与互动正常对照",
+                        detail = "这些已采样时点的记录可相互对照，未触发设定异常阈值。" +
+                            "这只覆盖已记录的时点，不代表全课堂表现良好，也不推断未采样时段。",
+                        sources = listOf(engagementWindow, eventWindow),
+                        startOffsetMs = minOf(record.offsetMs, matching.minOf { it.offsetMs }),
+                        endOffsetMs = maxOf(record.offsetMs, matching.maxOf { it.offsetMs }),
+                        basis = "参与状态记录 ${record.id}：比例 $percent%；" +
+                            "同窗口互动事件 ${matching.joinToString { "${it.id}（${it.offsetMs}ms）" }}；低比例阈值 $LOW_ENGAGEMENT_PERCENT%",
+                    )
+                } else if (percent != null && (percent < LOW_ENGAGEMENT_PERCENT || record.type == EngagementType.DISTRACTED)) {
+                    findings += ParticipationFinding(
+                        title = "互动事件与参与状态出现差异",
+                        detail = "同窗口标注了互动事件，但该采样记录的参与比例偏低或记录为走神。两类来源分别保留，互动次数不能代替参与状态。",
+                        sources = listOf(engagementWindow, eventWindow), startOffsetMs = record.offsetMs, endOffsetMs = record.offsetMs,
+                        basis = "参与状态记录 ${record.id}（${record.type.label}，$percent%）；同窗口有互动事件，需核对参与范围",
+                    )
+                }
             }
         }
     }
@@ -295,10 +325,7 @@ object ParticipationAnalysis {
 
     private fun lowEngagement(input: ParticipationInput): List<AnomalyInterval> =
         input.engagements.mapNotNull { record ->
-            val percent = record.engagedPercent
-                ?: record.engagedCount?.let { engaged ->
-                    record.presentCount?.takeIf { it > 0 }?.let { engaged * 100.0 / it }?.toInt()
-                }
+            val percent = validPercent(record)?.toInt()
             if (percent == null || percent >= LOW_ENGAGEMENT_PERCENT) null else AnomalyInterval(
                 type = AnomalyType.LOW_ENGAGEMENT,
                 startOffsetMs = record.offsetMs,
@@ -326,7 +353,7 @@ object ParticipationAnalysis {
                     endOffsetMs = to,
                     startAt = null,
                     endAt = null,
-                    description = "相邻互动事件间隔 ${(to - from) / 60000} 分钟，超过 ${LONG_SILENCE_MS / 60000} 分钟",
+                    description = "未标注互动的区间：相邻事件间隔 ${(to - from) / 60000} 分钟；没有标注不等于实际没有互动",
                     evidence = "互动事件偏移 ${from}ms 与 ${to}ms 之间无标注事件",
                     phaseLabel = null,
                     phaseBasis = null,
@@ -341,25 +368,36 @@ object ParticipationAnalysis {
      * 由界面提示缺少已审核的环节结论，不自行编造环节名称。
      */
     fun locatePhases(anomalies: List<AnomalyInterval>, phases: List<PhaseSegment>): List<AnomalyInterval> {
-        if (phases.isEmpty()) return anomalies
         return anomalies.map { anomaly ->
-            val hit = phases.firstOrNull { anomaly.startOffsetMs in it.startOffsetMs..it.endOffsetMs }
-                ?: phases.minByOrNull { kotlin.math.abs(it.startOffsetMs - anomaly.startOffsetMs) }
-                    ?.takeIf { it.startOffsetMs <= anomaly.startOffsetMs && anomaly.startOffsetMs <= it.endOffsetMs }
-            if (hit == null) anomaly
+            val hits = phases.filter { phase ->
+                phase.startOffsetMs >= 0 && phase.endOffsetMs > phase.startOffsetMs &&
+                    if (anomaly.startOffsetMs == anomaly.endOffsetMs)
+                        anomaly.startOffsetMs >= phase.startOffsetMs && anomaly.startOffsetMs < phase.endOffsetMs
+                    else maxOf(anomaly.startOffsetMs, phase.startOffsetMs) < minOf(anomaly.endOffsetMs, phase.endOffsetMs)
+            }.sortedWith(compareBy({ it.startOffsetMs }, { it.endOffsetMs }, { it.label }))
+            if (hits.isEmpty()) anomaly.copy(phaseLabel = null, phaseBasis = null)
             else anomaly.copy(
-                phaseLabel = hit.label,
-                phaseBasis = "已审核的教学环节分析：${hit.startOffsetMs}ms—${hit.endOffsetMs}ms",
+                phaseLabel = hits.map { it.label }.distinct().joinToString("；"),
+                phaseBasis = hits.joinToString("；") { hit ->
+                    val from = maxOf(anomaly.startOffsetMs, hit.startOffsetMs)
+                    val to = minOf(anomaly.endOffsetMs, hit.endOffsetMs)
+                    "${if (hit.layer == PhaseLayer.OBSERVED_ACTIVITY) "已确认人工活动" else "已审核教学环节"}：${hit.label}，" +
+                        "相交范围 ${from}ms—${to}ms" + (hit.versionKey?.let { "，版本 $it" } ?: "") +
+                        if (hit.evidenceRefs.isEmpty()) "" else "，来源 ${hit.evidenceRefs.joinToString()}"
+                },
             )
         }
     }
 
+    private fun validPercent(record: EngagementRecord): Double? {
+        record.engagedPercent?.let { return it.takeIf { value -> value in 0..100 }?.toDouble() }
+        val count = record.engagedCount ?: return null
+        val total = record.presentCount ?: return null
+        return if (total > 0 && count in 0..total) count * 100.0 / total else null
+    }
+
     private fun averageEngagementPercent(records: List<EngagementRecord>): Int? {
-        val percents = records.mapNotNull { record ->
-            record.engagedPercent ?: record.engagedCount?.let { engaged ->
-                record.presentCount?.takeIf { it > 0 }?.let { engaged * 100.0 / it }?.toInt()
-            }
-        }
+        val percents = records.mapNotNull { validPercent(it) }
         if (percents.isEmpty()) return null
         return percents.average().toInt()
     }

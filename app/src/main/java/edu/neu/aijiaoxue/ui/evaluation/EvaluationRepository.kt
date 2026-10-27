@@ -31,6 +31,9 @@ data class ClassroomRecord(
     val events: List<InteractionEvent>,
     val engagements: List<EngagementRecord>,
     val reviewedAnalyses: List<ReviewedAnalysisSnapshot> = emptyList(),
+    val publication: ReviewPublication? = null,
+    val publishedFacts: List<PublishedFactSnapshot> = emptyList(),
+    val publishedEvidence: List<PublishedEvidenceSnapshot> = emptyList(),
 )
 
 class EvaluationRepository(private val db: AppDatabase) {
@@ -47,6 +50,7 @@ class EvaluationRepository(private val db: AppDatabase) {
                 }
                 val course = requireNotNull(db.courseDao().getById(task.courseId))
                 val evaluation = evaluations.getByTask(taskId) ?: Evaluation(taskId = taskId)
+                val publication = if (evaluation.status == EvalStatus.SUBMITTED) db.improvementSuggestionDao().publicationForEvaluation(evaluation.id) else null
                 val reviewed = if (evaluation.status == EvalStatus.SUBMITTED) {
                     db.improvementSuggestionDao().publicationForEvaluation(evaluation.id)?.let {
                         db.improvementSuggestionDao().snapshots(it.id)
@@ -59,6 +63,9 @@ class EvaluationRepository(private val db: AppDatabase) {
                     db.captureDao().getMaterials(taskId), db.captureDao().observeEvents(taskId).first(),
                     db.captureDao().observeEngagements(taskId).first(),
                     reviewed,
+                    publication,
+                    publication?.let { db.analysisSourceDao().publishedFacts(it.id) }.orEmpty(),
+                    publication?.let { db.analysisSourceDao().publishedEvidence(it.id) }.orEmpty(),
                 )
             }
         }
@@ -86,9 +93,12 @@ class EvaluationRepository(private val db: AppDatabase) {
                 require(existing?.status != EvalStatus.SUBMITTED) { "评价已提交，不可修改" }
                 val total = EvalRules.totalScore(draft.evaluation.scores())
                 if (submit) require(evaluationError(draft) == null) { evaluationError(draft).orEmpty() }
+                val submittedAt = System.currentTimeMillis()
                 val clean = draft.evaluation.copy(
                     id = existing?.id ?: 0, totalScore = total, grade = total?.let(EvalRules::gradeOf),
                     status = EvalStatus.DRAFT, submittedAt = null, teacherReadAt = null,
+                    issueDeclaredBy = if (submit) actorId else null,
+                    issueDeclaredAt = if (submit) submittedAt else null,
                 )
                 val id = requireNotNull(evaluations.saveDraft(clean)) { "评价已提交" }
                 // 草稿尚无教师引用，整批更新问题可避免快速输入造成新问题重复插入。
@@ -97,7 +107,7 @@ class EvaluationRepository(private val db: AppDatabase) {
                     evaluations.upsertIssue(issue.copy(id = 0, evaluationId = id, sortOrder = index))
                 }
                 if (submit) {
-                    check(evaluations.submit(id, taskId, requireNotNull(total), EvalRules.gradeOf(total), System.currentTimeMillis())) {
+                    check(evaluations.submit(id, taskId, requireNotNull(total), EvalRules.gradeOf(total), submittedAt)) {
                         "提交失败，请重新打开评价"
                     }
                     // US38：正式评价与其审核依据同时发布，失败则整笔提交回滚。
@@ -113,8 +123,12 @@ fun evaluationError(draft: EvaluationDraft): String? {
     val missing = EvalDimension.entries.filter { draft.evaluation.scoreOf(it) == null }
     return when {
         missing.isNotEmpty() -> "请完成评分：${missing.joinToString("、") { it.label }}"
-        draft.issues.none { it.description.isNotBlank() } -> "请至少填写一条主要问题"
+        draft.evaluation.issueDeclaration == IssueDeclaration.UNASSESSED -> "请确认已记录主要问题，或明确确认本次无主要问题"
+        draft.evaluation.issueDeclaration == IssueDeclaration.HAS_ISSUES && draft.issues.isEmpty() -> "请填写主要问题，或选择确认本次无主要问题"
+        draft.evaluation.issueDeclaration == IssueDeclaration.NO_ISSUES_CONFIRMED && draft.issues.isNotEmpty() -> "零问题声明不能同时保留问题条目"
+        draft.evaluation.issueDeclaration == IssueDeclaration.NO_ISSUES_CONFIRMED && draft.evaluation.issueDeclarationNote.isNullOrBlank() -> "请填写本次无主要问题的确认说明"
         draft.issues.any { it.description.isBlank() } -> "请填写或删除空白问题条目"
+        draft.evaluation.scores().values.any { it != null && it !in 1..5 } -> "各维度评分应为1至5分"
         draft.evaluation.overallOpinion.isNullOrBlank() -> "请填写总体意见"
         else -> null
     }

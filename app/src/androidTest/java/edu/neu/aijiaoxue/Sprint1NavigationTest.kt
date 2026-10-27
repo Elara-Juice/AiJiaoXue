@@ -31,7 +31,7 @@ class Sprint1NavigationTest {
         rule.onNodeWithText("历史记录").performClick()
         waitText("历史督导记录"); waitText("操作系统")
         rule.onNodeWithText("操作系统").performClick()
-        waitText("历史详情 · 只读"); waitText("81 分 · 良好 · 已归档")
+        waitText("完整督导报告 · 只读"); waitText("81 分 · 良好 · 已归档")
         rule.onAllNodes(hasSetTextAction()).assertCountEquals(0)
         rule.onNodeWithText("返回").performClick(); waitText("历史督导记录")
     }

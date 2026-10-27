@@ -1,5 +1,6 @@
 package edu.neu.aijiaoxue.data.repository
 
+import androidx.room.withTransaction
 import edu.neu.aijiaoxue.data.AppDatabase
 import edu.neu.aijiaoxue.data.analysis.AnomalyInterval
 import edu.neu.aijiaoxue.data.analysis.ParticipationAnalysis
@@ -14,6 +15,9 @@ import edu.neu.aijiaoxue.data.entity.IssueVerification
 import edu.neu.aijiaoxue.data.entity.MetricSnapshot
 import edu.neu.aijiaoxue.data.entity.ReviewLink
 import edu.neu.aijiaoxue.data.entity.SupervisionTask
+import edu.neu.aijiaoxue.data.entity.Evaluation
+import edu.neu.aijiaoxue.data.entity.IssueVerificationEvidence
+import edu.neu.aijiaoxue.data.model.*
 import edu.neu.aijiaoxue.data.model.AiAnalysisType
 import edu.neu.aijiaoxue.data.model.MetricKey
 import edu.neu.aijiaoxue.data.model.MetricRules
@@ -68,6 +72,12 @@ data class ReviewLinkDetail(
     val executions: List<ImprovementExecution>,
     val comparison: ComparisonResult?,
     val verifications: List<IssueVerification>,
+    val followUpEvaluation: Evaluation? = null,
+    val evidence: List<IssueVerificationEvidence> = emptyList(),
+    val verificationWarnings: Map<Long, String> = emptyMap(),
+    val canVerify: Boolean = false,
+    val canOpenOriginParticipation: Boolean = false,
+    val canOpenFollowUpParticipation: Boolean = false,
 )
 
 /** 保存核验后的回执。 */
@@ -94,7 +104,7 @@ class ReviewRepository(private val db: AppDatabase) {
         followUpTaskId: Long,
         originTaskId: Long,
         originIssueId: Long? = null,
-    ): Long = withContext(Dispatchers.IO) {
+    ): Long = withContext(Dispatchers.IO) { db.withTransaction {
         if (originTaskId == followUpTaskId) error("原课堂与复评课堂不能是同一次课堂")
         val followUp = sourceDao.followUpTaskForActor(actorId, followUpTaskId)
             ?: error("只能为本人督导的课堂建立复评关联")
@@ -102,6 +112,9 @@ class ReviewRepository(private val db: AppDatabase) {
         val origin = sourceDao.originTaskForActor(actorId, originTaskId)
             ?: error("无权读取该原课堂的正式结果")
         if (origin.courseId != followUp.courseId) error("原课堂与复评课堂必须属于同一门课程")
+        require(origin.status == TaskStatus.COMPLETED) { "原课堂尚未完成" }
+        val chronology = ReviewChronologyV1.validate(origin, followUp)
+        require(chronology == ReviewChronologyStatus.VALID) { chronology.label }
         val originEvaluation = sourceDao.submittedEvaluationForActor(actorId, originTaskId)
             ?: error("原课堂还没有已提交的正式评价，不能建立复评关联")
         val issues = sourceDao.submittedIssuesForActor(actorId, originTaskId)
@@ -116,12 +129,15 @@ class ReviewRepository(private val db: AppDatabase) {
             teacherId = teacherId,
             originIssueSnapshot = snapshotText,
             originDimension = issue?.dimension?.label,
+            originDimensionKey = issue?.dimension,
+            chronologyStatus = chronology,
+            chronologyRuleVersion = ReviewChronologyV1.VERSION,
             createdBy = actorId,
         )
         val id = linkDao.insert(link)
         if (id == -1L) error("该原问题与复评课堂的关联已存在")
         id
-    }
+    } }
 
     /** 读取复评关联详情（含原问题、实施记录、正式结果、比较与核验历史）。 */
     suspend fun linkDetail(actorId: Long, linkId: Long): ReviewLinkDetail? = withContext(Dispatchers.IO) {
@@ -134,6 +150,13 @@ class ReviewRepository(private val db: AppDatabase) {
         val executions = sourceDao.originExecutionsForLink(actorId, linkId)
         val comparison = compare(actorId, link.originTaskId, link.followUpTaskId)
         val verifications = verificationDao.getForLink(actorId, linkId)
+        val evidence = verificationDao.evidenceForLink(actorId, linkId)
+        val warnings = mutableMapOf<Long, String>()
+        val service = ReviewVerificationService(db)
+        for (verification in verifications) {
+            service.ineligibility(actorId, link, verification, evidence.filter { it.verificationId == verification.id })
+                ?.let { warnings[verification.id] = it }
+        }
         ReviewLinkDetail(
             link = link,
             originTask = originTask,
@@ -144,6 +167,12 @@ class ReviewRepository(private val db: AppDatabase) {
             executions = executions,
             comparison = comparison,
             verifications = verifications,
+            followUpEvaluation = sourceDao.submittedEvaluationForActor(actorId, link.followUpTaskId),
+            evidence = evidence,
+            verificationWarnings = warnings,
+            canVerify = db.userDao().getById(actorId)?.role in setOf(Role.ADMIN, Role.SUPERVISOR),
+            canOpenOriginParticipation = sourceDao.followUpTaskForActor(actorId, link.originTaskId) != null,
+            canOpenFollowUpParticipation = sourceDao.followUpTaskForActor(actorId, link.followUpTaskId) != null,
         )
     }
 
@@ -153,12 +182,21 @@ class ReviewRepository(private val db: AppDatabase) {
      */
     suspend fun compare(actorId: Long, beforeTaskId: Long, afterTaskId: Long): ComparisonResult =
         withContext(Dispatchers.IO) {
+            val origin = sourceDao.originTaskForActor(actorId, beforeTaskId)
+            val followUp = sourceDao.originTaskForActor(actorId, afterTaskId)
+            val originEvaluation = sourceDao.submittedEvaluationForActor(actorId, beforeTaskId)
             val followUpEvaluation = sourceDao.submittedEvaluationForActor(actorId, afterTaskId)
-            if (followUpEvaluation == null) {
+            if (origin == null || followUp == null || originEvaluation == null || followUpEvaluation == null ||
+                origin.status != TaskStatus.COMPLETED || followUp.status != TaskStatus.COMPLETED) {
                 return@withContext ComparisonResult(
                     beforeTaskId, afterTaskId, emptyList(),
                     "复评课堂的正式结果尚未发布，暂不进入正式比较",
                 )
+            }
+            val chronology = ReviewChronologyV1.validate(origin, followUp)
+            if (origin.courseId != followUp.courseId || chronology != ReviewChronologyStatus.VALID) {
+                return@withContext ComparisonResult(beforeTaskId, afterTaskId, emptyList(),
+                    if (origin.courseId != followUp.courseId) "不同课程不能比较" else chronology.label)
             }
             val before = snapshotDao.getForTask(actorId, beforeTaskId)
             val after = snapshotDao.getForTask(actorId, afterTaskId)
@@ -201,6 +239,7 @@ class ReviewRepository(private val db: AppDatabase) {
      */
     suspend fun captureSnapshots(actorId: Long, taskId: Long): Int = withContext(Dispatchers.IO) {
         val task = sourceDao.followUpTaskForActor(actorId, taskId) ?: return@withContext 0
+        if (task.status != TaskStatus.COMPLETED) return@withContext 0
         // 正式评价提交前不能占用不可覆盖的快照唯一键，否则缺测值会阻塞正式值。
         if (sourceDao.submittedEvaluationForActor(actorId, taskId) == null) return@withContext 0
         val snapshots = buildSnapshots(actorId, task)
@@ -218,72 +257,15 @@ class ReviewRepository(private val db: AppDatabase) {
      * 证据不足时保留「继续观察」。
      */
     suspend fun saveVerification(
-        actorId: Long,
-        linkId: Long,
-        verdict: VerificationVerdict,
-        basis: String,
-    ): VerificationReceipt = withContext(Dispatchers.IO) {
-        val link = linkDao.getForActor(actorId, linkId) ?: error("复评关联不存在或无权访问")
-        val role = db.userDao().getById(actorId)?.role
-        if (role != Role.ADMIN && role != Role.SUPERVISOR) {
-            error("只有督导或教学管理人员可以保存核验结论")
-        }
-        val text = basis.trim()
-        if (text.isEmpty()) error("请填写核验依据")
-        if (text.length > VerificationRules.MAX_BASIS_LENGTH) {
-            error("核验依据不能超过 ${VerificationRules.MAX_BASIS_LENGTH} 字")
-        }
-        val detail = linkDetail(actorId, linkId) ?: error("复评关联不存在或无权访问")
-        val comparable = detail.comparison?.comparisons
-            ?.mapNotNull { item -> (item.outcome as? MetricRules.CompareOutcome.Comparable)?.let { item to it } }
-            ?: emptyList()
-        val similarFollowUp = detail.followUpIssues.filter {
-            VerificationRules.isSimilarIssue(link.originIssueSnapshot, it.description)
-        }
-        val improvedEvidence = comparable.firstOrNull { it.second.delta > 0 }
-        val notImprovedEvidence = comparable.firstOrNull { it.second.delta <= 0 }
-        val evidenceNote: String
-        when (verdict) {
-            VerificationVerdict.IMPROVED -> {
-                when {
-                    improvedEvidence != null ->
-                        evidenceNote = "依据可比指标 ${improvedEvidence.first.metricKey.label}：前 ${improvedEvidence.second.before} → 后 ${improvedEvidence.second.after}"
-                    // 只有在确实绑定了原问题条目时，"复评未再出现该问题"才算证据
-                    similarFollowUp.isEmpty() && detail.followUpIssues.isNotEmpty() && link.originIssueId != null ->
-                        evidenceNote = "依据复评正式评价：原问题在复评评价的问题条目中未再出现"
-                    else -> error("证据不足：没有可比指标，也没有复评结论支持，请保留“继续观察”")
-                }
-            }
-            VerificationVerdict.NOT_IMPROVED -> {
-                when {
-                    similarFollowUp.isNotEmpty() ->
-                        evidenceNote = "依据复评正式评价：复评问题条目中仍存在相近问题（${similarFollowUp.size} 条）"
-                    notImprovedEvidence != null ->
-                        evidenceNote = "依据可比指标 ${notImprovedEvidence.first.metricKey.label}：前 ${notImprovedEvidence.second.before} → 后 ${notImprovedEvidence.second.after}"
-                    else -> error("证据不足：既没有可比指标，也没有复评结论支持，请保留“继续观察”")
-                }
-            }
-            VerificationVerdict.CONTINUE_OBSERVING -> {
-                evidenceNote = if (comparable.isEmpty()) "缺少可比指标或第二次有效课堂，保留继续观察" else "人工判断证据尚不充分，保留继续观察"
-            }
-        }
-        val beforeSnapshotId = detail.comparison?.comparisons
-            ?.firstOrNull { it.outcome is MetricRules.CompareOutcome.Comparable }?.before?.id
-        val afterSnapshotId = detail.comparison?.comparisons
-            ?.firstOrNull { it.outcome is MetricRules.CompareOutcome.Comparable }?.after?.id
-        val id = verificationDao.insert(
-            IssueVerification(
-                linkId = linkId,
-                verdict = verdict,
-                basis = text,
-                verifierId = actorId,
-                verifiedAt = System.currentTimeMillis(),
-                beforeSnapshotId = beforeSnapshotId,
-                afterSnapshotId = afterSnapshotId,
-            )
-        )
-        VerificationReceipt(id, verdict, evidenceNote)
+        actorId: Long, linkId: Long, verdict: VerificationVerdict, basis: String,
+    ): VerificationReceipt {
+        require(verdict == VerificationVerdict.CONTINUE_OBSERVING) { "请选择原问题状态及证据" }
+        return saveVerification(actorId, linkId, VerificationDraft(verdict, IssuePresence.UNDETERMINED,
+            ImprovementExtent.UNDETERMINED, basis))
     }
+
+    suspend fun saveVerification(actorId: Long, linkId: Long, draft: VerificationDraft): VerificationReceipt =
+        withContext(Dispatchers.IO) { ReviewVerificationService(db).save(actorId, linkId, draft) }
 
     /** 复评关联列表（权限在 SQL 层判断）。 */
     fun observeLinks(actorId: Long) = sourceDao.observeLinkRows(actorId)
@@ -295,7 +277,10 @@ class ReviewRepository(private val db: AppDatabase) {
     suspend fun originCandidates(actorId: Long, followUpTaskId: Long): List<ReviewTaskCandidateRow> =
         withContext(Dispatchers.IO) {
             val followUp = sourceDao.followUpTaskForActor(actorId, followUpTaskId) ?: return@withContext emptyList()
-            sourceDao.originCandidates(actorId, followUp.courseId, followUpTaskId)
+            sourceDao.originCandidates(actorId, followUp.courseId, followUpTaskId).filter { candidate ->
+                ReviewChronologyV1.validate(candidate.id, candidate.supervisionDate, candidate.period,
+                    followUp.id, followUp.supervisionDate, followUp.period) == ReviewChronologyStatus.VALID
+            }
         }
 
     /** 原课堂正式评价中的问题条目。 */
@@ -315,9 +300,7 @@ class ReviewRepository(private val db: AppDatabase) {
             val materials = sourceDao.materialsForActor(actorId, taskId)
             val evaluation = sourceDao.submittedEvaluationForActor(actorId, taskId)
             val issues = sourceDao.submittedIssuesForActor(actorId, taskId)
-            val phases = db.aiAnalysisDao().getByTask(taskId)
-                .filter { it.type == AiAnalysisType.BOPPPS && it.verified && it.startMs != null && it.endMs != null }
-                .map { PhaseSegment(it.content, it.startMs!!, it.endMs!!) }
+            val phases = EffectivePhaseProvider(db).load(actorId, taskId)
             val insight = ParticipationAnalysis.analyze(
                 ParticipationInput(
                     classStartAt = task.classStartAt,
@@ -330,7 +313,7 @@ class ReviewRepository(private val db: AppDatabase) {
                     phases = phases,
                 )
             )
-            insight.copy(anomalies = ParticipationAnalysis.locatePhases(insight.anomalies, phases))
+            insight
         }
 
     /** 计算一次课堂的正式指标快照（口径、单位、分母、采样方式、方法版本一并写入）。 */
@@ -416,6 +399,14 @@ class ReviewRepository(private val db: AppDatabase) {
             scopeEndAt = scopeEnd,
             createdAt = now,
         )
+        val designSpec = MetricRules.spec(MetricKey.EVALUATION_DESIGN)
+        evaluation?.submittedAt?.let { submittedAt ->
+            result += MetricSnapshot(taskId = task.id, metricKey = MetricKey.EVALUATION_DESIGN,
+                value = evaluation.designScore?.toDouble(), unit = designSpec.unit,
+                denominator = designSpec.denominatorLabel, denominatorValue = 1.0, sampling = designSpec.sampling,
+                methodVersion = designSpec.methodVersion, sampleCount = if (evaluation.designScore == null) 0 else 1,
+                scopeStartAt = scopeStart, scopeEndAt = scopeEnd, createdAt = submittedAt)
+        }
         return result
     }
 

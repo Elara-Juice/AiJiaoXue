@@ -100,7 +100,8 @@ object FileStore {
         val dir = expected.canonicalFile
         require(dir == expected.absoluteFile) { "实施证据目录无效" }
         if (create) {
-            check(dir.isDirectory || dir.mkdirs()) { "无法创建实施证据目录" }
+            // 并发导入可能在首次检查后创建同一目录；mkdirs 返回 false 时需重查。
+            check(dir.isDirectory || dir.mkdirs() || dir.isDirectory) { "无法创建实施证据目录" }
         }
         require(!dir.exists() || dir.isDirectory) { "实施证据目录无效" }
         return dir

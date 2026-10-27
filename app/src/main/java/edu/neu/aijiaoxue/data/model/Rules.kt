@@ -131,6 +131,9 @@ object MetricRules {
         MetricKey.EVALUATION_TOTAL -> MetricSpec(
             key, UNIT_SCORE, "百分制总分", SAMPLING_EVALUATION,
         )
+        MetricKey.EVALUATION_DESIGN -> MetricSpec(
+            key, "score", "single_evaluation", "submitted_design_dimension", "manual_design_score_v1",
+        )
     }
 
     /** 不可比的原因，说明给使用者看。 */
@@ -142,6 +145,8 @@ object MetricRules {
         METHOD_VERSION_MISMATCH("方法版本不同"),
         DURATION_MISMATCH("两次课堂时长不一致"),
         DURATION_MISSING("课堂时长未记录，暂不能比较"),
+        INVALID_VALUE("指标不是有效的有限数值"),
+        METRIC_MISMATCH("所选快照不是同一指标"),
     }
 
     /** 一次比较的结果：可比时给出差值，不可比时给出原因。 */
@@ -155,6 +160,10 @@ object MetricRules {
      * 缺测（value 为 null）按缺测处理，不按 0 参与比较。
      */
     fun compare(before: MetricSnapshotView, after: MetricSnapshotView): CompareOutcome {
+        if (before.metricKey != after.metricKey) return CompareOutcome.NotComparable(IncomparableReason.METRIC_MISMATCH)
+        if (before.value?.isFinite() == false || after.value?.isFinite() == false) {
+            return CompareOutcome.NotComparable(IncomparableReason.INVALID_VALUE)
+        }
         if (before.value == null || after.value == null) {
             return CompareOutcome.NotComparable(IncomparableReason.MISSING_VALUE)
         }
@@ -177,7 +186,9 @@ object MetricRules {
                 return CompareOutcome.NotComparable(IncomparableReason.DURATION_MISMATCH)
             }
         }
-        return CompareOutcome.Comparable(after.value!! - before.value!!, before.value!!, after.value!!)
+        val delta = after.value - before.value
+        if (!delta.isFinite()) return CompareOutcome.NotComparable(IncomparableReason.INVALID_VALUE)
+        return CompareOutcome.Comparable(delta, before.value, after.value)
     }
 
     /** 快照覆盖的课堂时长（分钟），没有区间时为 null。 */

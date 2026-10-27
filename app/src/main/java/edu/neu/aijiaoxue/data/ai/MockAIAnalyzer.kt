@@ -279,7 +279,7 @@ class MockAIAnalyzer : AIAnalyzer {
     /** US23：按互动标注统计频次。 */
     private fun interaction(events: List<InteractionEvent>, classEnd: Long): AIResult {
         val counts = events.groupingBy { it.type }.eachCount()
-        val content = if (events.isEmpty()) "未标注互动事件，课堂以讲授为主"
+        val content = if (events.isEmpty()) "未标注互动事件，无法判断课堂互动情况"
         else "共标注互动 ${events.size} 次：" + counts.entries.joinToString("、") { "${it.key.label} ${it.value} 次" }
         return AIResult(
             type = AiAnalysisType.INTERACTION,

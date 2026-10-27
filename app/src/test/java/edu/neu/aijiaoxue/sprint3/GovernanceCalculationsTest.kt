@@ -39,7 +39,7 @@ class GovernanceCalculationsTest {
     }
 
     @Test fun choosesAnExistingCommonVersionInsteadOfMixingNewAndOldMethods() {
-        val result = GovernanceCalculations.trends(listOf(task(1), task(2)), listOf(
+        val result = GovernanceCalculations.trends(listOf(task(1), task(2, date = "2026-10-21")), listOf(
             snapshot(1, 1, 70.0), snapshot(2, 2, 80.0), snapshot(3, 2, 99.0, version = "v2"),
         )).single().comparisons.single { it.metricKey == MetricKey.EVALUATION_TOTAL }
         assertEquals("v1", result.after!!.methodVersion)

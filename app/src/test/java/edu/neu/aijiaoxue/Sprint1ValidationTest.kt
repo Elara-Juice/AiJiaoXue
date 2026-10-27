@@ -8,7 +8,7 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class Sprint1ValidationTest {
-    private val evaluation = Evaluation(taskId = 1, contentScore = 5, designScore = 4,
+    private val evaluation = Evaluation(taskId = 1, issueDeclaration = IssueDeclaration.HAS_ISSUES, contentScore = 5, designScore = 4,
         interactionScore = 3, engagementScore = 4, overallOpinion = "总体良好")
     private val draft = EvaluationDraft(evaluation, listOf(EvaluationIssue(evaluationId = 0, description = "互动较少")))
     private val item = ImprovementItem(id = 1, planId = 1, source = ItemSource.TEACHER, description = "增加互动", priority = Priority.HIGH)

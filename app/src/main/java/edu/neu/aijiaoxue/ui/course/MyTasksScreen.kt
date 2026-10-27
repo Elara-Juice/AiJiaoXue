@@ -128,6 +128,10 @@ internal fun taskCardTag(taskId: Long) = "task-$taskId"
 @Composable
 private fun TaskActions(taskId: Long, status: TaskStatus, onNavigate: (String) -> Unit) {
     val buttonModifier = Modifier.height(48.dp)
+    if (status in setOf(TaskStatus.PENDING_EVALUATION, TaskStatus.COMPLETED)) {
+        TextButton(onClick = { onNavigate(Routes.reviewParticipation(taskId)) }) { Text("参与分析与环节定位") }
+    }
+    TextButton(onClick = { onNavigate(Routes.inputWorkspace(taskId)) }) { Text("课堂输入与补充事实") }
     Row(
         Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.End),

@@ -22,7 +22,7 @@ class RuleBasedImprovementSuggestionGenerator : ImprovementSuggestionGenerator {
             EvalDimension.INTERACTION -> setOf("INTERACTION", "BOPPPS")
             EvalDimension.ENGAGEMENT -> setOf("ENGAGEMENT", "INTERACTION")
         }
-        val relevant = reviews.filter { it.type in types }
+        val relevant = reviews.filter { it.type in types && it.resultState in setOf(ResultState.SUPPORTED, ResultState.PARTIAL) }
         if (relevant.isEmpty()) return emptyList()
         // 每个事项给出一条可执行候选；优先专门维度，不把所有审核内容复制给每个问题。
         val review = relevant.firstOrNull { it.type == types.first() } ?: relevant.first()
