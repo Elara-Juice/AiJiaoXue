@@ -1,43 +1,149 @@
-# AiJiaoXue
+# 爱教学
 
-## Sprint 3：孙浩然教学亮点与质量治理模块
+爱教学是一款面向高校教学督导工作的 Android 应用，覆盖课程督导安排、课堂采集、人工评价、教师反馈、改进落实、复评和质量趋势查看。管理员、教学督导和任课教师使用不同账号，在同一台设备上完成工作流。
 
-`feature/shr-sprint3-governance` 基于团队 `main b79aefb`，承接已合入的于卓君实施证据、王博田高级分析及李奕萱复评增量。新增 US37 教学亮点、US39 互动策略、US40 参考资源、US47 教师趋势及 US48 质量态势，数据库升级为 v8 并保留历史迁移。
+当前版本的数据保存在本机，不连接后端或云端。课堂分析是用于流程演示的本地规则模拟，不是真实 AI 服务；正式评价、问题判断和改进效果核验由用户完成。
 
-教师从首页“教学亮点与互动策略”“教学改进趋势”进入；管理员从“教学质量态势”进入。统计使用本机正式结果，策略属于本地规则和教学参考，教师选择后进入计划草稿。
+## 功能一览
 
-操作步骤、模块边界、演示数据和验证结果见 [孙浩然 Sprint3 交付与验收说明](docs/Sprint3_孙浩然交付与验收说明.md)。Windows 可运行 `./Build-Sprint2.ps1 -Drive T:`，脚本名称沿用历史，构建对象为当前工作树。新分支已配置推送后执行 APK 构建及 JVM 测试的 CI；设备测试由本地另行执行。
+### 教学管理人员
 
-## 于卓君 Sprint 2 个人分支（历史归档）
+- 为本学期待督导课程建立督导安排，可标记重点关注并填写说明。
+- 按课程、督导和状态跟踪任务，查看逾期提示和任务详情。
+- 查看已提交的督导历史、复评关联和质量态势。
+- 按教师、课程和日期筛选趋势，查看问题、改进措施、落实记录和复评核验，并下钻查看课堂来源。
 
-以下保留当时的交付说明、分支限制和测试记录；当前 Sprint3 基线及验证以本页上方说明为准。
+### 教学督导
 
-分支：`feature/yzj-sprint2-improve`。原个人实现基于 `bdbf1e8`，2026-10-25 在本分支整合团队 main `302531a`。保留实验2的 Sprint1 工程，不向 main 合并或推送。
+- 按课程名称、教师姓名或课程编号搜索课程，创建常规或专项督导任务。
+- 记录课堂材料、互动事件、学生参与情况和异常环节；在课堂中录音并管理采集材料。
+- 查看规则模拟分析及其材料、事件来源，进行人工审核。
+- 按教学内容、教学设计、课堂互动、学生参与填写评分和评语，添加问题条目并提交正式评价。
+- 创建跟踪复评课堂，查看本人历史和复评关联。
 
-本轮完成审核参考、评价发布快照、教师按事项选择规则辅助建议、措施来源及待办追溯，保留人工流程与数据库 v1/v2/v3/v4 → v5 的数据。当前分析器仍为上游 Mock，建议明确标注为规则辅助；真实模型能力不在本个人分支验收范围。
+### 任课教师
 
-- [个人交付说明与演示流程](docs/于卓君_Sprint2交付说明.md)
-- [接口、权限和团队整合注意事项](docs/于卓君_Sprint2接口与分工.md)
-- [实际测试记录](docs/于卓君_Sprint2测试记录.md)
-- [AI互动记录](docs/于卓君_AI互动记录.md)
-- [Sprint3接口规划](docs/Sprint3接口规划.md)
+- 查看本人课程已提交的督导反馈和问题条目。
+- 选择改进重点、调整优先级、添加自选事项，并创建计划草稿。
+- 查看规则生成的候选建议，选择采纳、修改后采用、放弃或恢复；也可手工添加措施。
+- 确认计划并生成待办，跟踪措施状态、截止日期和逾期提示。
+- 记录实际改进做法并添加证据；保存的实施记录与计划状态分别留存。
+- 保存可复用教学亮点，浏览按问题匹配的互动策略和参考资源。
+- 查看本人课程的正式指标比较和改进趋势。
 
-Windows 构建（脚本指向本工程，不操作原 Sprint1）：
+## 主要业务流程
+
+```text
+管理员建立督导安排
+        ↓
+督导搜索课程并创建任务
+        ↓
+课堂采集 → 模拟分析与人工审核 → 填写并提交正式评价
+        ↓
+教师查看反馈 → 确定改进重点 → 制定并确认计划
+        ↓
+改进待办 → 记录实际落实和证据
+        ↓
+督导创建跟踪复评 → 关联前后课堂 → 人工核验改进情况
+        ↓
+教师查看个人趋势 / 管理员查看质量态势
+```
+
+## 技术与兼容性
+
+- 原生 Android 应用，Kotlin、Jetpack Compose、Material 3。
+- 单 Activity 与 Navigation Compose；Room 用于本机持久化，当前数据库版本为 v8。
+- 包名：`edu.neu.aijiaoxue`。
+- `minSdk 29`；`compileSdk` 和 `targetSdk` 为 API 37。
+- 录音、照片和实施证据保存在当前设备。访问相应功能时，按系统提示授予麦克风、相机或文件访问权限。
+
+## 运行应用
+
+### Android Studio
+
+1. 使用 Android Studio 打开仓库根目录。
+2. 在 SDK Manager 安装 Android SDK Platform 37 和 Android Emulator。
+3. 启动一个 API 29 或更高版本的 Android 设备。复现当前回归测试时，使用 Android 17 / API 37 模拟器。
+4. 在 Android Studio 运行配置中选择 `app` 和目标设备，点击 **Run**。
+
+### 安装 APK
+
+本地构建的 Debug APK 路径：
+
+```text
+app/build/outputs/apk/debug/app-debug.apk
+```
+
+连接已启动的模拟器或 Android 设备后，可通过 adb 安装：
+
+```bash
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
+
+Debug APK 用于开发、演示和测试，不是应用商店发布签名包。
+
+## 演示账号
+
+首次初始化的演示数据包含以下账号，初始密码均为 `123456`：
+
+| 角色 | 账号 |
+|---|---|
+| 教学管理人员 | `admin` |
+| 教学督导 | `sup01`、`sup02` |
+| 任课教师 | `tea01`、`tea02`、`tea03` |
+
+账号按角色和课程归属读取数据。教师只能查看本人课程的已提交评价。管理员可在个人资料页重置演示数据；重置会清空设备上的任务、评价、改进计划和采集文件，请只在专用演示环境执行。
+
+## 构建与测试
+
+在仓库根目录运行：
+
+```bash
+./gradlew :app:assembleDebug
+./gradlew :app:testDebugUnitTest
+```
+
+连接 API 29 或更高版本的 Android 模拟器后运行设备测试：
+
+```bash
+./gradlew :app:connectedDebugAndroidTest
+```
+
+Windows PowerShell 可使用仓库脚本构建 APK 和运行 JVM 测试：
 
 ```powershell
 .\Build-Sprint2.ps1
 ```
 
-脚本使用本机 `D:\Android` 工具链，将本工程映射为英文盘符 `S:`，解决 Gradle 对中文路径及 JVM 测试类路径的限制。盘符已被其他目录占用时会停止，可用 `-Drive T:` 选择空闲盘符；也可在 Android Studio 打开该盘符目录。
-
-在专用测试模拟器执行数据库、界面和导航测试：
+脚本名称沿用历史；它构建当前工作树。设备测试时指定本机在线设备序列号，例如：
 
 ```powershell
-.\Build-Sprint2.ps1 -Tasks ':app:connectedDebugAndroidTest' -DeviceSerial emulator-5560
+.\Build-Sprint2.ps1 -DeviceSerial emulator-5554 -Tasks @(':app:connectedDebugAndroidTest')
 ```
 
-`emulator-5560` 是本次专用设备，其他环境请填写自己的测试设备序列号。APK 位于 `app/build/outputs/apk/debug/app-debug.apk`，测试报告位于 `app/build/reports/tests/testDebugUnitTest/` 与 `app/build/reports/androidTests/connected/debug/`。
+`main` 提交 `16d48cd` 的验收记录包含 54 项 JVM 单测和 183 项 API 37 模拟器测试，全部通过。对应日志、XML 报告和源码清单保存在 [`docs/test-evidence/shr-sprint3-20261026/`](docs/test-evidence/shr-sprint3-20261026/)。
 
-本轮已获用户明确授权提交并推送到个人分支 [`feature/yzj-sprint2-improve`](https://github.com/Elara-Juice/AiJiaoXue/tree/feature/yzj-sprint2-improve)，不得推送或合并到 main。原个人实现提交为 `0627420da6c63d61c353c248374a18bbc62cabfa`；本次整合版本及测试证据见最新测试记录。团队验收和 main 合并另行审阅。
+## 项目结构
 
-2026-10-25 整合实现：`736c9c0a0c96dcefc156d70d5a201cbea9d0a9dc`。构建成功，19/19 JVM、单次全量130/130设备测试通过；数据库v5，测试证据见上述记录。
+```text
+app/src/main/java/edu/neu/aijiaoxue/
+├── data/          Room 数据库、实体、DAO、规则和仓库
+├── navigation/    登录后首页、角色限制和应用路由
+└── ui/            登录、课程、采集、评价、反馈、改进、复评和治理界面
+app/schemas/       Room 数据库迁移 schema
+docs/              需求、开发说明、验收记录和测试证据
+```
+
+## 重要说明
+
+- 数据只保存在当前设备；卸载应用、清除应用数据或重置演示数据可能会删除业务记录和采集文件。当前版本不提供云端备份或跨设备同步。
+- AI 课堂分析与改进候选建议为本地模拟或规则辅助，不连接真实模型；分析不会自动打分或替代人工评价。
+- 策略与资源属于教学参考。采用建议不会自动确认计划，措施状态也不会自动推断教学问题已改善。
+- 趋势和复评只使用正式数据。数据不足或指标口径不可比时，应用会提示无法比较，不会补造历史结果。
+
+## 文档
+
+- [演示数据和账号说明](docs/演示数据.md)
+- [Sprint 3 孙浩然交付与验收说明](docs/Sprint3_孙浩然交付与验收说明.md)
+- [Sprint 3 王博田端到端展演脚本](docs/Sprint3_王博田端到端展演脚本.md)
+- [Sprint 3 API 37 测试证据](docs/test-evidence/shr-sprint3-20261026/README.md)
