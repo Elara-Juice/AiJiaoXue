@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="edu.neu.aijiaoxue.sprint3.ParticipationAnalysisTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-27T12:21:14.859Z" hostname="LAPTOP-904CKOOQ" time="0.073">
+  <properties/>
+  <testcase name="twoSourcesProduceFindingWithSourceAndTimeRange" classname="edu.neu.aijiaoxue.sprint3.ParticipationAnalysisTest" time="0.037"/>
+  <testcase name="longSilenceBetweenEventsIsDetected" classname="edu.neu.aijiaoxue.sprint3.ParticipationAnalysisTest" time="0.002"/>
+  <testcase name="consecutiveDistractionIsDetectedAsInterval" classname="edu.neu.aijiaoxue.sprint3.ParticipationAnalysisTest" time="0.005"/>
+  <testcase name="materialCountIsNotUsedAsContentAnalysis" classname="edu.neu.aijiaoxue.sprint3.ParticipationAnalysisTest" time="0.012"/>
+  <testcase name="phaseIsLocatedOnlyWithReviewedPhaseSegment" classname="edu.neu.aijiaoxue.sprint3.ParticipationAnalysisTest" time="0.009"/>
+  <testcase name="singleSourceDoesNotProduceMultiSourceConclusion" classname="edu.neu.aijiaoxue.sprint3.ParticipationAnalysisTest" time="0.001"/>
+  <testcase name="similarIssueIsDetectedByTextOverlap" classname="edu.neu.aijiaoxue.sprint3.ParticipationAnalysisTest" time="0.004"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

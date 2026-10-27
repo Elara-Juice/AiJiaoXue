@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="edu.neu.aijiaoxue.data.InputSourceRulesTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-27T12:21:14.507Z" hostname="LAPTOP-904CKOOQ" time="0.018">
+  <properties/>
+  <testcase name="unknownRecordingMapNeverInventsClassTime" classname="edu.neu.aijiaoxue.data.InputSourceRulesTest" time="0.004"/>
+  <testcase name="overlappingPhasesAreRejected" classname="edu.neu.aijiaoxue.data.InputSourceRulesTest" time="0.005"/>
+  <testcase name="timeOnlyFactMustBelongToKnownClassRange" classname="edu.neu.aijiaoxue.data.InputSourceRulesTest" time="0.0"/>
+  <testcase name="factPointAndIntervalAreMutuallyExclusive" classname="edu.neu.aijiaoxue.data.InputSourceRulesTest" time="0.0"/>
+  <testcase name="unknownDurationAllowsDraftButNotConfirmation" classname="edu.neu.aijiaoxue.data.InputSourceRulesTest" time="0.001"/>
+  <testcase name="sourceOnlyFactDoesNotInventTime" classname="edu.neu.aijiaoxue.data.InputSourceRulesTest" time="0.001"/>
+  <testcase name="pauseDoesNotMovePlaybackCoordinateOrDuplicateText" classname="edu.neu.aijiaoxue.data.InputSourceRulesTest" time="0.002"/>
+  <testcase name="factNeedsSourceOrTime" classname="edu.neu.aijiaoxue.data.InputSourceRulesTest" time="0.0"/>
+  <testcase name="zeroDurationIsNotAPhase" classname="edu.neu.aijiaoxue.data.InputSourceRulesTest" time="0.0"/>
+  <testcase name="phasesCannotExceedClassDuration" classname="edu.neu.aijiaoxue.data.InputSourceRulesTest" time="0.001"/>
+  <testcase name="adjacentHalfOpenPhasesAreValid" classname="edu.neu.aijiaoxue.data.InputSourceRulesTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -11,8 +11,28 @@ on:
       # Sprint 3 候选分支：D8/D9 要求同一候选版本能在 CI 上构建通过
       - feature/lyx-sprint3-review
       - feature/shr-sprint3-governance
+      - feature/codex-sprint-remediation
 
 jobs:
+  analysis-proxy-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install media tools and isolated Python dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          python3 -m venv .venv
+          .venv/bin/python -m pip install -r server/requirements.lock.txt
+      - name: Test proxy with local protocol fixtures
+        working-directory: server
+        run: ../.venv/bin/python -m pytest -q --junitxml=../proxy-tests.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: analysis-proxy-test-report
+          path: proxy-tests.xml
+          if-no-files-found: error
   build:
     runs-on: ubuntu-latest
 

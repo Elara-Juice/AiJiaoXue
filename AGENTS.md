@@ -4,10 +4,10 @@
 
 ## 项目
 
-“爱教学”教学质量全链路数字化管理平台，Sprint 1（10/2—10/6）目标：人工跑通“督导安排 → 课堂督导 → 督导评价 → 教师反馈 → 基础改进”主链，不含任何 AI 分析功能。
+“爱教学”教学质量全链路数字化管理平台。Sprint 1 跑通人工业务链；Sprint 2/3 在同一主链上加入可信智能督导、复评与持续治理。本轮范围见 `docs/Sprint2-Sprint3整改工作说明.md`，原 Sprint 1 排除项不再代表当前范围。
 
 - 原生 Android，Kotlin + Jetpack Compose + Material 3，单 Activity。
-- 数据只存本地 Room，无后端，无网络请求。三个角色在同一台手机上切换账号。
+- 业务数据存本地 Room v10；FastAPI 分析代理位于 `server/`，连接 DeepSeek/百炼。三个角色仍在同一台手机上切换账号。
 - 包名 `edu.neu.aijiaoxue`，minSdk 29，targetSdk / compileSdk 37。
 
 ## 必读文档
@@ -58,7 +58,7 @@ app/src/main/java/edu/neu/aijiaoxue/
 7. 采集数据（材料、事件、参与状态、评价草稿）产生时立即写库，不依赖“保存”按钮（US07、NF-03）。
 8. 文件路径用 `FileStore` 生成，`Material.filePath` 存相对路径；删除材料先删文件再删记录。
 9. 密码只存 `PasswordHasher.hash()` 结果，不得明文存储或打印到日志。
-10. 不要引入网络库、后端调用、AI SDK 或新的第三方依赖。确需新依赖时，加到 `gradle/libs.versions.toml` 并固定版本，同时说明理由。
+10. Android 只调用项目分析代理，不内置供应商密钥；配置、原材料、运行数据库不入 Git。新增 Android 依赖写入版本目录，Python 依赖固定在 `server/requirements.lock.txt`。
 11. 修改实体后把 `AppDatabase.version` 加 1，并一并提交 `app/schemas/` 下生成的 JSON。
 
 ## 代码风格
@@ -77,6 +77,6 @@ app/src/main/java/edu/neu/aijiaoxue/
 - 不要提交 `local.properties`、`build/`、`.gradle/`、`.idea/` 下的个人配置。
 - AI 产出的代码须经人工审查（DoD 要求），提交前请让成员确认。
 
-## Sprint 1 不做
+## 历史 Sprint 1 范围
 
-AI 转写与分析、时间轴关联（US10）、教学环节切分（US14）、自动报告、复评、注册与找回密码、教务系统对接、学生端。遇到相关需求，只预留字段，不实现。
+Sprint 1 当时不含 AI 转写、环节分析、复评；这些已纳入后续迭代。注册与找回密码、教务系统对接、学生端仍不在本轮范围。数据库升级必须使用非破坏性迁移，保留已发布快照及原审核记录。

@@ -1,0 +1,29 @@
+{
+  "sourceRevision": "16e4070",
+  "date": "2026-10-27",
+  "timezone": "Asia/Shanghai",
+  "androidBuild": "BUILD SUCCESSFUL in 6m 38s",
+  "jvm": {
+    "tests": 84,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "android": {
+    "tests": 218,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "server": {
+    "tests": 42,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "apk": {
+    "path": "app/build/outputs/apk/debug/app-debug.apk",
+    "sha256": "b07981d002f5d2e74cf3c324d955de4d4f7b3c22a92be45163be97f49d8715db",
+    "bytes": 37702444
+  }
+}

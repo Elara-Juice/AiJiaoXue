@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="edu.neu.aijiaoxue.data.RulesTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-27T12:21:14.531Z" hostname="LAPTOP-904CKOOQ" time="0.019">
+  <properties/>
+  <testcase name="totalScoreAndGrade" classname="edu.neu.aijiaoxue.data.RulesTest" time="0.004"/>
+  <testcase name="taskCodeFormat" classname="edu.neu.aijiaoxue.data.RulesTest" time="0.008"/>
+  <testcase name="overdue" classname="edu.neu.aijiaoxue.data.RulesTest" time="0.002"/>
+  <testcase name="totalScoreNullWhenMissing" classname="edu.neu.aijiaoxue.data.RulesTest" time="0.002"/>
+  <testcase name="semesterStartIsIsoDate" classname="edu.neu.aijiaoxue.data.RulesTest" time="0.0"/>
+  <testcase name="engagementValidation" classname="edu.neu.aijiaoxue.data.RulesTest" time="0.001"/>
+  <testcase name="weightsSumTo100" classname="edu.neu.aijiaoxue.data.RulesTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

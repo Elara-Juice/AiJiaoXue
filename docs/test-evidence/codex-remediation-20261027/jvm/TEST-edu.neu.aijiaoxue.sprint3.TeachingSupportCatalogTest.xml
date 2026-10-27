@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="edu.neu.aijiaoxue.sprint3.TeachingSupportCatalogTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-27T12:21:14.986Z" hostname="LAPTOP-904CKOOQ" time="0.022">
+  <properties/>
+  <testcase name="engagementAndPracticeIssuesGetRelevantActivities" classname="edu.neu.aijiaoxue.sprint3.TeachingSupportCatalogTest" time="0.008"/>
+  <testcase name="shallowAnswersNeedReasoningAndMissingDiscussionIsStillAProblem" classname="edu.neu.aijiaoxue.sprint3.TeachingSupportCatalogTest" time="0.001"/>
+  <testcase name="whitespaceDoesNotHideAConcreteConcern" classname="edu.neu.aijiaoxue.sprint3.TeachingSupportCatalogTest" time="0.001"/>
+  <testcase name="negatedUncertainAndResolvedProblemsDoNotCreateCandidates" classname="edu.neu.aijiaoxue.sprint3.TeachingSupportCatalogTest" time="0.001"/>
+  <testcase name="concreteInteractionProblemHasActionableOptionsAndTeacherChoice" classname="edu.neu.aijiaoxue.sprint3.TeachingSupportCatalogTest" time="0.001"/>
+  <testcase name="nullDimensionRequiresExplicitIssueAndNegationStaysWithinItsClause" classname="edu.neu.aijiaoxue.sprint3.TeachingSupportCatalogTest" time="0.003"/>
+  <testcase name="repeatedRequestsHaveStableKeysAndAllReferencesResolveOffline" classname="edu.neu.aijiaoxue.sprint3.TeachingSupportCatalogTest" time="0.002"/>
+  <testcase name="blankGenericAndPositiveDescriptionsDoNotCreateDiagnoses" classname="edu.neu.aijiaoxue.sprint3.TeachingSupportCatalogTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

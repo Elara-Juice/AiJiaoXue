@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="edu.neu.aijiaoxue.sprint2.ImprovementSuggestionGeneratorTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-27T12:21:14.780Z" hostname="LAPTOP-904CKOOQ" time="0.025">
+  <properties/>
+  <testcase name="engagementAdviceUsesRelevantReviewedSourceAndClearlyDeclaresRules" classname="edu.neu.aijiaoxue.sprint2.ImprovementSuggestionGeneratorTest" time="0.017"/>
+  <testcase name="missingRelevantEvidenceAndUnclassifiedCustomItemProduceNoInventedAdvice" classname="edu.neu.aijiaoxue.sprint2.ImprovementSuggestionGeneratorTest" time="0.002"/>
+  <testcase name="insufficientInputDoesNotBecomePositiveImprovementAdvice" classname="edu.neu.aijiaoxue.sprint2.ImprovementSuggestionGeneratorTest" time="0.002"/>
+  <testcase name="designAdviceKeepsProblemAndPublishedReviewRatherThanRawOriginal" classname="edu.neu.aijiaoxue.sprint2.ImprovementSuggestionGeneratorTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

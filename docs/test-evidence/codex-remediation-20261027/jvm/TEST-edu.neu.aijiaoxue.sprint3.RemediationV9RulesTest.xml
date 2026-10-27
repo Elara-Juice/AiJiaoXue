@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="edu.neu.aijiaoxue.sprint3.RemediationV9RulesTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-10-27T12:21:14.962Z" hostname="LAPTOP-904CKOOQ" time="0.019">
+  <properties/>
+  <testcase name="governanceNeverInventsSameDayOrderOrFallsBackToOldImprovement" classname="edu.neu.aijiaoxue.sprint3.RemediationV9RulesTest" time="0.006"/>
+  <testcase name="noEvidenceMeansContinueObserving" classname="edu.neu.aijiaoxue.sprint3.RemediationV9RulesTest" time="0.002"/>
+  <testcase name="invalidDatesAndSameTasksCannotBeOrdered" classname="edu.neu.aijiaoxue.sprint3.RemediationV9RulesTest" time="0.001"/>
+  <testcase name="contradictoryDirectionNeedsFactsAndCanOnlySupportPartialImprovement" classname="edu.neu.aijiaoxue.sprint3.RemediationV9RulesTest" time="0.001"/>
+  <testcase name="unrelatedGrowthAndTotalCannotProveOriginalIssueImproved" classname="edu.neu.aijiaoxue.sprint3.RemediationV9RulesTest" time="0.001"/>
+  <testcase name="sameDayMustUseNonOverlappingNumericPeriods" classname="edu.neu.aijiaoxue.sprint3.RemediationV9RulesTest" time="0.003"/>
+  <testcase name="incompatibleMetricKeysAndNonFiniteNumbersNeverProduceDeltas" classname="edu.neu.aijiaoxue.sprint3.RemediationV9RulesTest" time="0.0"/>
+  <testcase name="explicitZeroIssuesIsDifferentFromUnfilledOrOmittedList" classname="edu.neu.aijiaoxue.sprint3.RemediationV9RulesTest" time="0.001"/>
+  <testcase name="absenceRequiresExplicitObservationNotOnlyIncreasingMetric" classname="edu.neu.aijiaoxue.sprint3.RemediationV9RulesTest" time="0.001"/>
+  <testcase name="designMetricIsRelevantOnlyToDesignAndUsesOriginalFivePointScale" classname="edu.neu.aijiaoxue.sprint3.RemediationV9RulesTest" time="0.0"/>
+  <testcase name="remainingIssueCanImprovePartlyWithActualObservationAndExplanation" classname="edu.neu.aijiaoxue.sprint3.RemediationV9RulesTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
