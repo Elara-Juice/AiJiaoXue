@@ -8,14 +8,22 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 class TeachingPhaseRepository(private val db: AppDatabase) {
-    suspend fun appendVersion(actorId: Long, taskId: Long, segments: List<PhaseSegment>, confirm: Boolean = false): Long = db.withTransaction {
+    suspend fun appendVersion(actorId: Long, taskId: Long, segments: List<PhaseSegment>, confirm: Boolean = false): Long =
+        appendChecked(actorId, taskId, segments, confirm, null, false)
+
+    suspend fun appendVersion(actorId: Long, taskId: Long, segments: List<PhaseSegment>, confirm: Boolean, expectedLatestVersionId: Long?): Long =
+        appendChecked(actorId, taskId, segments, confirm, expectedLatestVersionId, true)
+
+    private suspend fun appendChecked(actorId: Long, taskId: Long, segments: List<PhaseSegment>, confirm: Boolean, expected: Long?, checkVersion: Boolean): Long = db.withTransaction {
         val dao = db.analysisSourceDao()
         val task = requireNotNull(dao.ownedTask(actorId, taskId)) { "无权编辑课堂环节" }
         require(db.evaluationDao().getByTask(taskId)?.status != EvalStatus.SUBMITTED) { "已提交课堂环节只读" }
+        val latest = dao.latestPhases(taskId)
+        if (checkVersion && latest?.id != expected) throw InputVersionConflictException(expected, latest?.id)
         val duration = task.classStartAt?.let { start -> ((task.classEndAt ?: System.currentTimeMillis()) - start).takeIf { it >= 0 } }
         InputSourceRules.validatePhases(segments, duration, confirm)
         val payload = encode(segments)
-        val revision = (dao.latestPhases(taskId)?.revision ?: 0) + 1
+        val revision = (latest?.revision ?: 0) + 1
         if (confirm) dao.deactivatePhases(taskId)
         val id = dao.insertPhases(TeachingPhaseVersion(taskId = taskId, revision = revision, payloadJson = payload, contentHash = InputSourceRules.hash(payload), status = if (confirm) PhaseStatus.CONFIRMED else PhaseStatus.DRAFT, confirmedBy = if (confirm) actorId else null, confirmedAt = if (confirm) System.currentTimeMillis() else null, isCurrent = confirm))
         if (confirm) dao.bumpInputRevision(taskId)

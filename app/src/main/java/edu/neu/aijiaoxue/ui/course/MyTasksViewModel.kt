@@ -7,12 +7,14 @@ import edu.neu.aijiaoxue.data.AppDatabase
 import edu.neu.aijiaoxue.data.Session
 import edu.neu.aijiaoxue.data.dao.TaskRow
 import edu.neu.aijiaoxue.data.model.TaskStatus
+import edu.neu.aijiaoxue.data.model.Role
 import edu.neu.aijiaoxue.data.model.isTaskOverdue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
@@ -20,6 +22,7 @@ import kotlinx.coroutines.flow.stateIn
 data class MyTaskItem(
     val row: TaskRow,
     val isOverdue: Boolean,
+    val materialCount: Int = 0,
 )
 
 data class MyTasksUiState(
@@ -34,14 +37,21 @@ data class MyTasksUiState(
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class MyTasksViewModel(application: Application) : AndroidViewModel(application) {
-    private val taskDao = AppDatabase.get(application).taskDao()
+    private val db = AppDatabase.get(application)
+    private val taskDao = db.taskDao()
 
     val uiState: StateFlow<MyTasksUiState> = Session.user.flatMapLatest { user ->
-        if (user == null) {
+        if (user == null || user.role != Role.SUPERVISOR) {
             flowOf(MyTasksUiState(isLoading = false))
         } else {
-            taskDao.observeRowsBySupervisor(user.id).map { rows ->
-                val items = rows.map { MyTaskItem(it, isTaskOverdue(it.status, it.supervisionDate)) }
+            taskDao.observeRowsBySupervisor(user.id).flatMapLatest { rows ->
+                if (rows.isEmpty()) flowOf(emptyList()) else combine(rows.map { row ->
+                    // Rows have already been restricted to this supervisor by the DAO.
+                    db.captureDao().observeMaterials(row.id).map { materials ->
+                        MyTaskItem(row, isTaskOverdue(row.status, row.supervisionDate), materials.size)
+                    }
+                }) { it.toList() }
+            }.map { items ->
                 val (completed, unfinished) = items.partition { it.row.status == TaskStatus.COMPLETED }
                 MyTasksUiState(
                     isLoading = false,

@@ -61,6 +61,9 @@ import edu.neu.aijiaoxue.data.entity.AnalysisJob
 import edu.neu.aijiaoxue.data.entity.PublishedFactSnapshot
 import edu.neu.aijiaoxue.data.entity.PublishedEvidenceSnapshot
 import edu.neu.aijiaoxue.data.entity.IssueVerificationEvidence
+import edu.neu.aijiaoxue.data.entity.AnalysisRun
+import edu.neu.aijiaoxue.data.entity.AnalysisRunStep
+import edu.neu.aijiaoxue.data.dao.AnalysisRunDao
 
 /**
  * 保留 v1 起的历史升级路径，v6 实施证据、v7 复评、v8 教学亮点与策略采纳。
@@ -84,8 +87,9 @@ import edu.neu.aijiaoxue.data.entity.IssueVerificationEvidence
         TeachingPhaseVersion::class, ImageTextVersion::class, ManualClassroomFact::class,
         TermExclusionVersion::class, AnalysisJob::class, PublishedFactSnapshot::class,
         PublishedEvidenceSnapshot::class,
+        AnalysisRun::class, AnalysisRunStep::class,
     ],
-    version = 10,
+    version = 11,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -108,12 +112,14 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun teachingSupportDao(): TeachingSupportDao
     abstract fun governanceDao(): GovernanceDao
     abstract fun analysisSourceDao(): AnalysisSourceDao
+    abstract fun analysisRunDao(): AnalysisRunDao
+    abstract fun supervisorPortalDao(): edu.neu.aijiaoxue.data.dao.SupervisorPortalDao
 
     companion object {
         const val NAME = "aijiaoxue.db"
         val MIGRATIONS: Array<Migration> = Sprint2Migrations.ALL + Sprint3Migrations.MIGRATION_5_6 +
             Sprint3ReviewMigrations.MIGRATION_6_7 + TeachingSupportMigrations.MIGRATION_7_8 +
-            RemediationV9Migration.MIGRATION_8_9 + RemediationV10Migration.MIGRATION_9_10
+            RemediationV9Migration.MIGRATION_8_9 + RemediationV10Migration.MIGRATION_9_10 + RemediationV11Migration.MIGRATION_10_11
 
         @Volatile private var instance: AppDatabase? = null
 

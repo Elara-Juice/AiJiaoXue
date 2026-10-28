@@ -6,11 +6,14 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -26,6 +29,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import edu.neu.aijiaoxue.data.Session
+import edu.neu.aijiaoxue.data.model.DateFormats
+import edu.neu.aijiaoxue.ui.components.SectionHeading
 
 /** 首页上的一个功能入口。badge > 0 时显示数字角标（如 US33 未读反馈）。 */
 data class HomeEntry(
@@ -41,6 +46,7 @@ data class HomeEntry(
 fun HomeScaffold(
     entries: List<HomeEntry>,
     onNavigate: (String) -> Unit,
+    featuredContent: (@Composable () -> Unit)? = null,
 ) {
     val user by Session.user.collectAsState()
 
@@ -48,7 +54,7 @@ fun HomeScaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(user?.let { "${it.name}（${it.role.label}）" } ?: "爱教学")
+                    Text("爱教学", style = MaterialTheme.typography.titleMedium)
                 },
                 actions = { TextButton(onClick = { onNavigate(Routes.PROFILE) }) { Text("我的") } },
             )
@@ -58,18 +64,28 @@ fun HomeScaffold(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(DateFormats.today(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(user?.let { "${it.name}（${it.role.label}）" } ?: "工作台", style = MaterialTheme.typography.headlineSmall)
+                    Text("让每一堂课的进步有据可循", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            featuredContent?.let { content -> item { content() } }
+            item { SectionHeading("工作入口") }
             items(entries, key = { it.route }) { entry ->
                 Card(
                     onClick = { onNavigate(entry.route) },
                     modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 ) {
                     Row(
                         Modifier
                             .fillMaxWidth()
-                            .padding(20.dp),
+                            .padding(18.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Column(Modifier.weight(1f)) {
@@ -84,6 +100,8 @@ fun HomeScaffold(
                             Badge(Modifier.semantics { contentDescription = "${entry.badge} 条未读" }) {
                                 Text(entry.badge.toString())
                             }
+                        } else {
+                            Text("›", modifier = Modifier.padding(start = 12.dp), style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.primary)
                         }
                     }
                 }

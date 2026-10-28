@@ -55,8 +55,8 @@ class AnalysisApiClient(private val configuration: ProxyConfiguration) {
         val connection = URL(configuration.baseUrl.trimEnd('/') + path).openConnection() as HttpURLConnection
         try {
             connection.requestMethod = method
-            connection.connectTimeout = 30_000
-            connection.readTimeout = 120_000
+            connection.connectTimeout = if (method == "GET") 8_000 else 30_000
+            connection.readTimeout = if (method == "GET") 12_000 else 120_000
             connection.instanceFollowRedirects = false
             connection.setRequestProperty("Authorization", "Bearer ${configuration.token}")
             connection.setRequestProperty("Content-Type", contentType)
@@ -77,9 +77,8 @@ class AnalysisApiClient(private val configuration: ProxyConfiguration) {
                 else throw IllegalArgumentException("代理拒绝请求（HTTP $status）")
             }
             if (status !in 200..299) {
-                val message = "分析服务请求失败（HTTP $status）：${json.optJSONObject("error")?.optString("code") ?: json.optString("detail", "请检查服务配置") }"
-                if (status in setOf(408, 429) || status >= 500) throw java.io.IOException(message)
-                else throw IllegalArgumentException(message)
+                throw AnalysisRemoteError.from(json.optJSONObject("error") ?: JSONObject().put("code", "HTTP_$status")
+                    .put("message", "代理请求失败（HTTP $status）").put("retryable", status in setOf(408, 429) || status >= 500), status)
             }
             json
         } finally { connection.disconnect() }

@@ -15,7 +15,7 @@ import java.security.MessageDigest
 
 sealed interface ResolvedEvidenceSource {
     data class Image(val file: File, val description: String) : ResolvedEvidenceSource
-    data class Audio(val file: File, val mediaStartMs: Long, val description: String) : ResolvedEvidenceSource
+    data class Audio(val file: File, val mediaStartMs: Long, val description: String, val mediaEndMs: Long? = null) : ResolvedEvidenceSource
     data class Detail(val title: String, val text: String) : ResolvedEvidenceSource
     data class SummaryOnly(val summary: String, val reason: String) : ResolvedEvidenceSource
 }
@@ -76,7 +76,7 @@ class EvidenceSourceResolver(private val context: Context, private val db: AppDa
                 val material = requireNotNull(db.captureDao().getMaterial(version.materialId)) { "原音频已删除" }
                 val file = resolveMaterialFile(context, taskId, material)
                 require(fileHash(file) == version.fileHash) { "原音频文件已变化" }
-                ResolvedEvidenceSource.Audio(file, segment.getLong("mediaStartMs"), segment.getString("text"))
+                ResolvedEvidenceSource.Audio(file, segment.getLong("mediaStartMs"), segment.getString("text"), segment.getLong("mediaEndMs"))
             }
             "INTERACTION_EVENT" -> requireNotNull(dao.event(taskId, id)).let { verify(AnalysisJson.hashJson(AnalysisInputs.eventJson(it))); ResolvedEvidenceSource.Detail("互动事件", "${it.type.label} · 课堂 ${it.offsetMs / 1000} 秒\n${it.note.orEmpty()}") }
             "ENGAGEMENT_RECORD" -> requireNotNull(dao.engagement(taskId, id)).let { ResolvedEvidenceSource.Detail("参与记录", "${it.type.label} · 课堂 ${it.offsetMs / 1000} 秒\n到场 ${it.presentCount ?: "未填"}，参与 ${it.engagedCount ?: "未填"}，比例 ${it.engagedPercent ?: "未填"}%\n${it.description.orEmpty()}") }

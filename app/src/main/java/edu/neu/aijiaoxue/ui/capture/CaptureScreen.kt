@@ -19,6 +19,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -26,6 +30,10 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.Surface
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -64,6 +72,10 @@ import edu.neu.aijiaoxue.data.entity.InteractionEvent
 import edu.neu.aijiaoxue.data.model.InteractionType
 import edu.neu.aijiaoxue.data.model.MaterialType
 import edu.neu.aijiaoxue.data.model.TaskStatus
+import edu.neu.aijiaoxue.data.repository.MaterialTimeResolver
+import edu.neu.aijiaoxue.ui.components.TaskContextHeader
+import edu.neu.aijiaoxue.ui.components.WorkflowStepBar
+import edu.neu.aijiaoxue.ui.components.SectionHeading
 import edu.neu.aijiaoxue.ui.engagement.DeleteMaterialButton
 import edu.neu.aijiaoxue.ui.engagement.DeleteMaterialDialog
 import edu.neu.aijiaoxue.ui.engagement.EngagementCard
@@ -127,6 +139,9 @@ fun CaptureScreen(
 
     val leave = { if (state.isRecordingHere) askLeave = true else onBack() }
     BackHandler(enabled = state.isRecordingHere) { askLeave = true }
+    val importAudio = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let(viewModel::importAudio)
+    }
 
     Scaffold(
         topBar = {
@@ -136,6 +151,16 @@ fun CaptureScreen(
             )
         },
         snackbarHost = { SnackbarHost(snackbar) },
+        bottomBar = {
+            if (!state.isLoading && state.blockedMessage == null) CaptureActionBar(
+                state = state,
+                onPause = viewModel::pauseRecording,
+                onResume = viewModel::resumeRecording,
+                onStop = { viewModel.stopRecording() },
+                onEndClass = { askEndClass = true },
+                onAnalysis = onAnalysis,
+            )
+        },
     ) { innerPadding ->
         val modifier = Modifier
             .fillMaxSize()
@@ -156,6 +181,8 @@ fun CaptureScreen(
                 onPreparePhoto = viewModel::preparePhoto,
                 onPhotoTaken = viewModel::onPhotoTaken,
                 onImport = viewModel::importPhoto,
+                onImportAudio = { importAudio.launch(arrayOf("audio/wav", "audio/x-wav", "audio/mpeg", "audio/mp4")) },
+                onCancelImport = viewModel::cancelAudioImport,
                 onPhotoError = { msg -> scope.launch { snackbar.showSnackbar(msg) } },
                 onOpenPhoto = { viewingPhotoId = it.material.id },
                 onMarkEvent = viewModel::markEvent,
@@ -180,7 +207,7 @@ fun CaptureScreen(
                 Text(
                     buildString {
                         if (state.isRecordingHere) append("正在录音，将先结束录音并保存。")
-                        append("结束后任务变为“待评价”，不能再录音和标注互动，仍可补充拍照。")
+                        append("结束后任务变为“待评价”，不能再现场录音和标注互动，仍可补充材料。接下来检查材料并准备分析。")
                     },
                 )
             },
@@ -188,7 +215,7 @@ fun CaptureScreen(
                 TextButton(onClick = {
                     askEndClass = false
                     viewModel.endClass(onEnded = onClassEnded)
-                }) { Text("结束并去评价") }
+                }) { Text("结束并检查材料") }
             },
             dismissButton = { TextButton(onClick = { askEndClass = false }) { Text("继续采集") } },
         )
@@ -297,6 +324,7 @@ fun CaptureScreen(
 }
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 private fun CaptureContent(
     state: CaptureUiState,
     playingId: Long?,
@@ -308,6 +336,8 @@ private fun CaptureContent(
     onPreparePhoto: () -> Uri?,
     onPhotoTaken: (Boolean) -> Unit,
     onImport: (Uri) -> Unit,
+    onImportAudio: () -> Unit,
+    onCancelImport: () -> Unit,
     onPhotoError: (String) -> Unit,
     onOpenPhoto: (MaterialItem) -> Unit,
     onMarkEvent: (InteractionType) -> Unit,
@@ -331,23 +361,30 @@ private fun CaptureContent(
         }
     }
 
+    var materialTab by rememberSaveable { mutableStateOf(0) }
+    val audioCount = state.materials.count { it.material.type == MaterialType.AUDIO }
+    val imageCount = state.materials.size - audioCount
+    val filteredMaterials = state.materials.filter {
+        when (materialTab) {
+            1 -> it.material.type == MaterialType.AUDIO
+            2 -> it.material.type != MaterialType.AUDIO
+            3 -> false
+            else -> true
+        }
+    }
     LazyColumn(
         modifier = modifier.testTag(CAPTURE_PAGE_TAG),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(20.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        item {
-            ClassHeader(state, now, onEndClass, onAnalysis)
+        item { ClassHeader(state, now, onEndClass, onAnalysis) }
+        item { WorkflowStepBar(1) }
+        item { SectionHeading("采集工具", "材料即时保存，退出后可继续") }
+        if (!state.isRecordingHere) item {
+            RecordingCard(state, state.recorder.durationAt(elapsedNow), onStart, onPause, onResume, onStop)
         }
         item {
-            RecordingCard(
-                state = state,
-                durationMs = state.recorder.durationAt(elapsedNow),
-                onStart = onStart,
-                onPause = onPause,
-                onResume = onResume,
-                onStop = onStop,
-            )
+            AudioImportCard(state, onImportAudio, onCancelImport)
         }
         item {
             PhotoCaptureCard(
@@ -360,54 +397,41 @@ private fun CaptureContent(
         }
         item {
             InteractionPanel(
-                enabled = state.canCapture,
-                counts = state.eventCounts,
-                undoable = state.undoableEvent,
-                onMark = onMarkEvent,
-                onUndo = onUndoEvent,
-                onAddNote = onEditEventNote,
+                enabled = state.canCapture, counts = state.eventCounts,
+                undoable = state.undoableEvent, onMark = onMarkEvent,
+                onUndo = onUndoEvent, onAddNote = onEditEventNote,
             )
         }
-        // 紧挨着标注卡片，标完就能看到、改备注或删除
+        // NF-01: the observation action remains directly reachable, regardless of the material filter.
+        item { EngagementCard(records = state.engagements, enabled = state.canCapture, onRecord = onRecordEngagement) }
         item {
-            InteractionRecordCard(
-                events = state.events,
-                editable = state.canEditEvents,
-                onEditNote = onEditEventNote,
-                onDelete = onDeleteEvent,
-            )
-        }
-        item {
-            EngagementCard(records = state.engagements, enabled = state.canCapture, onRecord = onRecordEngagement)
-        }
-        item {
-            Text("课堂材料", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 8.dp))
-        }
-        if (state.materials.isEmpty()) {
-            item {
-                Text(
-                    "暂无材料",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+            SectionHeading("课堂材料", "音频 $audioCount 份 · 图片 $imageCount 份 · 互动 ${state.events.size} 条")
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf("全部", "音频 $audioCount", "图片 $imageCount", "课堂记录 ${state.events.size}").forEachIndexed { index, label ->
+                    FilterChip(selected = materialTab == index, onClick = { materialTab = index }, label = { Text(label) }, modifier = Modifier.testTag("capture-material-filter-$index"))
+                }
             }
         }
-        items(state.materials, key = { it.material.id }) { item ->
+        if (materialTab == 0 || materialTab == 3) item {
+            InteractionRecordCard(events = state.events, editable = state.canEditEvents, onEditNote = onEditEventNote, onDelete = onDeleteEvent)
+        }
+        if (filteredMaterials.isEmpty() && materialTab != 3) item {
+            Surface(color = MaterialTheme.colorScheme.surfaceContainer, shape = MaterialTheme.shapes.medium) {
+                Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(if (materialTab == 0) "暂无材料" else if (materialTab == 1) "暂无音频材料" else "暂无图片材料", style = MaterialTheme.typography.titleSmall)
+                    Text(if (materialTab == 2) "使用上方拍照或相册导入，保留本堂课的教学资料。" else "使用上方工具录制课堂或导入已有材料。", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+        items(filteredMaterials, key = { it.material.id }) { item ->
             val isActive = item.material.id == state.recorder.materialId
-            // 正在录制的那段不能删，先结束录音
             val onDelete = if (state.canDeleteMaterials && !isActive) ({ onDeleteMaterial(item) }) else null
             if (item.material.type == MaterialType.AUDIO) {
-                MaterialRow(
-                    item = item,
-                    isActive = isActive,
-                    isPlaying = item.material.id == playingId,
-                    onPlay = { onPlay(item) },
-                    onDelete = onDelete,
-                )
+                MaterialRow(item, isActive, item.material.id == playingId, { onPlay(item) }, onDelete)
             } else {
-                PhotoRow(item = item, onOpen = { onOpenPhoto(item) }, onDelete = onDelete)
+                PhotoRow(item, { onOpenPhoto(item) }, onDelete)
             }
-            HorizontalDivider()
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         }
     }
 }
@@ -417,48 +441,19 @@ internal const val CAPTURE_PAGE_TAG = "capture-page"
 @Composable
 private fun ClassHeader(state: CaptureUiState, now: Long, onEndClass: () -> Unit, onAnalysis: () -> Unit) {
     val task = state.task ?: return
-    Column {
-        Text(
-            "${task.code} · ${task.teacherName} · 第 ${task.period} 节",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        TaskContextHeader(
+            title = "课堂采集",
+            subtitle = "${task.code} · ${task.teacherName} · 第 ${task.period} 节",
+            status = state.status?.label,
         )
         state.classStartAt?.let { start ->
-            // 结束后计时停在结束时刻
-            Text(
-                "课堂计时 ${formatDuration((state.classEndAt ?: now) - start)}",
-                style = MaterialTheme.typography.titleLarge,
-                fontFamily = FontFamily.Monospace,
-            )
+            Text("课堂计时 ${formatDuration((state.classEndAt ?: now) - start)}", style = MaterialTheme.typography.titleMedium, fontFamily = FontFamily.Monospace)
         }
-        if (state.status == TaskStatus.IN_PROGRESS) {
-            OutlinedButton(
-                onClick = onEndClass,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp)
-                    .height(48.dp),
-            ) { Text("结束课堂采集") }
-        } else if (state.status == TaskStatus.PENDING_EVALUATION) {
-            Text(
-                "课堂采集已结束，待评价。仍可补充拍照",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            // Sprint 2：采集结束后可对本节课做 AI 分析
-            OutlinedButton(
-                onClick = onAnalysis,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp)
-                    .height(48.dp),
-            ) { Text("AI 课堂分析") }
+        if (state.status == TaskStatus.PENDING_EVALUATION) {
+            Text("课堂采集已结束，待评价。仍可补充拍照", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         } else if (!state.canCapture) {
-            Text(
-                "课堂采集已结束，只能查看和回放材料",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error,
-            )
+            Text("课堂采集已结束，只能查看和回放材料", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -473,7 +468,7 @@ private fun RecordingCard(
     onStop: () -> Unit,
 ) {
     val status = if (state.isRecordingHere) state.recorder.status else AudioRecorder.Status.IDLE
-    Card(Modifier.fillMaxWidth()) {
+    Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("课堂录音", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
@@ -510,7 +505,7 @@ private fun RecordingCard(
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 val buttonModifier = Modifier
                     .weight(1f)
-                    .height(48.dp)
+                    .heightIn(min = 52.dp)
                 when (status) {
                     AudioRecorder.Status.IDLE -> Button(
                         onClick = onStart,
@@ -553,7 +548,9 @@ private fun MaterialRow(
     val time = remember(m.capturedAt) { SimpleDateFormat("HH:mm:ss", Locale.CHINA).format(Date(m.capturedAt)) }
     val detail = buildString {
         append(time)
-        append(" · 课堂第 ").append(formatDuration(m.offsetMs)).append(" 开始")
+        append(if (m.isImported) " · 导入音频" else " · 现场录制")
+        MaterialTimeResolver.classroomOffsetMs(m)?.let { append(" · 课堂第 ").append(formatDuration(it)).append(" 开始") }
+            ?: append(" · 课堂时间未知")
         m.durationMs?.let { append(" · 时长 ").append(formatDuration(it)) }
     }
     ListItem(
@@ -563,7 +560,7 @@ private fun MaterialRow(
                 when {
                     item.fileMissing -> "文件缺失"
                     isActive -> "正在录制…"
-                    else -> detail
+                    else -> "已保存 · $detail"
                 },
                 color = if (item.fileMissing) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
             )

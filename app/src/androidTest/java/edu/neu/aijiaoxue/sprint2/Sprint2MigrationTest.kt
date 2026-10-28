@@ -75,7 +75,7 @@ class Sprint2MigrationTest {
         val db = Room.databaseBuilder(context, AppDatabase::class.java, name)
             .addMigrations(*AppDatabase.MIGRATIONS).build()
         try {
-            assertEquals(10, db.openHelper.writableDatabase.version)
+            assertEquals(11, db.openHelper.writableDatabase.version)
             assertEquals("旧教师", db.userDao().getById(2)!!.name)
             assertEquals("旧课程", db.courseDao().getById(1)!!.name)
             assertEquals("tasks/1/photo/legacy.jpg", db.captureDao().getMaterial(1)!!.filePath)

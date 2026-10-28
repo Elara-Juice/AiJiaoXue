@@ -72,7 +72,8 @@ fun ClassroomReference(record: ClassroomRecord, initiallyExpanded: Boolean = fal
             record.materials.forEachIndexed { index, material ->
                 HorizontalDivider()
                 Text("材料 ${index + 1} · ${material.type.label}", style = MaterialTheme.typography.titleSmall)
-                Text("采集：${timeText(material.capturedAt)} · 课堂偏移 ${material.offsetMs / 1000} 秒")
+                val classroomOffset = edu.neu.aijiaoxue.data.repository.MaterialTimeResolver.classroomOffsetMs(material)
+                Text("采集：${timeText(material.capturedAt)} · " + (classroomOffset?.let { "课堂偏移 ${it / 1000} 秒" } ?: "导入音频，课堂时间未知"))
                 if (material.type == MaterialType.AUDIO) {
                     Text("结束：${timeText(material.endedAt)} · 有效时长 ${material.durationMs?.let { "${it / 1000}秒" } ?: "未记录"}")
                 } else if (material.isImported) Text("来自相册导入")

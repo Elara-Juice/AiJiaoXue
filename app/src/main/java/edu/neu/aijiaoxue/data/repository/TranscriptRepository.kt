@@ -8,6 +8,11 @@ import edu.neu.aijiaoxue.data.model.*
 import org.json.JSONArray
 import org.json.JSONObject
 
+data class TranscriptEdit(val segmentId: String, val text: String, val speakerRole: SpeakerRole)
+
+/** 可辨认的乐观锁冲突，调用方保留草稿并让用户决定是否重新应用。 */
+class InputVersionConflictException(val expectedVersionId: Long?, val currentVersionId: Long?) : IllegalArgumentException("资料版本已更新（当前版本 ${currentVersionId ?: "尚无"}），本地修改已保留，请核对后重新应用")
+
 /** 云端只提供候选文本；说话角色只能由人工显式确认。每次校订追加版本。 */
 class TranscriptRepository(private val db: AppDatabase) {
     suspend fun list(actorId: Long, taskId: Long): List<TranscriptVersion> = db.withTransaction {
@@ -28,25 +33,33 @@ class TranscriptRepository(private val db: AppDatabase) {
         id
     }
 
-    suspend fun correctSegment(actorId: Long, taskId: Long, versionId: Long, segmentId: String, text: String, speakerRole: SpeakerRole): Long = db.withTransaction {
+    suspend fun correctSegment(actorId: Long, taskId: Long, versionId: Long, segmentId: String, text: String, speakerRole: SpeakerRole): Long =
+        correctBatch(actorId, taskId, versionId, listOf(TranscriptEdit(segmentId, text, speakerRole)))
+
+    /** W01：整批校订只产生一个版本；任何句段非法时事务整体回滚。 */
+    suspend fun correctBatch(actorId: Long, taskId: Long, expectedVersionId: Long, changes: List<TranscriptEdit>): Long = db.withTransaction {
         val dao = db.analysisSourceDao()
         requireNotNull(dao.ownedTask(actorId, taskId)) { "无权校订课堂转写" }
-        val old = requireNotNull(dao.transcript(versionId)) { "转写版本不存在" }
-        require(old.taskId == taskId && old.isCurrent) { "转写已更新，请刷新后校订" }
-        require(text.isNotBlank()) { "转写正文不能为空" }
+        val old = requireNotNull(dao.transcript(expectedVersionId)) { "转写版本不存在" }
+        require(old.taskId == taskId) { "转写不属于此课堂" }
+        if (!old.isCurrent) throw InputVersionConflictException(expectedVersionId, dao.transcripts(taskId).firstOrNull { it.materialId == old.materialId }?.id)
+        require(changes.isNotEmpty()) { "没有待保存的修改" }
+        require(changes.map { it.segmentId }.distinct().size == changes.size) { "同一句段不能重复提交" }
+        require(changes.all { it.text.isNotBlank() }) { "转写正文不能为空" }
+        val edits = changes.associateBy { it.segmentId }
         val json = JSONObject(old.payloadJson)
         val segments = json.getJSONArray("segments")
-        var found = false
+        val found = mutableSetOf<String>()
         for (i in 0 until segments.length()) {
             val segment = segments.getJSONObject(i)
-            if (segment.getString("segmentId") == segmentId) {
+            edits[segment.getString("segmentId")]?.let { edit ->
                 // 改写文本后原词级时间不再逐词对应；保留整句真实声学范围。
-                if (segment.getString("text") != text.trim()) segment.remove("words")
-                segment.put("text", text.trim()).put("speakerRole", speakerRole.name).put("roleSource", "MANUAL")
-                found = true
+                if (segment.getString("text") != edit.text.trim()) segment.remove("words")
+                segment.put("text", edit.text.trim()).put("speakerRole", edit.speakerRole.name).put("roleSource", "MANUAL")
+                found += edit.segmentId
             }
         }
-        require(found) { "句段不存在" }
+        require(found == edits.keys) { "部分句段不存在，本次修改未保存" }
         val material = requireNotNull(db.captureDao().getMaterial(old.materialId)) { "原录音已被删除" }
         val payload = validateAndMap(json.toString(), requireNotNull(material.durationMs), dao.audioSpans(old.materialId).map { RecordedTimeSpan(it.mediaStartMs, it.mediaEndMs, it.classStartMs, it.classEndMs, it.mappingQuality) }, manual = true)
         dao.deactivateTranscripts(old.materialId)

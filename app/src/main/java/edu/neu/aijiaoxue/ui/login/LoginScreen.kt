@@ -6,6 +6,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -20,6 +23,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -28,6 +32,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -43,25 +50,34 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 fun LoginScreen(viewModel: LoginViewModel = viewModel()) {
     val state by viewModel.uiState.collectAsState()
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
 
     Scaffold { innerPadding ->
+        Box(Modifier.fillMaxSize().padding(innerPadding), contentAlignment = Alignment.TopCenter) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+                .widthIn(max = 480.dp)
+                .fillMaxWidth()
                 .imePadding()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 32.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .padding(horizontal = 24.dp, vertical = 40.dp),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.Start,
         ) {
+            Surface(color = MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(16.dp)) {
+                Text("教", Modifier.padding(horizontal = 18.dp, vertical = 12.dp), style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
+            }
+            Spacer(Modifier.height(24.dp))
             Text("爱教学", style = MaterialTheme.typography.headlineLarge)
             Text(
                 "教学质量全链路数字化管理平台",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Spacer(Modifier.height(40.dp))
+            Spacer(Modifier.height(32.dp))
+            Text("欢迎回来", style = MaterialTheme.typography.titleMedium)
+            Text("登录后继续你的教学质量工作", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.height(20.dp))
 
             OutlinedTextField(
                 value = state.account,
@@ -71,6 +87,7 @@ fun LoginScreen(viewModel: LoginViewModel = viewModel()) {
                 enabled = !state.isLoading,
                 isError = state.error != null,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii, imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
                 modifier = Modifier.fillMaxWidth(),
             )
             Spacer(Modifier.height(12.dp))
@@ -83,7 +100,7 @@ fun LoginScreen(viewModel: LoginViewModel = viewModel()) {
                 isError = state.error != null,
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = { viewModel.login() }),
+                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus(); viewModel.login() }),
                 trailingIcon = {
                     TextButton(onClick = { passwordVisible = !passwordVisible }) {
                         Text(if (passwordVisible) "隐藏" else "显示")
@@ -107,24 +124,27 @@ fun LoginScreen(viewModel: LoginViewModel = viewModel()) {
             Spacer(Modifier.height(24.dp))
 
             Button(
-                onClick = viewModel::login,
+                onClick = { focusManager.clearFocus(); viewModel.login() },
                 enabled = !state.isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp),
+                    .heightIn(min = 52.dp),
+                shape = MaterialTheme.shapes.small,
             ) {
                 if (state.isLoading) {
-                    CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                    CircularProgressIndicator(Modifier.size(20.dp), color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.dp)
                 } else {
                     Text("登录")
                 }
             }
             Spacer(Modifier.height(24.dp))
-            Text(
+            Surface(color = MaterialTheme.colorScheme.surfaceContainer, shape = MaterialTheme.shapes.small) { Text(
                 "演示账号：admin / sup01 / tea01，初始密码 123456",
-                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(16.dp),
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            ) }
+        }
         }
     }
 }

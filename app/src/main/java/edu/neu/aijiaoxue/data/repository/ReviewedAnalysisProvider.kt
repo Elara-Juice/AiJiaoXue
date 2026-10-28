@@ -87,7 +87,7 @@ class ReviewedAnalysisProvider(private val db: AppDatabase) {
             .put("courseReference", reference?.payloadJson?.let(::JSONObject) ?: JSONObject.NULL).put("courseReferenceVersionId", reference?.id ?: JSONObject.NULL)
             .put("courseReferenceSource", reference?.sourceDescription ?: JSONObject.NULL).put("referenceSelection", task.referenceSelectionJson?.let(::JSONObject) ?: JSONObject.NULL)
             .put("inputManifests", manifests)
-            .put("materialSummaries", JSONArray(db.captureDao().getMaterials(taskId).map { m -> JSONObject().put("id", m.id).put("type", m.type.label).put("note", m.note ?: JSONObject.NULL).put("capturedAt", m.capturedAt).put("offsetMs", m.offsetMs).put("durationMs", m.durationMs ?: JSONObject.NULL) }))
+            .put("materialSummaries", JSONArray(db.captureDao().getMaterials(taskId).map { m -> JSONObject().put("id", m.id).put("type", m.type.label).put("note", m.note ?: JSONObject.NULL).put("capturedAt", m.capturedAt).put("isImported", m.isImported).put("offsetMs", MaterialTimeResolver.classroomOffsetMs(m) ?: JSONObject.NULL).put("timeMappingQuality", if (MaterialTimeResolver.classroomOffsetMs(m) == null) "UNKNOWN" else "EXACT").put("durationMs", m.durationMs ?: JSONObject.NULL) }))
         val now = System.currentTimeMillis()
         val publicationId = dao.insertPublication(ReviewPublication(
             evaluationId = evaluationId, taskId = taskId, supervisorId = actorId, publishedAt = now, contextSnapshotJson = context.toString(),

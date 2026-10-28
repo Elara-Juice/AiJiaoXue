@@ -30,6 +30,18 @@ object FileStore {
     fun newPhotoFile(context: Context, taskId: Long, at: Long = System.currentTimeMillis()) =
         newFile(context, taskId, PHOTO_DIR, "IMG_${stamp(at)}", "jpg")
 
+    fun importedAudioFile(context: Context, taskId: Long, requestKey: String, extension: String): Pair<File, String> {
+        UUID.fromString(requestKey)
+        require(taskId > 0 && extension in setOf("part", "wav", "m4a", "mp3"))
+        val root = context.filesDir.canonicalFile
+        val expected = File(root, "tasks/$taskId/audio")
+        val dir = expected.canonicalFile
+        require(dir == expected.absoluteFile && dir.path.startsWith(root.path + File.separator))
+        check(dir.isDirectory || dir.mkdirs() || dir.isDirectory) { "无法创建音频目录" }
+        val file = File(dir, "IMP_$requestKey.$extension")
+        return file to "tasks/$taskId/audio/${file.name}"
+    }
+
     fun resolve(context: Context, relativePath: String): File = File(context.filesDir, relativePath)
 
     /** US07：文件丢失时界面显示“文件缺失”。 */

@@ -106,7 +106,7 @@ class RemediationV9MigrationTest {
         } finally { helper.close() }
         val current = Room.databaseBuilder(context, AppDatabase::class.java, name).addMigrations(*AppDatabase.MIGRATIONS).build()
         try {
-            assertEquals(10, current.openHelper.writableDatabase.version)
+            assertEquals(11, current.openHelper.writableDatabase.version)
             assertEquals(IssueDeclaration.UNASSESSED, current.evaluationDao().getByTask(2)!!.issueDeclaration)
             assertNull(current.evaluationDao().getByTask(2)!!.issueDeclaredAt)
             assertEquals("历史评价2", current.evaluationDao().getByTask(2)!!.overallOpinion)

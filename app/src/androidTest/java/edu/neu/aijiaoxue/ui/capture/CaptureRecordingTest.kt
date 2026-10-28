@@ -173,14 +173,14 @@ class CaptureRecordingTest {
         Thread.sleep(1_500)
 
         // 取消确认不做任何修改
-        rule.onNodeWithText("结束课堂采集").performClick()
+        rule.onNodeWithTag("capture-finish").performClick()
         waitFor("将先结束录音")
         rule.onNodeWithText("继续采集").performClick()
         assertEquals(TaskStatus.IN_PROGRESS, db.taskDao().getById(taskId)!!.status)
         assertEquals(AudioRecorder.Status.RECORDING, AudioRecorder.state.value.status)
 
-        rule.onNodeWithText("结束课堂采集").performClick()
-        rule.onNodeWithText("结束并去评价").performClick()
+        rule.onNodeWithTag("capture-finish").performClick()
+        rule.onNodeWithText("结束并检查材料").performClick()
         rule.waitUntil(10_000) { ended == 1 }
 
         // 需求 3.3：仍在录音时先自动结束录音
@@ -197,6 +197,7 @@ class CaptureRecordingTest {
         waitFor("待评价")
         rule.onNodeWithText("结束课堂采集").assertDoesNotExist()
         rule.onNodeWithText("开始录音").assertIsNotEnabled()
+        scrollPageTo("拍照")
         rule.onNodeWithText("拍照").assertIsEnabled()
         rule.onNodeWithText("相册导入").assertIsEnabled()
     }

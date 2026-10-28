@@ -22,7 +22,7 @@ from .config import Settings
 from .database import Database, TERMINAL
 from .errors import ServiceError
 from .evidence import EvidenceIndex
-from .media import grant_signature, inspect_media
+from .media import grant_signature, inspect_media, decoder_available
 from .providers import BailianAsrProvider, DeepSeekProvider
 from .schemas import AckRequest, AnalysisRequest, AssetMetadata, PAYLOAD_MODELS
 from .security import RequestGuard, authenticate
@@ -70,10 +70,15 @@ def create_app(settings: Settings | None = None, *, semantic=None, asr=None, tra
 
     @app.get("/v1/capabilities")
     async def capabilities(device: str = Depends(owner)):
+        ffmpeg, ffprobe = await asyncio.gather(asyncio.to_thread(decoder_available, settings.ffmpeg), asyncio.to_thread(decoder_available, settings.ffprobe))
         return {"schemaVersion": 1, "asr": settings.asr_configured, "vision": bool(settings.deepseek_key),
                 "semantic": bool(settings.deepseek_key), "maxAudioBytes": settings.max_audio_bytes,
                 "maxAudioDurationMs": settings.max_audio_duration_ms, "maxImageBytes": settings.max_image_bytes,
-                "maxImagesPerJob": 1, "operations": list(PAYLOAD_MODELS)}
+                "maxImagesPerJob": 1, "operations": list(PAYLOAD_MODELS), "diagnostics": {
+                    "ffmpegAvailable": ffmpeg, "ffprobeAvailable": ffprobe,
+                    "publicAssetHttpsConfigured": settings.public_base_url.startswith("https://"),
+                    "publicAssetReachability": "NOT_TESTED", "deepseekRemoteAuthentication": "NOT_TESTED",
+                    "bailianRemoteAuthentication": "NOT_TESTED"}}
 
     @app.get("/v1/schemas/{operation}")
     async def schema(operation: str, device: str = Depends(owner)):

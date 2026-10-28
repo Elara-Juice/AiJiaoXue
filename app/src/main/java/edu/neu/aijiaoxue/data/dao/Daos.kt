@@ -376,7 +376,7 @@ interface CaptureDao {
      * US07 业务规则 3：录音中异常退出时 endedAt 仍为空。
      * 重新进入采集页时查出这些片段，按实际文件补写 endedAt、durationMs。
      */
-    @Query("SELECT * FROM materials WHERE taskId = :taskId AND type = 'AUDIO' AND endedAt IS NULL")
+    @Query("SELECT * FROM materials WHERE taskId = :taskId AND type = 'AUDIO' AND endedAt IS NULL AND isImported = 0")
     suspend fun getUnfinishedAudios(taskId: Long): List<Material>
 
     /** US07：恢复时逐个检查文件是否存在，缺失的显示“文件缺失”。 */

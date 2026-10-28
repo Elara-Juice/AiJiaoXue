@@ -131,7 +131,7 @@ object ParticipationAnalysis {
     private fun buildWindows(input: ParticipationInput): List<SourceWindow> {
         val engagement = input.engagements
         val events = input.events
-        val materials = input.materials
+        val materials = input.materials.filter { edu.neu.aijiaoxue.data.repository.MaterialTimeResolver.classroomOffsetMs(it) != null }
         val evaluation = input.evaluation
         return listOf(
             SourceWindow(
@@ -268,7 +268,7 @@ object ParticipationAnalysis {
         val materialWindow = windowOf(windows, DataSourceKind.MATERIAL)
         val engagementWindow = windowOf(windows, DataSourceKind.ENGAGEMENT_RECORD)
         if (materialWindow.recordCount == 0 || engagementWindow.recordCount == 0) return
-        val materialOffsets = input.materials.map { it.offsetMs }.sorted()
+        val materialOffsets = input.materials.mapNotNull { edu.neu.aijiaoxue.data.repository.MaterialTimeResolver.classroomOffsetMs(it) }.sorted()
         val covered = input.engagements.count { record ->
             materialOffsets.any { kotlin.math.abs(it - record.offsetMs) <= CROSS_SOURCE_WINDOW_MS }
         }

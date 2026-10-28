@@ -145,6 +145,18 @@ enum class AnalysisOperation(val label: String) {
     INTERACTION_STATS("互动统计"), PARTICIPATION("参与对照"), EXPRESSION_STATS("表达统计")
 }
 enum class JobState { QUEUED, RUNNING, SUCCEEDED, PARTIAL, FAILED, CANCEL_REQUESTED, CANCELLED, STALE_INPUT, EXPIRED }
+enum class AnalysisRunState { PREPARED, RUNNING, PAUSED, WAITING_REVIEW, WAITING_DECISION, COMPLETED, PARTIAL, CANCEL_REQUESTED, CANCELLED }
+enum class AnalysisStepState { PLANNED, BLOCKED, RUNNING, SUCCEEDED, PARTIAL, FAILED, SKIPPED, REUSED, CANCEL_REQUESTED, CANCELLED, STALE_INPUT }
+enum class AnalysisViewSection { PREPARATION, PROGRESS, RESULTS }
+
+/** Computed presentation states; never manually persisted as task states. */
+enum class SupervisorTab(val label: String) { WORKBENCH("工作台"), TASKS("督导任务"), TRACKING("改进跟踪"), PROFILE("我的") }
+enum class TaskWorkspaceTab(val label: String) { OVERVIEW("概况"), CAPTURE("采集"), ANALYSIS("分析核验"), REPORT("报告"), IMPROVEMENT("关联改进") }
+enum class TrackingStage(val label: String) { AWAITING_PLAN("待教师响应"), IMPLEMENTING("实施中"), AWAITING_REVIEW("待复评"), CLOSED("已关闭") }
+enum class ConnectionCheckState { PASSED, FAILED, NOT_CHECKED }
+enum class UiMutationStatus { IDLE, SAVING, SAVED, FAILED, CONFLICT }
+enum class InputWorkspaceTab { COURSE, TRANSCRIPT, FACTS }
+enum class EvidencePlaybackStatus { LOADING, READY, PLAYING, PAUSED, FINISHED, FAILED }
 enum class PhaseStatus { DRAFT, CONFIRMED }
 enum class ActivityKind { INTRODUCTION, LECTURE, DISCUSSION, PRACTICE, SUMMARY, OTHER }
 enum class SpeakerRole { TEACHER, STUDENT, UNKNOWN }

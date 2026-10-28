@@ -12,7 +12,7 @@ import edu.neu.aijiaoxue.data.ai.AnalysisJson
 import org.json.JSONObject
 
 @Composable
-fun HistoryDetailScreen(viewModel: HistoryDetailViewModel, onBack: () -> Unit, onEvidence: ((Long) -> Unit)? = null, onParticipation: (() -> Unit)? = null) {
+fun HistoryDetailScreen(viewModel: HistoryDetailViewModel, onBack: () -> Unit, onEvidence: ((Long) -> Unit)? = null, onParticipation: (() -> Unit)? = null, onImprovement: (() -> Unit)? = null) {
     val state by viewModel.uiState.collectAsState()
     if (state.error != null) { ErrorPage("完整督导报告", state.error!!, onBack, viewModel::reload); return }
     ModulePage("完整督导报告 · 只读", onBack) { padding ->
@@ -23,6 +23,10 @@ fun HistoryDetailScreen(viewModel: HistoryDetailViewModel, onBack: () -> Unit, o
         fun frozen(key: String, fallback: String?): String? = if (context == null) fallback else if (context.isNull(key)) null else context.optString(key)
         LazyColumn(Modifier.padding(padding).fillMaxSize(), contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            if (onImprovement != null) item { SectionCard("报告已发布") {
+                Text("教师可查看本次反馈。正式问题已进入改进跟踪，后续措施和复评会与本报告关联。")
+                Button(onClick = onImprovement, modifier = Modifier.fillMaxWidth()) { Text("查看教师改进与复评") }
+            } }
             item { SectionCard(frozen("courseName", record.course.name).orEmpty()) {
                 ReadField("课程编号", frozen("courseCode", record.course.code))
                 ReadField("任务编号", frozen("taskCode", record.task.code))

@@ -14,6 +14,14 @@ from .config import Settings
 from .errors import ServiceError
 
 
+def decoder_available(executable: str) -> bool:
+    try:
+        subprocess.run([executable, "-version"], capture_output=True, timeout=3, check=True)
+        return True
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
 def inspect_media(path: Path, kind: str, settings: Settings) -> dict:
     if kind == "IMAGE":
         try:

@@ -57,7 +57,7 @@ class Sprint3ReviewMigrationTest {
         val db = Room.databaseBuilder(context, AppDatabase::class.java, name)
             .addMigrations(*AppDatabase.MIGRATIONS).build()
         try {
-            assertEquals(10, db.openHelper.writableDatabase.version)
+            assertEquals(11, db.openHelper.writableDatabase.version)
             // 旧数据与来源关联仍然可读
             assertEquals("旧督导", db.userDao().getById(1)!!.name)
             assertEquals("旧课程", db.courseDao().getById(1)!!.name)

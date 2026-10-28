@@ -81,6 +81,9 @@ data class CaptureUiState(
     val engagements: List<EngagementRecord> = emptyList(),
     /** US11 前置条件：评价提交（任务“已完成”）前可以删除材料。 */
     val canDeleteMaterials: Boolean = false,
+    val canImportAudio: Boolean = false,
+    val isImportingAudio: Boolean = false,
+    val audioImportProgress: Float? = null,
 ) {
     /** 当前录音属于本任务。 */
     val isRecordingHere: Boolean
@@ -130,6 +133,8 @@ class CaptureViewModel(
 
     /** 防止连点“结束课堂采集”重复执行。 */
     private var isEnding = false
+    private val audioImportState = MutableStateFlow(false to (null as Float?))
+    private var audioImportJob: Job? = null
 
     val uiState: StateFlow<CaptureUiState> = access.flatMapLatest { a ->
         when (a) {
@@ -161,7 +166,32 @@ class CaptureViewModel(
                 )
             }
         }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CaptureUiState())
+    }.combine(audioImportState) { state, importing -> state.copy(
+        canImportAudio = state.status in setOf(TaskStatus.IN_PROGRESS, TaskStatus.PENDING_EVALUATION),
+        isImportingAudio = importing.first, audioImportProgress = importing.second,
+    ) }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CaptureUiState())
+
+    fun importAudio(uri: Uri) {
+        if (audioImportJob?.isActive == true || !uiState.value.canImportAudio) return
+        val actorId = Session.currentUser?.id ?: return
+        val key = java.util.UUID.randomUUID().toString()
+        audioImportJob = viewModelScope.launch {
+            audioImportState.value = true to null
+            try {
+                val limits = edu.neu.aijiaoxue.data.remote.AnalysisConnectionChecker(getApplication()).cachedAudioLimits()
+                edu.neu.aijiaoxue.data.repository.AudioImportRepository(db, getApplication()).importAudio(actorId, taskId, uri, key, limits.first, limits.second) {
+                    audioImportState.value = true to it
+                }
+                localMessages.emit("录音已导入；课堂时间未知，可按文件内时间转写和回放")
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                localMessages.tryEmit("音频导入已取消")
+                throw e
+            } catch (e: Exception) { localMessages.emit(e.message ?: "无法导入该音频") }
+            finally { audioImportState.value = false to null }
+        }
+    }
+
+    fun cancelAudioImport() { audioImportJob?.cancel() }
 
     init {
         viewModelScope.launch { enter() }

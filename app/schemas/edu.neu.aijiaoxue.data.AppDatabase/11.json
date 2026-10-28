@@ -1,0 +1,4345 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 11,
+    "identityHash": "f1bc7841deee2e27459e95029e0753c0",
+    "entities": [
+      {
+        "tableName": "users",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `account` TEXT NOT NULL, `passwordHash` TEXT NOT NULL, `name` TEXT NOT NULL, `role` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "account",
+            "columnName": "account",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "passwordHash",
+            "columnName": "passwordHash",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "role",
+            "columnName": "role",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_users_account",
+            "unique": true,
+            "columnNames": [
+              "account"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_users_account` ON `${TABLE_NAME}` (`account`)"
+          }
+        ]
+      },
+      {
+        "tableName": "courses",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `code` TEXT NOT NULL, `name` TEXT NOT NULL, `teacherId` INTEGER NOT NULL, `className` TEXT, `schedule` TEXT, `location` TEXT, FOREIGN KEY(`teacherId`) REFERENCES `users`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "code",
+            "columnName": "code",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "teacherId",
+            "columnName": "teacherId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "className",
+            "columnName": "className",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "schedule",
+            "columnName": "schedule",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "location",
+            "columnName": "location",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_courses_teacherId",
+            "unique": false,
+            "columnNames": [
+              "teacherId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_courses_teacherId` ON `${TABLE_NAME}` (`teacherId`)"
+          },
+          {
+            "name": "index_courses_code",
+            "unique": true,
+            "columnNames": [
+              "code"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_courses_code` ON `${TABLE_NAME}` (`code`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "users",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "teacherId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "arrangements",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `courseId` INTEGER NOT NULL, `isKeyFocus` INTEGER NOT NULL, `note` TEXT, `createdBy` INTEGER NOT NULL, `status` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, FOREIGN KEY(`courseId`) REFERENCES `courses`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "courseId",
+            "columnName": "courseId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isKeyFocus",
+            "columnName": "isKeyFocus",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "note",
+            "columnName": "note",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "createdBy",
+            "columnName": "createdBy",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_arrangements_courseId",
+            "unique": false,
+            "columnNames": [
+              "courseId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_arrangements_courseId` ON `${TABLE_NAME}` (`courseId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "courses",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "courseId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "supervision_tasks",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `code` TEXT NOT NULL, `courseId` INTEGER NOT NULL, `supervisorId` INTEGER NOT NULL, `arrangementId` INTEGER, `supervisionDate` TEXT NOT NULL, `period` TEXT NOT NULL, `chapter` TEXT, `type` TEXT NOT NULL, `status` TEXT NOT NULL, `classStartAt` INTEGER, `classEndAt` INTEGER, `createdAt` INTEGER NOT NULL, `courseReferenceVersionId` INTEGER, `referenceSelectionJson` TEXT, `inputRevision` INTEGER NOT NULL DEFAULT 0, `analysisCaseId` TEXT, FOREIGN KEY(`courseId`) REFERENCES `courses`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION , FOREIGN KEY(`supervisorId`) REFERENCES `users`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION , FOREIGN KEY(`courseReferenceVersionId`) REFERENCES `course_reference_versions`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "code",
+            "columnName": "code",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "courseId",
+            "columnName": "courseId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "supervisorId",
+            "columnName": "supervisorId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "arrangementId",
+            "columnName": "arrangementId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "supervisionDate",
+            "columnName": "supervisionDate",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "period",
+            "columnName": "period",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "chapter",
+            "columnName": "chapter",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "classStartAt",
+            "columnName": "classStartAt",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "classEndAt",
+            "columnName": "classEndAt",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "courseReferenceVersionId",
+            "columnName": "courseReferenceVersionId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "referenceSelectionJson",
+            "columnName": "referenceSelectionJson",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "inputRevision",
+            "columnName": "inputRevision",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "analysisCaseId",
+            "columnName": "analysisCaseId",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_supervision_tasks_courseId",
+            "unique": false,
+            "columnNames": [
+              "courseId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_supervision_tasks_courseId` ON `${TABLE_NAME}` (`courseId`)"
+          },
+          {
+            "name": "index_supervision_tasks_supervisorId",
+            "unique": false,
+            "columnNames": [
+              "supervisorId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_supervision_tasks_supervisorId` ON `${TABLE_NAME}` (`supervisorId`)"
+          },
+          {
+            "name": "index_supervision_tasks_courseReferenceVersionId",
+            "unique": false,
+            "columnNames": [
+              "courseReferenceVersionId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_supervision_tasks_courseReferenceVersionId` ON `${TABLE_NAME}` (`courseReferenceVersionId`)"
+          },
+          {
+            "name": "index_supervision_tasks_analysisCaseId",
+            "unique": true,
+            "columnNames": [
+              "analysisCaseId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_supervision_tasks_analysisCaseId` ON `${TABLE_NAME}` (`analysisCaseId`)"
+          },
+          {
+            "name": "index_supervision_tasks_code",
+            "unique": true,
+            "columnNames": [
+              "code"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_supervision_tasks_code` ON `${TABLE_NAME}` (`code`)"
+          },
+          {
+            "name": "index_supervision_tasks_supervisorId_courseId_supervisionDate_period",
+            "unique": true,
+            "columnNames": [
+              "supervisorId",
+              "courseId",
+              "supervisionDate",
+              "period"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_supervision_tasks_supervisorId_courseId_supervisionDate_period` ON `${TABLE_NAME}` (`supervisorId`, `courseId`, `supervisionDate`, `period`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "courses",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "courseId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "users",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "supervisorId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "course_reference_versions",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "courseReferenceVersionId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "materials",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `taskId` INTEGER NOT NULL, `type` TEXT NOT NULL, `filePath` TEXT NOT NULL, `capturedAt` INTEGER NOT NULL, `offsetMs` INTEGER NOT NULL, `endedAt` INTEGER, `durationMs` INTEGER, `isImported` INTEGER NOT NULL, `note` TEXT, FOREIGN KEY(`taskId`) REFERENCES `supervision_tasks`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "taskId",
+            "columnName": "taskId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "filePath",
+            "columnName": "filePath",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "capturedAt",
+            "columnName": "capturedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "offsetMs",
+            "columnName": "offsetMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endedAt",
+            "columnName": "endedAt",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "durationMs",
+            "columnName": "durationMs",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "isImported",
+            "columnName": "isImported",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "note",
+            "columnName": "note",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_materials_taskId",
+            "unique": false,
+            "columnNames": [
+              "taskId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_materials_taskId` ON `${TABLE_NAME}` (`taskId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "supervision_tasks",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "taskId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "interaction_events",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `taskId` INTEGER NOT NULL, `type` TEXT NOT NULL, `occurredAt` INTEGER NOT NULL, `offsetMs` INTEGER NOT NULL, `note` TEXT, FOREIGN KEY(`taskId`) REFERENCES `supervision_tasks`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "taskId",
+            "columnName": "taskId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "occurredAt",
+            "columnName": "occurredAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "offsetMs",
+            "columnName": "offsetMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "note",
+            "columnName": "note",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_interaction_events_taskId",
+            "unique": false,
+            "columnNames": [
+              "taskId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_interaction_events_taskId` ON `${TABLE_NAME}` (`taskId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "supervision_tasks",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "taskId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "engagement_records",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `taskId` INTEGER NOT NULL, `type` TEXT NOT NULL, `presentCount` INTEGER, `engagedCount` INTEGER, `engagedPercent` INTEGER, `description` TEXT, `recordedAt` INTEGER NOT NULL, `offsetMs` INTEGER NOT NULL, FOREIGN KEY(`taskId`) REFERENCES `supervision_tasks`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "taskId",
+            "columnName": "taskId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "presentCount",
+            "columnName": "presentCount",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "engagedCount",
+            "columnName": "engagedCount",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "engagedPercent",
+            "columnName": "engagedPercent",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "recordedAt",
+            "columnName": "recordedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "offsetMs",
+            "columnName": "offsetMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_engagement_records_taskId",
+            "unique": false,
+            "columnNames": [
+              "taskId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_engagement_records_taskId` ON `${TABLE_NAME}` (`taskId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "supervision_tasks",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "taskId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "evaluations",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `taskId` INTEGER NOT NULL, `contentScore` INTEGER, `contentComment` TEXT, `designScore` INTEGER, `designComment` TEXT, `interactionScore` INTEGER, `interactionComment` TEXT, `engagementScore` INTEGER, `engagementComment` TEXT, `totalScore` INTEGER, `grade` TEXT, `strengths` TEXT, `suggestions` TEXT, `overallOpinion` TEXT, `status` TEXT NOT NULL, `submittedAt` INTEGER, `teacherReadAt` INTEGER, `updatedAt` INTEGER NOT NULL, `issueDeclaration` TEXT NOT NULL DEFAULT 'UNASSESSED', `issueDeclarationNote` TEXT, `issueDeclaredBy` INTEGER, `issueDeclaredAt` INTEGER, FOREIGN KEY(`taskId`) REFERENCES `supervision_tasks`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "taskId",
+            "columnName": "taskId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contentScore",
+            "columnName": "contentScore",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "contentComment",
+            "columnName": "contentComment",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "designScore",
+            "columnName": "designScore",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "designComment",
+            "columnName": "designComment",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "interactionScore",
+            "columnName": "interactionScore",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "interactionComment",
+            "columnName": "interactionComment",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "engagementScore",
+            "columnName": "engagementScore",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "engagementComment",
+            "columnName": "engagementComment",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "totalScore",
+            "columnName": "totalScore",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "grade",
+            "columnName": "grade",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "strengths",
+            "columnName": "strengths",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "suggestions",
+            "columnName": "suggestions",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "overallOpinion",
+            "columnName": "overallOpinion",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "submittedAt",
+            "columnName": "submittedAt",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "teacherReadAt",
+            "columnName": "teacherReadAt",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "issueDeclaration",
+            "columnName": "issueDeclaration",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'UNASSESSED'"
+          },
+          {
+            "fieldPath": "issueDeclarationNote",
+            "columnName": "issueDeclarationNote",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "issueDeclaredBy",
+            "columnName": "issueDeclaredBy",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "issueDeclaredAt",
+            "columnName": "issueDeclaredAt",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_evaluations_taskId",
+            "unique": true,
+            "columnNames": [
+              "taskId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_evaluations_taskId` ON `${TABLE_NAME}` (`taskId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "supervision_tasks",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "taskId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "evaluation_issues",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `evaluationId` INTEGER NOT NULL, `description` TEXT NOT NULL, `dimension` TEXT, `sortOrder` INTEGER NOT NULL, FOREIGN KEY(`evaluationId`) REFERENCES `evaluations`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "evaluationId",
+            "columnName": "evaluationId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dimension",
+            "columnName": "dimension",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "sortOrder",
+            "columnName": "sortOrder",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_evaluation_issues_evaluationId",
+            "unique": false,
+            "columnNames": [
+              "evaluationId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_evaluation_issues_evaluationId` ON `${TABLE_NAME}` (`evaluationId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "evaluations",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "evaluationId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "improvement_plans",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `teacherId` INTEGER NOT NULL, `taskId` INTEGER NOT NULL, `status` TEXT NOT NULL, `confirmedAt` INTEGER)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "teacherId",
+            "columnName": "teacherId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "taskId",
+            "columnName": "taskId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "confirmedAt",
+            "columnName": "confirmedAt",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_improvement_plans_teacherId",
+            "unique": false,
+            "columnNames": [
+              "teacherId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_improvement_plans_teacherId` ON `${TABLE_NAME}` (`teacherId`)"
+          },
+          {
+            "name": "index_improvement_plans_taskId",
+            "unique": true,
+            "columnNames": [
+              "taskId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_improvement_plans_taskId` ON `${TABLE_NAME}` (`taskId`)"
+          }
+        ]
+      },
+      {
+        "tableName": "improvement_items",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `planId` INTEGER NOT NULL, `issueId` INTEGER, `source` TEXT NOT NULL, `description` TEXT NOT NULL, `priority` TEXT NOT NULL, FOREIGN KEY(`planId`) REFERENCES `improvement_plans`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "planId",
+            "columnName": "planId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "issueId",
+            "columnName": "issueId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "source",
+            "columnName": "source",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "priority",
+            "columnName": "priority",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_improvement_items_planId",
+            "unique": false,
+            "columnNames": [
+              "planId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_improvement_items_planId` ON `${TABLE_NAME}` (`planId`)"
+          },
+          {
+            "name": "index_improvement_items_issueId",
+            "unique": false,
+            "columnNames": [
+              "issueId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_improvement_items_issueId` ON `${TABLE_NAME}` (`issueId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "improvement_plans",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "planId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "improvement_measures",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `planId` INTEGER NOT NULL, `itemId` INTEGER NOT NULL, `content` TEXT NOT NULL, `source` TEXT NOT NULL, `dueDate` TEXT NOT NULL, `status` TEXT NOT NULL, `updatedAt` INTEGER NOT NULL, `suggestionId` INTEGER, FOREIGN KEY(`itemId`) REFERENCES `improvement_items`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "planId",
+            "columnName": "planId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "itemId",
+            "columnName": "itemId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "content",
+            "columnName": "content",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "source",
+            "columnName": "source",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dueDate",
+            "columnName": "dueDate",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "suggestionId",
+            "columnName": "suggestionId",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_improvement_measures_itemId",
+            "unique": false,
+            "columnNames": [
+              "itemId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_improvement_measures_itemId` ON `${TABLE_NAME}` (`itemId`)"
+          },
+          {
+            "name": "index_improvement_measures_planId",
+            "unique": false,
+            "columnNames": [
+              "planId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_improvement_measures_planId` ON `${TABLE_NAME}` (`planId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "improvement_items",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "itemId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "ai_analysis_results",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `taskId` INTEGER NOT NULL, `type` TEXT NOT NULL, `content` TEXT NOT NULL, `confidence` REAL NOT NULL, `startMs` INTEGER, `endMs` INTEGER, `verified` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, `operation` TEXT NOT NULL DEFAULT 'LEGACY', `schemaVersion` INTEGER NOT NULL DEFAULT 0, `payloadJson` TEXT, `inputFingerprint` TEXT, `runId` TEXT, `resultState` TEXT NOT NULL DEFAULT 'SUPPORTED', `sourceMode` TEXT NOT NULL DEFAULT 'LEGACY', `isCurrent` INTEGER NOT NULL DEFAULT 1, `producerJson` TEXT, FOREIGN KEY(`taskId`) REFERENCES `supervision_tasks`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "taskId",
+            "columnName": "taskId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "content",
+            "columnName": "content",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "confidence",
+            "columnName": "confidence",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startMs",
+            "columnName": "startMs",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "endMs",
+            "columnName": "endMs",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "verified",
+            "columnName": "verified",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "operation",
+            "columnName": "operation",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'LEGACY'"
+          },
+          {
+            "fieldPath": "schemaVersion",
+            "columnName": "schemaVersion",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "payloadJson",
+            "columnName": "payloadJson",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "inputFingerprint",
+            "columnName": "inputFingerprint",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "runId",
+            "columnName": "runId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "resultState",
+            "columnName": "resultState",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'SUPPORTED'"
+          },
+          {
+            "fieldPath": "sourceMode",
+            "columnName": "sourceMode",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'LEGACY'"
+          },
+          {
+            "fieldPath": "isCurrent",
+            "columnName": "isCurrent",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "producerJson",
+            "columnName": "producerJson",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_ai_analysis_results_taskId",
+            "unique": false,
+            "columnNames": [
+              "taskId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ai_analysis_results_taskId` ON `${TABLE_NAME}` (`taskId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "supervision_tasks",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "taskId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "ai_evidences",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `analysisId` INTEGER NOT NULL, `taskId` INTEGER NOT NULL, `materialId` INTEGER, `eventId` INTEGER, `startMs` INTEGER, `endMs` INTEGER, `description` TEXT NOT NULL, `sourceRefJson` TEXT, FOREIGN KEY(`analysisId`) REFERENCES `ai_analysis_results`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`taskId`) REFERENCES `supervision_tasks`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`materialId`) REFERENCES `materials`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL , FOREIGN KEY(`eventId`) REFERENCES `interaction_events`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "analysisId",
+            "columnName": "analysisId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "taskId",
+            "columnName": "taskId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "materialId",
+            "columnName": "materialId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "eventId",
+            "columnName": "eventId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "startMs",
+            "columnName": "startMs",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "endMs",
+            "columnName": "endMs",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceRefJson",
+            "columnName": "sourceRefJson",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_ai_evidences_analysisId",
+            "unique": false,
+            "columnNames": [
+              "analysisId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ai_evidences_analysisId` ON `${TABLE_NAME}` (`analysisId`)"
+          },
+          {
+            "name": "index_ai_evidences_taskId",
+            "unique": false,
+            "columnNames": [
+              "taskId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ai_evidences_taskId` ON `${TABLE_NAME}` (`taskId`)"
+          },
+          {
+            "name": "index_ai_evidences_materialId",
+            "unique": false,
+            "columnNames": [
+              "materialId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ai_evidences_materialId` ON `${TABLE_NAME}` (`materialId`)"
+          },
+          {
+            "name": "index_ai_evidences_eventId",
+            "unique": false,
+            "columnNames": [
+              "eventId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ai_evidences_eventId` ON `${TABLE_NAME}` (`eventId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "ai_analysis_results",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "analysisId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "supervision_tasks",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "taskId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "materials",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "materialId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "interaction_events",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "eventId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "ai_corrections",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `analysisId` INTEGER NOT NULL, `reviewerId` INTEGER, `originalContent` TEXT NOT NULL, `correctedContent` TEXT NOT NULL, `accepted` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, `originalPayloadHash` TEXT, `correctedPayloadJson` TEXT, FOREIGN KEY(`analysisId`) REFERENCES `ai_analysis_results`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`reviewerId`) REFERENCES `users`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "analysisId",
+            "columnName": "analysisId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reviewerId",
+            "columnName": "reviewerId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "originalContent",
+            "columnName": "originalContent",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "correctedContent",
+            "columnName": "correctedContent",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "accepted",
+            "columnName": "accepted",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "originalPayloadHash",
+            "columnName": "originalPayloadHash",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "correctedPayloadJson",
+            "columnName": "correctedPayloadJson",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_ai_corrections_analysisId",
+            "unique": false,
+            "columnNames": [
+              "analysisId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ai_corrections_analysisId` ON `${TABLE_NAME}` (`analysisId`)"
+          },
+          {
+            "name": "index_ai_corrections_reviewerId",
+            "unique": false,
+            "columnNames": [
+              "reviewerId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ai_corrections_reviewerId` ON `${TABLE_NAME}` (`reviewerId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "ai_analysis_results",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "analysisId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "users",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "reviewerId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "review_publications",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `evaluationId` INTEGER NOT NULL, `taskId` INTEGER NOT NULL, `supervisorId` INTEGER NOT NULL, `publishedAt` INTEGER NOT NULL, `contextSnapshotJson` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "evaluationId",
+            "columnName": "evaluationId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "taskId",
+            "columnName": "taskId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "supervisorId",
+            "columnName": "supervisorId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "publishedAt",
+            "columnName": "publishedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contextSnapshotJson",
+            "columnName": "contextSnapshotJson",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_review_publications_evaluationId",
+            "unique": true,
+            "columnNames": [
+              "evaluationId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_review_publications_evaluationId` ON `${TABLE_NAME}` (`evaluationId`)"
+          },
+          {
+            "name": "index_review_publications_taskId",
+            "unique": false,
+            "columnNames": [
+              "taskId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_review_publications_taskId` ON `${TABLE_NAME}` (`taskId`)"
+          }
+        ]
+      },
+      {
+        "tableName": "reviewed_analysis_snapshots",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `publicationId` INTEGER NOT NULL, `analysisId` INTEGER NOT NULL, `correctionId` INTEGER NOT NULL, `reviewerId` INTEGER NOT NULL, `type` TEXT NOT NULL, `originalContent` TEXT NOT NULL, `effectiveContent` TEXT NOT NULL, `evidenceSummary` TEXT NOT NULL, `reviewedAt` INTEGER NOT NULL, `versionKey` TEXT NOT NULL, `schemaVersion` INTEGER NOT NULL DEFAULT 0, `originalPayloadJson` TEXT, `effectivePayloadJson` TEXT, `inputFingerprint` TEXT, `sourceMode` TEXT NOT NULL DEFAULT 'LEGACY', `producerJson` TEXT, `resultState` TEXT NOT NULL DEFAULT 'SUPPORTED', FOREIGN KEY(`publicationId`) REFERENCES `review_publications`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "publicationId",
+            "columnName": "publicationId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "analysisId",
+            "columnName": "analysisId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "correctionId",
+            "columnName": "correctionId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reviewerId",
+            "columnName": "reviewerId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "originalContent",
+            "columnName": "originalContent",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "effectiveContent",
+            "columnName": "effectiveContent",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "evidenceSummary",
+            "columnName": "evidenceSummary",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reviewedAt",
+            "columnName": "reviewedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "versionKey",
+            "columnName": "versionKey",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "schemaVersion",
+            "columnName": "schemaVersion",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "originalPayloadJson",
+            "columnName": "originalPayloadJson",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "effectivePayloadJson",
+            "columnName": "effectivePayloadJson",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "inputFingerprint",
+            "columnName": "inputFingerprint",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "sourceMode",
+            "columnName": "sourceMode",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'LEGACY'"
+          },
+          {
+            "fieldPath": "producerJson",
+            "columnName": "producerJson",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "resultState",
+            "columnName": "resultState",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'SUPPORTED'"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_reviewed_analysis_snapshots_publicationId",
+            "unique": false,
+            "columnNames": [
+              "publicationId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_reviewed_analysis_snapshots_publicationId` ON `${TABLE_NAME}` (`publicationId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "review_publications",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "publicationId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "improvement_suggestions",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `planId` INTEGER NOT NULL, `itemId` INTEGER NOT NULL, `sourceSnapshotId` INTEGER NOT NULL, `content` TEXT NOT NULL, `problemSnapshot` TEXT NOT NULL, `bopppsStage` TEXT NOT NULL, `rationale` TEXT NOT NULL, `generatorMode` TEXT NOT NULL, `generatorVersion` TEXT NOT NULL, `reviewVersionKey` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `dismissedAt` INTEGER, FOREIGN KEY(`itemId`) REFERENCES `improvement_items`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "planId",
+            "columnName": "planId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "itemId",
+            "columnName": "itemId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceSnapshotId",
+            "columnName": "sourceSnapshotId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "content",
+            "columnName": "content",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "problemSnapshot",
+            "columnName": "problemSnapshot",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bopppsStage",
+            "columnName": "bopppsStage",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rationale",
+            "columnName": "rationale",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "generatorMode",
+            "columnName": "generatorMode",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "generatorVersion",
+            "columnName": "generatorVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reviewVersionKey",
+            "columnName": "reviewVersionKey",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dismissedAt",
+            "columnName": "dismissedAt",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_improvement_suggestions_planId",
+            "unique": false,
+            "columnNames": [
+              "planId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_improvement_suggestions_planId` ON `${TABLE_NAME}` (`planId`)"
+          },
+          {
+            "name": "index_improvement_suggestions_itemId",
+            "unique": false,
+            "columnNames": [
+              "itemId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_improvement_suggestions_itemId` ON `${TABLE_NAME}` (`itemId`)"
+          },
+          {
+            "name": "index_improvement_suggestions_itemId_reviewVersionKey_generatorVersion_problemSnapshot",
+            "unique": true,
+            "columnNames": [
+              "itemId",
+              "reviewVersionKey",
+              "generatorVersion",
+              "problemSnapshot"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_improvement_suggestions_itemId_reviewVersionKey_generatorVersion_problemSnapshot` ON `${TABLE_NAME}` (`itemId`, `reviewVersionKey`, `generatorVersion`, `problemSnapshot`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "improvement_items",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "itemId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "legacy_ai_migration_archives",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `sourceVersion` INTEGER NOT NULL, `sourceTable` TEXT NOT NULL, `sourceId` INTEGER NOT NULL, `reason` TEXT NOT NULL, `rawRowJson` TEXT NOT NULL, `archivedAt` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceVersion",
+            "columnName": "sourceVersion",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceTable",
+            "columnName": "sourceTable",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceId",
+            "columnName": "sourceId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reason",
+            "columnName": "reason",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rawRowJson",
+            "columnName": "rawRowJson",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "archivedAt",
+            "columnName": "archivedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_legacy_ai_migration_archives_sourceVersion_sourceTable_sourceId",
+            "unique": true,
+            "columnNames": [
+              "sourceVersion",
+              "sourceTable",
+              "sourceId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_legacy_ai_migration_archives_sourceVersion_sourceTable_sourceId` ON `${TABLE_NAME}` (`sourceVersion`, `sourceTable`, `sourceId`)"
+          }
+        ]
+      },
+      {
+        "tableName": "improvement_executions",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `measureId` INTEGER NOT NULL, `implementationNote` TEXT NOT NULL, `actualAdjustment` TEXT NOT NULL, `implementedAt` INTEGER NOT NULL, `recordedBy` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, `requestKey` TEXT NOT NULL, FOREIGN KEY(`measureId`) REFERENCES `improvement_measures`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION , FOREIGN KEY(`recordedBy`) REFERENCES `users`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "measureId",
+            "columnName": "measureId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "implementationNote",
+            "columnName": "implementationNote",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "actualAdjustment",
+            "columnName": "actualAdjustment",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "implementedAt",
+            "columnName": "implementedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "recordedBy",
+            "columnName": "recordedBy",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "requestKey",
+            "columnName": "requestKey",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_improvement_executions_measureId_requestKey",
+            "unique": true,
+            "columnNames": [
+              "measureId",
+              "requestKey"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_improvement_executions_measureId_requestKey` ON `${TABLE_NAME}` (`measureId`, `requestKey`)"
+          },
+          {
+            "name": "index_improvement_executions_recordedBy",
+            "unique": false,
+            "columnNames": [
+              "recordedBy"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_improvement_executions_recordedBy` ON `${TABLE_NAME}` (`recordedBy`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "improvement_measures",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "measureId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "users",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "recordedBy"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "improvement_evidences",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `executionId` INTEGER NOT NULL, `relativePath` TEXT NOT NULL, `displayName` TEXT NOT NULL, `mimeType` TEXT NOT NULL, `byteSize` INTEGER NOT NULL, `description` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `requestKey` TEXT NOT NULL, FOREIGN KEY(`executionId`) REFERENCES `improvement_executions`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "executionId",
+            "columnName": "executionId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "relativePath",
+            "columnName": "relativePath",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "displayName",
+            "columnName": "displayName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mimeType",
+            "columnName": "mimeType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "byteSize",
+            "columnName": "byteSize",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "requestKey",
+            "columnName": "requestKey",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_improvement_evidences_executionId_requestKey",
+            "unique": true,
+            "columnNames": [
+              "executionId",
+              "requestKey"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_improvement_evidences_executionId_requestKey` ON `${TABLE_NAME}` (`executionId`, `requestKey`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "improvement_executions",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "executionId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "metric_snapshots",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `taskId` INTEGER NOT NULL, `metricKey` TEXT NOT NULL, `value` REAL, `unit` TEXT NOT NULL, `denominator` TEXT NOT NULL, `denominatorValue` REAL, `sampling` TEXT NOT NULL, `methodVersion` TEXT NOT NULL, `sampleCount` INTEGER NOT NULL, `scopeStartAt` INTEGER, `scopeEndAt` INTEGER, `createdAt` INTEGER NOT NULL, FOREIGN KEY(`taskId`) REFERENCES `supervision_tasks`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "taskId",
+            "columnName": "taskId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "metricKey",
+            "columnName": "metricKey",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "value",
+            "columnName": "value",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "unit",
+            "columnName": "unit",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "denominator",
+            "columnName": "denominator",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "denominatorValue",
+            "columnName": "denominatorValue",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "sampling",
+            "columnName": "sampling",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "methodVersion",
+            "columnName": "methodVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sampleCount",
+            "columnName": "sampleCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "scopeStartAt",
+            "columnName": "scopeStartAt",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "scopeEndAt",
+            "columnName": "scopeEndAt",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_metric_snapshots_taskId",
+            "unique": false,
+            "columnNames": [
+              "taskId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_metric_snapshots_taskId` ON `${TABLE_NAME}` (`taskId`)"
+          },
+          {
+            "name": "index_metric_snapshots_taskId_metricKey_methodVersion",
+            "unique": true,
+            "columnNames": [
+              "taskId",
+              "metricKey",
+              "methodVersion"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_metric_snapshots_taskId_metricKey_methodVersion` ON `${TABLE_NAME}` (`taskId`, `metricKey`, `methodVersion`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "supervision_tasks",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "taskId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "review_links",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `originTaskId` INTEGER NOT NULL, `originIssueId` INTEGER, `followUpTaskId` INTEGER NOT NULL, `teacherId` INTEGER NOT NULL, `originIssueSnapshot` TEXT NOT NULL, `originDimension` TEXT, `createdBy` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, `originDimensionKey` TEXT, `chronologyStatus` TEXT NOT NULL DEFAULT 'UNKNOWN', `chronologyRuleVersion` INTEGER NOT NULL DEFAULT 0, FOREIGN KEY(`originTaskId`) REFERENCES `supervision_tasks`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`followUpTaskId`) REFERENCES `supervision_tasks`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "originTaskId",
+            "columnName": "originTaskId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "originIssueId",
+            "columnName": "originIssueId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "followUpTaskId",
+            "columnName": "followUpTaskId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "teacherId",
+            "columnName": "teacherId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "originIssueSnapshot",
+            "columnName": "originIssueSnapshot",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "originDimension",
+            "columnName": "originDimension",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "createdBy",
+            "columnName": "createdBy",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "originDimensionKey",
+            "columnName": "originDimensionKey",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "chronologyStatus",
+            "columnName": "chronologyStatus",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'UNKNOWN'"
+          },
+          {
+            "fieldPath": "chronologyRuleVersion",
+            "columnName": "chronologyRuleVersion",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_review_links_originTaskId",
+            "unique": false,
+            "columnNames": [
+              "originTaskId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_review_links_originTaskId` ON `${TABLE_NAME}` (`originTaskId`)"
+          },
+          {
+            "name": "index_review_links_followUpTaskId",
+            "unique": false,
+            "columnNames": [
+              "followUpTaskId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_review_links_followUpTaskId` ON `${TABLE_NAME}` (`followUpTaskId`)"
+          },
+          {
+            "name": "index_review_links_teacherId",
+            "unique": false,
+            "columnNames": [
+              "teacherId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_review_links_teacherId` ON `${TABLE_NAME}` (`teacherId`)"
+          },
+          {
+            "name": "index_review_links_originTaskId_originIssueId_followUpTaskId",
+            "unique": true,
+            "columnNames": [
+              "originTaskId",
+              "originIssueId",
+              "followUpTaskId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_review_links_originTaskId_originIssueId_followUpTaskId` ON `${TABLE_NAME}` (`originTaskId`, `originIssueId`, `followUpTaskId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "supervision_tasks",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "originTaskId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "supervision_tasks",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "followUpTaskId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "issue_verifications",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `linkId` INTEGER NOT NULL, `verdict` TEXT NOT NULL, `basis` TEXT NOT NULL, `verifierId` INTEGER NOT NULL, `verifiedAt` INTEGER NOT NULL, `beforeSnapshotId` INTEGER, `afterSnapshotId` INTEGER, `contractVersion` INTEGER NOT NULL DEFAULT 1, `presence` TEXT NOT NULL DEFAULT 'UNDETERMINED', `extent` TEXT NOT NULL DEFAULT 'UNDETERMINED', `conflictExplanation` TEXT, `contextSnapshotJson` TEXT, FOREIGN KEY(`linkId`) REFERENCES `review_links`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`verifierId`) REFERENCES `users`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION , FOREIGN KEY(`beforeSnapshotId`) REFERENCES `metric_snapshots`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL , FOREIGN KEY(`afterSnapshotId`) REFERENCES `metric_snapshots`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "linkId",
+            "columnName": "linkId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "verdict",
+            "columnName": "verdict",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "basis",
+            "columnName": "basis",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "verifierId",
+            "columnName": "verifierId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "verifiedAt",
+            "columnName": "verifiedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "beforeSnapshotId",
+            "columnName": "beforeSnapshotId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "afterSnapshotId",
+            "columnName": "afterSnapshotId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "contractVersion",
+            "columnName": "contractVersion",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "presence",
+            "columnName": "presence",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'UNDETERMINED'"
+          },
+          {
+            "fieldPath": "extent",
+            "columnName": "extent",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'UNDETERMINED'"
+          },
+          {
+            "fieldPath": "conflictExplanation",
+            "columnName": "conflictExplanation",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "contextSnapshotJson",
+            "columnName": "contextSnapshotJson",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_issue_verifications_linkId",
+            "unique": false,
+            "columnNames": [
+              "linkId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_issue_verifications_linkId` ON `${TABLE_NAME}` (`linkId`)"
+          },
+          {
+            "name": "index_issue_verifications_verifierId",
+            "unique": false,
+            "columnNames": [
+              "verifierId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_issue_verifications_verifierId` ON `${TABLE_NAME}` (`verifierId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "review_links",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "linkId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "users",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "verifierId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "metric_snapshots",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "beforeSnapshotId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "metric_snapshots",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "afterSnapshotId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "teaching_highlights",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `taskId` INTEGER NOT NULL, `teacherId` INTEGER NOT NULL, `sourceText` TEXT NOT NULL, `practice` TEXT NOT NULL, `updatedAt` INTEGER NOT NULL, FOREIGN KEY(`taskId`) REFERENCES `supervision_tasks`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "taskId",
+            "columnName": "taskId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "teacherId",
+            "columnName": "teacherId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceText",
+            "columnName": "sourceText",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "practice",
+            "columnName": "practice",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_teaching_highlights_taskId",
+            "unique": true,
+            "columnNames": [
+              "taskId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_teaching_highlights_taskId` ON `${TABLE_NAME}` (`taskId`)"
+          },
+          {
+            "name": "index_teaching_highlights_teacherId",
+            "unique": false,
+            "columnNames": [
+              "teacherId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_teaching_highlights_teacherId` ON `${TABLE_NAME}` (`teacherId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "supervision_tasks",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "taskId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "teaching_adoptions",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `measureId` INTEGER NOT NULL, `itemId` INTEGER NOT NULL, `sourceKey` TEXT NOT NULL, `sourceTitle` TEXT NOT NULL, `sourceReference` TEXT NOT NULL, `problemSnapshot` TEXT NOT NULL, `originalContent` TEXT NOT NULL, `adoptedAt` INTEGER NOT NULL, FOREIGN KEY(`measureId`) REFERENCES `improvement_measures`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "measureId",
+            "columnName": "measureId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "itemId",
+            "columnName": "itemId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceKey",
+            "columnName": "sourceKey",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceTitle",
+            "columnName": "sourceTitle",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceReference",
+            "columnName": "sourceReference",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "problemSnapshot",
+            "columnName": "problemSnapshot",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "originalContent",
+            "columnName": "originalContent",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "adoptedAt",
+            "columnName": "adoptedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_teaching_adoptions_measureId",
+            "unique": true,
+            "columnNames": [
+              "measureId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_teaching_adoptions_measureId` ON `${TABLE_NAME}` (`measureId`)"
+          },
+          {
+            "name": "index_teaching_adoptions_itemId_sourceKey",
+            "unique": true,
+            "columnNames": [
+              "itemId",
+              "sourceKey"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_teaching_adoptions_itemId_sourceKey` ON `${TABLE_NAME}` (`itemId`, `sourceKey`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "improvement_measures",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "measureId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "issue_verification_evidence",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `verificationId` INTEGER NOT NULL, `ordinal` INTEGER NOT NULL, `kind` TEXT NOT NULL, `role` TEXT NOT NULL, `sourceTaskId` INTEGER, `sourceEvaluationId` INTEGER, `sourceIssueId` INTEGER, `beforeSnapshotId` INTEGER, `afterSnapshotId` INTEGER, `metricKey` TEXT, `relationExplanation` TEXT NOT NULL, `factText` TEXT, `scopeStartAt` INTEGER, `scopeEndAt` INTEGER, `snapshotJson` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, FOREIGN KEY(`verificationId`) REFERENCES `issue_verifications`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`sourceTaskId`) REFERENCES `supervision_tasks`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL , FOREIGN KEY(`sourceEvaluationId`) REFERENCES `evaluations`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL , FOREIGN KEY(`sourceIssueId`) REFERENCES `evaluation_issues`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL , FOREIGN KEY(`beforeSnapshotId`) REFERENCES `metric_snapshots`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL , FOREIGN KEY(`afterSnapshotId`) REFERENCES `metric_snapshots`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "verificationId",
+            "columnName": "verificationId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ordinal",
+            "columnName": "ordinal",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kind",
+            "columnName": "kind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "role",
+            "columnName": "role",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceTaskId",
+            "columnName": "sourceTaskId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "sourceEvaluationId",
+            "columnName": "sourceEvaluationId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "sourceIssueId",
+            "columnName": "sourceIssueId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "beforeSnapshotId",
+            "columnName": "beforeSnapshotId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "afterSnapshotId",
+            "columnName": "afterSnapshotId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "metricKey",
+            "columnName": "metricKey",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "relationExplanation",
+            "columnName": "relationExplanation",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "factText",
+            "columnName": "factText",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "scopeStartAt",
+            "columnName": "scopeStartAt",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "scopeEndAt",
+            "columnName": "scopeEndAt",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "snapshotJson",
+            "columnName": "snapshotJson",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_issue_verification_evidence_verificationId_ordinal",
+            "unique": true,
+            "columnNames": [
+              "verificationId",
+              "ordinal"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_issue_verification_evidence_verificationId_ordinal` ON `${TABLE_NAME}` (`verificationId`, `ordinal`)"
+          },
+          {
+            "name": "index_issue_verification_evidence_sourceTaskId",
+            "unique": false,
+            "columnNames": [
+              "sourceTaskId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_issue_verification_evidence_sourceTaskId` ON `${TABLE_NAME}` (`sourceTaskId`)"
+          },
+          {
+            "name": "index_issue_verification_evidence_sourceEvaluationId",
+            "unique": false,
+            "columnNames": [
+              "sourceEvaluationId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_issue_verification_evidence_sourceEvaluationId` ON `${TABLE_NAME}` (`sourceEvaluationId`)"
+          },
+          {
+            "name": "index_issue_verification_evidence_sourceIssueId",
+            "unique": false,
+            "columnNames": [
+              "sourceIssueId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_issue_verification_evidence_sourceIssueId` ON `${TABLE_NAME}` (`sourceIssueId`)"
+          },
+          {
+            "name": "index_issue_verification_evidence_beforeSnapshotId",
+            "unique": false,
+            "columnNames": [
+              "beforeSnapshotId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_issue_verification_evidence_beforeSnapshotId` ON `${TABLE_NAME}` (`beforeSnapshotId`)"
+          },
+          {
+            "name": "index_issue_verification_evidence_afterSnapshotId",
+            "unique": false,
+            "columnNames": [
+              "afterSnapshotId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_issue_verification_evidence_afterSnapshotId` ON `${TABLE_NAME}` (`afterSnapshotId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "issue_verifications",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "verificationId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "supervision_tasks",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "sourceTaskId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "evaluations",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "sourceEvaluationId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "evaluation_issues",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "sourceIssueId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "metric_snapshots",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "beforeSnapshotId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "metric_snapshots",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "afterSnapshotId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "course_reference_versions",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `courseId` INTEGER NOT NULL, `revision` INTEGER NOT NULL, `chapterScope` TEXT NOT NULL, `sourceDescription` TEXT NOT NULL, `payloadJson` TEXT NOT NULL, `contentHash` TEXT NOT NULL, `createdBy` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, FOREIGN KEY(`courseId`) REFERENCES `courses`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "courseId",
+            "columnName": "courseId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "revision",
+            "columnName": "revision",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "chapterScope",
+            "columnName": "chapterScope",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceDescription",
+            "columnName": "sourceDescription",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "payloadJson",
+            "columnName": "payloadJson",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contentHash",
+            "columnName": "contentHash",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdBy",
+            "columnName": "createdBy",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_course_reference_versions_courseId_revision",
+            "unique": true,
+            "columnNames": [
+              "courseId",
+              "revision"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_course_reference_versions_courseId_revision` ON `${TABLE_NAME}` (`courseId`, `revision`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "courses",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "courseId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "audio_time_spans",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `materialId` INTEGER NOT NULL, `ordinal` INTEGER NOT NULL, `mediaStartMs` INTEGER NOT NULL, `mediaEndMs` INTEGER NOT NULL, `classStartMs` INTEGER NOT NULL, `classEndMs` INTEGER NOT NULL, `mappingQuality` TEXT NOT NULL, `mappingVersion` TEXT NOT NULL, FOREIGN KEY(`materialId`) REFERENCES `materials`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "materialId",
+            "columnName": "materialId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ordinal",
+            "columnName": "ordinal",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mediaStartMs",
+            "columnName": "mediaStartMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mediaEndMs",
+            "columnName": "mediaEndMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "classStartMs",
+            "columnName": "classStartMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "classEndMs",
+            "columnName": "classEndMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mappingQuality",
+            "columnName": "mappingQuality",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mappingVersion",
+            "columnName": "mappingVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_audio_time_spans_materialId_ordinal",
+            "unique": true,
+            "columnNames": [
+              "materialId",
+              "ordinal"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_audio_time_spans_materialId_ordinal` ON `${TABLE_NAME}` (`materialId`, `ordinal`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "materials",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "materialId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "transcript_versions",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `taskId` INTEGER NOT NULL, `materialId` INTEGER NOT NULL, `revision` INTEGER NOT NULL, `fileHash` TEXT NOT NULL, `payloadJson` TEXT NOT NULL, `provider` TEXT NOT NULL, `model` TEXT NOT NULL, `methodVersion` TEXT NOT NULL, `state` TEXT NOT NULL, `contentHash` TEXT NOT NULL, `isCurrent` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, FOREIGN KEY(`taskId`) REFERENCES `supervision_tasks`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`materialId`) REFERENCES `materials`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "taskId",
+            "columnName": "taskId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "materialId",
+            "columnName": "materialId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "revision",
+            "columnName": "revision",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fileHash",
+            "columnName": "fileHash",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "payloadJson",
+            "columnName": "payloadJson",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "provider",
+            "columnName": "provider",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "model",
+            "columnName": "model",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "methodVersion",
+            "columnName": "methodVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contentHash",
+            "columnName": "contentHash",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isCurrent",
+            "columnName": "isCurrent",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_transcript_versions_taskId",
+            "unique": false,
+            "columnNames": [
+              "taskId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_transcript_versions_taskId` ON `${TABLE_NAME}` (`taskId`)"
+          },
+          {
+            "name": "index_transcript_versions_materialId_revision",
+            "unique": true,
+            "columnNames": [
+              "materialId",
+              "revision"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_transcript_versions_materialId_revision` ON `${TABLE_NAME}` (`materialId`, `revision`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "supervision_tasks",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "taskId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "materials",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "materialId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "teaching_phase_versions",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `taskId` INTEGER NOT NULL, `revision` INTEGER NOT NULL, `payloadJson` TEXT NOT NULL, `contentHash` TEXT NOT NULL, `status` TEXT NOT NULL, `confirmedBy` INTEGER, `confirmedAt` INTEGER, `isCurrent` INTEGER NOT NULL, FOREIGN KEY(`taskId`) REFERENCES `supervision_tasks`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "taskId",
+            "columnName": "taskId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "revision",
+            "columnName": "revision",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "payloadJson",
+            "columnName": "payloadJson",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contentHash",
+            "columnName": "contentHash",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "confirmedBy",
+            "columnName": "confirmedBy",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "confirmedAt",
+            "columnName": "confirmedAt",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "isCurrent",
+            "columnName": "isCurrent",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_teaching_phase_versions_taskId_revision",
+            "unique": true,
+            "columnNames": [
+              "taskId",
+              "revision"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_teaching_phase_versions_taskId_revision` ON `${TABLE_NAME}` (`taskId`, `revision`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "supervision_tasks",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "taskId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "image_text_versions",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `taskId` INTEGER NOT NULL, `materialId` INTEGER NOT NULL, `revision` INTEGER NOT NULL, `fileHash` TEXT NOT NULL, `payloadJson` TEXT NOT NULL, `contentHash` TEXT NOT NULL, `provider` TEXT NOT NULL, `model` TEXT NOT NULL, `state` TEXT NOT NULL, `isCurrent` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, FOREIGN KEY(`taskId`) REFERENCES `supervision_tasks`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`materialId`) REFERENCES `materials`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "taskId",
+            "columnName": "taskId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "materialId",
+            "columnName": "materialId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "revision",
+            "columnName": "revision",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fileHash",
+            "columnName": "fileHash",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "payloadJson",
+            "columnName": "payloadJson",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contentHash",
+            "columnName": "contentHash",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "provider",
+            "columnName": "provider",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "model",
+            "columnName": "model",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isCurrent",
+            "columnName": "isCurrent",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_image_text_versions_taskId",
+            "unique": false,
+            "columnNames": [
+              "taskId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_image_text_versions_taskId` ON `${TABLE_NAME}` (`taskId`)"
+          },
+          {
+            "name": "index_image_text_versions_materialId_revision",
+            "unique": true,
+            "columnNames": [
+              "materialId",
+              "revision"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_image_text_versions_materialId_revision` ON `${TABLE_NAME}` (`materialId`, `revision`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "supervision_tasks",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "taskId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "materials",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "materialId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "manual_classroom_facts",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `taskId` INTEGER NOT NULL, `description` TEXT NOT NULL, `sourceRefJson` TEXT, `classAtMs` INTEGER, `classStartMs` INTEGER, `classEndMs` INTEGER, `recordedBy` INTEGER NOT NULL, `recordedAt` INTEGER NOT NULL, `requestKey` TEXT NOT NULL, `supersedesFactId` INTEGER, `isCurrent` INTEGER NOT NULL, FOREIGN KEY(`taskId`) REFERENCES `supervision_tasks`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "taskId",
+            "columnName": "taskId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceRefJson",
+            "columnName": "sourceRefJson",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "classAtMs",
+            "columnName": "classAtMs",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "classStartMs",
+            "columnName": "classStartMs",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "classEndMs",
+            "columnName": "classEndMs",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "recordedBy",
+            "columnName": "recordedBy",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "recordedAt",
+            "columnName": "recordedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "requestKey",
+            "columnName": "requestKey",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "supersedesFactId",
+            "columnName": "supersedesFactId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "isCurrent",
+            "columnName": "isCurrent",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_manual_classroom_facts_taskId_requestKey",
+            "unique": true,
+            "columnNames": [
+              "taskId",
+              "requestKey"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_manual_classroom_facts_taskId_requestKey` ON `${TABLE_NAME}` (`taskId`, `requestKey`)"
+          },
+          {
+            "name": "index_manual_classroom_facts_supersedesFactId",
+            "unique": false,
+            "columnNames": [
+              "supersedesFactId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_manual_classroom_facts_supersedesFactId` ON `${TABLE_NAME}` (`supersedesFactId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "supervision_tasks",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "taskId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "term_exclusion_versions",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `courseId` INTEGER NOT NULL, `revision` INTEGER NOT NULL, `payloadJson` TEXT NOT NULL, `contentHash` TEXT NOT NULL, `createdBy` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, FOREIGN KEY(`courseId`) REFERENCES `courses`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "courseId",
+            "columnName": "courseId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "revision",
+            "columnName": "revision",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "payloadJson",
+            "columnName": "payloadJson",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contentHash",
+            "columnName": "contentHash",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdBy",
+            "columnName": "createdBy",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_term_exclusion_versions_courseId_revision",
+            "unique": true,
+            "columnNames": [
+              "courseId",
+              "revision"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_term_exclusion_versions_courseId_revision` ON `${TABLE_NAME}` (`courseId`, `revision`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "courses",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "courseId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "analysis_jobs",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `clientRequestId` TEXT NOT NULL, `taskId` INTEGER NOT NULL, `operation` TEXT NOT NULL, `serverJobId` TEXT, `inputFingerprint` TEXT NOT NULL, `inputManifestJson` TEXT NOT NULL, `state` TEXT NOT NULL, `stage` TEXT, `errorCode` TEXT, `attempt` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, `resultJson` TEXT, `errorDetailsJson` TEXT, FOREIGN KEY(`taskId`) REFERENCES `supervision_tasks`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "clientRequestId",
+            "columnName": "clientRequestId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "taskId",
+            "columnName": "taskId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "operation",
+            "columnName": "operation",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "serverJobId",
+            "columnName": "serverJobId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "inputFingerprint",
+            "columnName": "inputFingerprint",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "inputManifestJson",
+            "columnName": "inputManifestJson",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stage",
+            "columnName": "stage",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "errorCode",
+            "columnName": "errorCode",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "attempt",
+            "columnName": "attempt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "resultJson",
+            "columnName": "resultJson",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "errorDetailsJson",
+            "columnName": "errorDetailsJson",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_analysis_jobs_taskId",
+            "unique": false,
+            "columnNames": [
+              "taskId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_analysis_jobs_taskId` ON `${TABLE_NAME}` (`taskId`)"
+          },
+          {
+            "name": "index_analysis_jobs_state",
+            "unique": false,
+            "columnNames": [
+              "state"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_analysis_jobs_state` ON `${TABLE_NAME}` (`state`)"
+          },
+          {
+            "name": "index_analysis_jobs_clientRequestId",
+            "unique": true,
+            "columnNames": [
+              "clientRequestId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_analysis_jobs_clientRequestId` ON `${TABLE_NAME}` (`clientRequestId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "supervision_tasks",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "taskId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "published_fact_snapshots",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `publicationId` INTEGER NOT NULL, `sourceFactId` INTEGER NOT NULL, `description` TEXT NOT NULL, `sourceRefJson` TEXT, `classAtMs` INTEGER, `classStartMs` INTEGER, `classEndMs` INTEGER, `recordedBy` INTEGER NOT NULL, `recordedAt` INTEGER NOT NULL, FOREIGN KEY(`publicationId`) REFERENCES `review_publications`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "publicationId",
+            "columnName": "publicationId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceFactId",
+            "columnName": "sourceFactId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceRefJson",
+            "columnName": "sourceRefJson",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "classAtMs",
+            "columnName": "classAtMs",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "classStartMs",
+            "columnName": "classStartMs",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "classEndMs",
+            "columnName": "classEndMs",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "recordedBy",
+            "columnName": "recordedBy",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "recordedAt",
+            "columnName": "recordedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_published_fact_snapshots_publicationId",
+            "unique": false,
+            "columnNames": [
+              "publicationId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_published_fact_snapshots_publicationId` ON `${TABLE_NAME}` (`publicationId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "review_publications",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "publicationId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "published_evidence_snapshots",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `publicationId` INTEGER NOT NULL, `analysisSnapshotId` INTEGER, `factSnapshotId` INTEGER, `ordinal` INTEGER NOT NULL, `taskId` INTEGER NOT NULL, `sourceRefJson` TEXT, `excerpt` TEXT NOT NULL, `sourceHash` TEXT, `availabilityAtPublish` TEXT NOT NULL, `capturedAt` INTEGER NOT NULL, FOREIGN KEY(`publicationId`) REFERENCES `review_publications`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`analysisSnapshotId`) REFERENCES `reviewed_analysis_snapshots`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`factSnapshotId`) REFERENCES `published_fact_snapshots`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "publicationId",
+            "columnName": "publicationId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "analysisSnapshotId",
+            "columnName": "analysisSnapshotId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "factSnapshotId",
+            "columnName": "factSnapshotId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "ordinal",
+            "columnName": "ordinal",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "taskId",
+            "columnName": "taskId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceRefJson",
+            "columnName": "sourceRefJson",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "excerpt",
+            "columnName": "excerpt",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceHash",
+            "columnName": "sourceHash",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "availabilityAtPublish",
+            "columnName": "availabilityAtPublish",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "capturedAt",
+            "columnName": "capturedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_published_evidence_snapshots_publicationId",
+            "unique": false,
+            "columnNames": [
+              "publicationId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_published_evidence_snapshots_publicationId` ON `${TABLE_NAME}` (`publicationId`)"
+          },
+          {
+            "name": "index_published_evidence_snapshots_analysisSnapshotId",
+            "unique": false,
+            "columnNames": [
+              "analysisSnapshotId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_published_evidence_snapshots_analysisSnapshotId` ON `${TABLE_NAME}` (`analysisSnapshotId`)"
+          },
+          {
+            "name": "index_published_evidence_snapshots_factSnapshotId",
+            "unique": false,
+            "columnNames": [
+              "factSnapshotId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_published_evidence_snapshots_factSnapshotId` ON `${TABLE_NAME}` (`factSnapshotId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "review_publications",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "publicationId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "reviewed_analysis_snapshots",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "analysisSnapshotId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "published_fact_snapshots",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "factSnapshotId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "analysis_runs",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `requestKey` TEXT NOT NULL, `taskId` INTEGER NOT NULL, `createdBy` INTEGER NOT NULL, `state` TEXT NOT NULL, `policyVersion` TEXT NOT NULL, `planRevision` INTEGER NOT NULL, `selectedOperationsJson` TEXT NOT NULL, `materialSelectionJson` TEXT NOT NULL, `acceptedInputsJson` TEXT NOT NULL, `proxyBaseUrl` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, FOREIGN KEY(`taskId`) REFERENCES `supervision_tasks`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "requestKey",
+            "columnName": "requestKey",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "taskId",
+            "columnName": "taskId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdBy",
+            "columnName": "createdBy",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "policyVersion",
+            "columnName": "policyVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "planRevision",
+            "columnName": "planRevision",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "selectedOperationsJson",
+            "columnName": "selectedOperationsJson",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "materialSelectionJson",
+            "columnName": "materialSelectionJson",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "acceptedInputsJson",
+            "columnName": "acceptedInputsJson",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "proxyBaseUrl",
+            "columnName": "proxyBaseUrl",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_analysis_runs_taskId",
+            "unique": false,
+            "columnNames": [
+              "taskId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_analysis_runs_taskId` ON `${TABLE_NAME}` (`taskId`)"
+          },
+          {
+            "name": "index_analysis_runs_createdBy",
+            "unique": false,
+            "columnNames": [
+              "createdBy"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_analysis_runs_createdBy` ON `${TABLE_NAME}` (`createdBy`)"
+          },
+          {
+            "name": "index_analysis_runs_requestKey",
+            "unique": true,
+            "columnNames": [
+              "requestKey"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_analysis_runs_requestKey` ON `${TABLE_NAME}` (`requestKey`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "supervision_tasks",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "taskId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "analysis_run_steps",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `runId` INTEGER NOT NULL, `stepKey` TEXT NOT NULL, `operation` TEXT NOT NULL, `materialId` INTEGER, `dependsOnJson` TEXT NOT NULL, `state` TEXT NOT NULL, `jobId` INTEGER, `ownsJob` INTEGER NOT NULL, `inputFingerprint` TEXT, `outputRefsJson` TEXT, `blockReason` TEXT, `errorDetailsJson` TEXT, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, FOREIGN KEY(`runId`) REFERENCES `analysis_runs`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`jobId`) REFERENCES `analysis_jobs`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "runId",
+            "columnName": "runId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stepKey",
+            "columnName": "stepKey",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "operation",
+            "columnName": "operation",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "materialId",
+            "columnName": "materialId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "dependsOnJson",
+            "columnName": "dependsOnJson",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "jobId",
+            "columnName": "jobId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "ownsJob",
+            "columnName": "ownsJob",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "inputFingerprint",
+            "columnName": "inputFingerprint",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "outputRefsJson",
+            "columnName": "outputRefsJson",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "blockReason",
+            "columnName": "blockReason",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "errorDetailsJson",
+            "columnName": "errorDetailsJson",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_analysis_run_steps_runId_stepKey",
+            "unique": true,
+            "columnNames": [
+              "runId",
+              "stepKey"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_analysis_run_steps_runId_stepKey` ON `${TABLE_NAME}` (`runId`, `stepKey`)"
+          },
+          {
+            "name": "index_analysis_run_steps_jobId",
+            "unique": false,
+            "columnNames": [
+              "jobId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_analysis_run_steps_jobId` ON `${TABLE_NAME}` (`jobId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "analysis_runs",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "runId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "analysis_jobs",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "jobId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f1bc7841deee2e27459e95029e0753c0')"
+    ]
+  }
+}

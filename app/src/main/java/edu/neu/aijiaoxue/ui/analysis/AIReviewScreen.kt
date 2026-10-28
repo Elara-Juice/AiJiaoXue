@@ -14,6 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -66,10 +67,12 @@ fun AIReviewScreen(viewModel: AIReviewViewModel, onBack: () -> Unit) {
             if (analysis.schemaVersion == 1 && analysis.payloadJson != null) {
                 var structured by rememberSaveable(analysis.id, state.corrections.firstOrNull()?.id) { mutableStateOf(state.corrections.firstOrNull()?.correctedPayloadJson ?: analysis.payloadJson) }
                 val manifest = state.manifestJson
+                var editingStructure by rememberSaveable(analysis.id) { mutableStateOf(false) }
                 if (manifest == null) MessageCard("原始分析输入记录缺失，无法作为正式审核依据", error = true)
                 else {
-                    StructuredReviewForm(requireNotNull(structured), manifest, analysis.operation, !state.saving && analysis.isCurrent) { structured = it }
-                    Text("校正结果保留原输入引用；修改结构字段后，正文由有效结构生成。来源过期时须重新分析。")
+                    TextButton(onClick = { editingStructure = !editingStructure }) { Text(if (editingStructure) "收起修正表单" else "需要修正？展开逐项核对") }
+                    if (editingStructure) StructuredReviewForm(requireNotNull(structured), manifest, analysis.operation, !state.saving && analysis.isCurrent) { structured = it }
+                    Text("请先核对结论与证据；需要调整时再展开修正表单。", style = MaterialTheme.typography.bodySmall)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedButton(onClick = { structured = analysis.payloadJson; viewModel.saveStructured(analysis.payloadJson) }, enabled = !state.saving && analysis.isCurrent, modifier = Modifier.weight(1f).testTag("review-accept")) { Text("确认原结构") }
                         Button(onClick = { viewModel.saveStructured(requireNotNull(structured)) }, enabled = !state.saving && analysis.isCurrent, modifier = Modifier.weight(1f).testTag("review-save")) { Text("保存结构修正") }

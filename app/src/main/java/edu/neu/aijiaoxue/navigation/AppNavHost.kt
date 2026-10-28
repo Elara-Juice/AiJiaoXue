@@ -54,6 +54,9 @@ import edu.neu.aijiaoxue.ui.growth.*
 import edu.neu.aijiaoxue.ui.governance.*
 import edu.neu.aijiaoxue.data.repository.GovernanceRepository
 import edu.neu.aijiaoxue.data.repository.AbnormalCourseRepository
+import edu.neu.aijiaoxue.data.repository.SupervisorPortalRepository
+import edu.neu.aijiaoxue.data.model.SupervisorTab
+import edu.neu.aijiaoxue.ui.supervisor.*
 
 private val ADMIN = setOf(Role.ADMIN)
 private val SUPERVISOR = setOf(Role.SUPERVISOR)
@@ -90,6 +93,7 @@ fun AppNavHost() {
     key(user?.id) {
         val navController = rememberNavController()
         val current = user
+        SupervisorNavigationFrame(navController, current?.takeIf { it.role == Role.SUPERVISOR }?.id) {
         NavHost(
             navController = navController,
             startDestination = if (current == null) Routes.LOGIN else Routes.homeOf(current.role),
@@ -102,7 +106,34 @@ fun AppNavHost() {
 
             // 角色首页
             guarded(navController, Routes.HOME_ADMIN, ADMIN) { AdminHomeScreen(navController::navigate) }
-            guarded(navController, Routes.HOME_SUPERVISOR, SUPERVISOR) { SupervisorHomeScreen(navController::navigate) }
+            guarded(navController, Routes.HOME_SUPERVISOR, SUPERVISOR) {
+                val model = moduleViewModel { db, actor -> SupervisorPortalViewModel(SupervisorPortalRepository(db), actor) }
+                SupervisorPortalScreen(model, SupervisorTab.WORKBENCH, navController::navigate)
+            }
+            guarded(navController, Routes.SUPERVISOR_TRACKING, SUPERVISOR) {
+                val model = moduleViewModel { db, actor -> SupervisorPortalViewModel(SupervisorPortalRepository(db), actor) }
+                SupervisorPortalScreen(model, SupervisorTab.TRACKING, navController::navigate)
+            }
+            guarded(navController, Routes.SUPERVISOR_ME, SUPERVISOR) { SupervisorProfileScreen(navController::navigate) }
+            guarded(navController, Routes.ANALYSIS_SETTINGS, SUPERVISOR) { AnalysisServiceSettingsScreen { navController.popBackStack() } }
+            guarded(navController, Routes.TASK_DETAIL, SUPERVISOR, taskIdArg) { entry ->
+                val model = moduleViewModel { db, actor -> SupervisorTaskViewModel(SupervisorPortalRepository(db), actor, entry.taskId()) }
+                SupervisorTaskScreen(model, { navController.popBackStack() }, navController::navigate)
+            }
+            guarded(navController, Routes.TASK_TRACKING, SUPERVISOR, taskIdArg) { entry ->
+                val model = moduleViewModel { db, actor -> SupervisorPortalViewModel(SupervisorPortalRepository(db), actor, entry.taskId()) }
+                SupervisorPortalScreen(model, SupervisorTab.TRACKING, navController::navigate, entry.taskId()) { navController.popBackStack() }
+            }
+            guarded(navController, Routes.ISSUE_DETAIL, SUPERVISOR, listOf(navArgument(Routes.ARG_ISSUE_ID) { type = NavType.LongType })) { entry ->
+                val model = moduleViewModel { db, actor -> SupervisorIssueViewModel(db, actor, requireNotNull(entry.arguments).getLong(Routes.ARG_ISSUE_ID)) }
+                SupervisorIssueScreen(model, { navController.popBackStack() }, navController::navigate)
+            }
+            guarded(navController, Routes.FOLLOW_UP_CREATE, SUPERVISOR, listOf(navArgument(Routes.ARG_ISSUE_ID) { type = NavType.LongType })) { entry ->
+                val model = moduleViewModel { db, actor -> SupervisorIssueViewModel(db, actor, requireNotNull(entry.arguments).getLong(Routes.ARG_ISSUE_ID)) }
+                FollowUpCreateScreen(model, { navController.popBackStack() }) { id ->
+                    navController.navigate(Routes.taskDetail(id)) { popUpTo(Routes.FOLLOW_UP_CREATE) { inclusive = true }; launchSingleTop = true }
+                }
+            }
             guarded(navController, Routes.HOME_TEACHER, TEACHER) { TeacherHomeScreen(navController::navigate) }
 
             // ui/course（王博田）
@@ -135,7 +166,8 @@ fun AppNavHost() {
             }
             // US07（10/4 由王博田转给李奕萱）
             guarded(navController, Routes.MY_TASKS, SUPERVISOR) {
-                MyTasksScreen(onBack = { navController.popBackStack() }, onNavigate = navController::navigate)
+                val model = moduleViewModel { db, actor -> SupervisorPortalViewModel(SupervisorPortalRepository(db), actor) }
+                SupervisorPortalScreen(model, SupervisorTab.TASKS, navController::navigate)
             }
 
             // ui/arrange（王博田）
@@ -157,8 +189,8 @@ fun AppNavHost() {
             guarded(navController, Routes.CAPTURE, SUPERVISOR, taskIdArg) { entry ->
                 CaptureScreen(
                     onBack = { navController.popBackStack() },
-                    // 需求 3.3：结束课堂采集后进入评价页；采集页留在返回栈里，返回后可继续补充拍照
-                    onClassEnded = { navController.navigate(Routes.evaluation(entry.taskId())) },
+                    // 演示主链：结束采集后先核对材料，分析页仍保留直接人工评价。
+                    onClassEnded = { navController.navigate(Routes.analysis(entry.taskId())) { launchSingleTop = true } },
                     onAnalysis = { navController.navigate(Routes.analysis(entry.taskId())) },
                 )
             }
@@ -180,7 +212,8 @@ fun AppNavHost() {
                 val model = moduleViewModel { db, actor -> HistoryDetailViewModel(EvaluationRepository(db), actor, entry.taskId()) }
                 HistoryDetailScreen(model, { navController.popBackStack() },
                     onEvidence = { navController.navigate(Routes.publishedEvidence(entry.taskId(), it)) },
-                    onParticipation = { navController.navigate(Routes.reviewParticipation(entry.taskId())) })
+                    onParticipation = { navController.navigate(Routes.reviewParticipation(entry.taskId())) },
+                    onImprovement = if (current?.role == Role.SUPERVISOR) ({ navController.navigate(Routes.taskTracking(entry.taskId())) }) else null)
             }
             guarded(navController, Routes.PUBLISHED_EVIDENCE, ADMIN_SUPERVISOR,
                 taskIdArg + navArgument(Routes.ARG_EVIDENCE_ID) { type = NavType.LongType }) { entry ->
@@ -303,6 +336,7 @@ fun AppNavHost() {
                 }
                 ParticipationScreen(model, { navController.popBackStack() })
             }
+        }
         }
     }
 }

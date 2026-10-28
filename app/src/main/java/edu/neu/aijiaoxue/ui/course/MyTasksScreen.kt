@@ -8,11 +8,15 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -31,6 +35,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import edu.neu.aijiaoxue.data.model.TaskStatus
 import edu.neu.aijiaoxue.navigation.Routes
+import edu.neu.aijiaoxue.ui.components.StatusBadge
+import edu.neu.aijiaoxue.ui.components.SectionHeading
 
 /**
  * US07 我的督导任务（Routes.MY_TASKS）。
@@ -63,9 +69,10 @@ fun MyTasksScreen(
         }
         LazyColumn(
             modifier = modifier,
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            item { SectionHeading("每一堂课，持续跟进", "${state.unfinished.size} 项待处理 · ${state.completed.size} 项已完成") }
             item { SectionTitle("未完成") }
             if (state.unfinished.isEmpty()) {
                 item { EmptyHint("没有未完成的任务，可在“课程检索”中创建督导任务") }
@@ -102,21 +109,22 @@ private fun TaskCard(item: MyTaskItem, onNavigate: (String) -> Unit) {
         Modifier
             .fillMaxWidth()
             .testTag(taskCardTag(row.id)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(row.courseName, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-                Text(
+        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                StatusBadge(
                     if (item.isOverdue) "${row.status.label} · 已逾期" else row.status.label,
-                    style = MaterialTheme.typography.labelLarge,
                     color = if (item.isOverdue) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
                 )
+                Text(row.courseName, style = MaterialTheme.typography.titleMedium)
             }
             Text(
                 "${row.code} · ${row.teacherName} · ${row.supervisionDate} 第 ${row.period} 节 · ${row.type.label}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            Text("${item.materialCount} 份课堂材料", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             TaskActions(row.id, row.status, onNavigate)
         }
     }
@@ -126,13 +134,14 @@ internal fun taskCardTag(taskId: Long) = "task-$taskId"
 
 /** US07 主流程 3：按状态给出下一步入口（NF-02）。 */
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 private fun TaskActions(taskId: Long, status: TaskStatus, onNavigate: (String) -> Unit) {
-    val buttonModifier = Modifier.height(48.dp)
+    val buttonModifier = Modifier.heightIn(min = 52.dp)
     if (status in setOf(TaskStatus.PENDING_EVALUATION, TaskStatus.COMPLETED)) {
         TextButton(onClick = { onNavigate(Routes.reviewParticipation(taskId)) }) { Text("参与分析与环节定位") }
     }
     TextButton(onClick = { onNavigate(Routes.inputWorkspace(taskId)) }) { Text("课堂输入与补充事实") }
-    Row(
+    FlowRow(
         Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.End),
     ) {
@@ -154,17 +163,18 @@ private fun TaskActions(taskId: Long, status: TaskStatus, onNavigate: (String) -
                     modifier = buttonModifier,
                 ) { Text("查看材料") }
                 Button(
-                    onClick = { onNavigate(Routes.evaluation(taskId)) },
+                    onClick = { onNavigate(Routes.analysis(taskId)) },
                     modifier = buttonModifier,
-                ) { Text("继续评价") }
+                ) { Text("查看分析") }
+                TextButton(onClick = { onNavigate(Routes.evaluation(taskId)) }, modifier = buttonModifier) { Text("继续评价") }
             }
 
             TaskStatus.COMPLETED -> {
-                OutlinedButton(
+                Button(
                     onClick = { onNavigate(Routes.historyDetail(taskId)) },
                     modifier = buttonModifier,
                 ) { Text("查看记录") }
-                Button(
+                OutlinedButton(
                     onClick = { onNavigate(Routes.analysis(taskId)) },
                     modifier = buttonModifier,
                 ) { Text("AI分析") }

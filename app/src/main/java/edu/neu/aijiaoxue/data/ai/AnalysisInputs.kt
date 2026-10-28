@@ -33,7 +33,7 @@ class AnalysisInputs(private val db: AppDatabase, private val context: Context) 
             if (operation == AnalysisOperation.TRANSCRIBE) require(material.durationMs != null && material.durationMs in 1..7200000) { "录音尚未完成或超过2小时" }
             val hash = hashFile(file)
             add("material-${material.id}", if (material.type == MaterialType.AUDIO) "AUDIO" else "IMAGE", 1, JSONObject(),
-                SourceRef(EvidenceKind.MATERIAL, taskId, material.id, 1, null, hash, classAtMs = material.offsetMs))
+                SourceRef(EvidenceKind.MATERIAL, taskId, material.id, 1, null, hash, classAtMs = edu.neu.aijiaoxue.data.repository.MaterialTimeResolver.classroomOffsetMs(material)))
         } else {
             dao.transcripts(taskId).filter { it.state in setOf(ResultState.SUPPORTED, ResultState.PARTIAL) }.forEach {
                 add("tr-${it.id}", "TRANSCRIPT", it.revision, JSONObject(it.payloadJson), SourceRef(EvidenceKind.TRANSCRIPT_SEGMENT, taskId, it.id, it.revision, null, it.contentHash))

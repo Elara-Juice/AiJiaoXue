@@ -26,45 +26,67 @@ class CloudAnalysisPipeline(private val db: AppDatabase, private val context: Co
     private fun api() = AnalysisApiClient(AnalysisSettings(context).get())
 
     suspend fun start(actorId: Long, taskId: Long, operation: AnalysisOperation, materialId: Long? = null): Long {
+        val id = prepare(actorId, taskId, operation, materialId)
+        executePrepared(actorId, id)
+        return id
+    }
+
+    /** Persist the job and batch association before any upload or paid request. */
+    suspend fun prepare(actorId: Long, taskId: Long, operation: AnalysisOperation, materialId: Long? = null, runStepId: Long? = null): Long {
         require(operation !in setOf(AnalysisOperation.LEGACY, AnalysisOperation.PARTICIPATION))
         val manifest = AnalysisInputs(db, context).build(actorId, taskId, operation, materialId)
         val fingerprint = AnalysisInputs.fingerprint(manifest)
         manifest.put("inputFingerprint", fingerprint)
         val now = System.currentTimeMillis()
-        val superseded = mutableListOf<String>()
         val job = db.withTransaction {
+            requireNotNull(dao.ownedTask(actorId, taskId))
+            val step = runStepId?.let { requireNotNull(db.analysisRunDao().step(it)) }
+            step?.jobId?.let { return@withTransaction requireNotNull(dao.getJob(it)) }
+            if (step != null) {
+                val run = requireNotNull(db.analysisRunDao().run(step.runId))
+                require(run.taskId == taskId && run.createdBy == actorId && run.state == AnalysisRunState.RUNNING) { "分析计划已暂停或取消" }
+                require(AnalysisRunInputs.same(run.acceptedInputsJson, AnalysisRunInputs.capture(db, context, taskId))) { "输入已改变，请重新确认计划" }
+            }
             // 同一能力和材料的新请求替代旧请求；另一段录音/另一张图片不受影响。
             dao.jobsForTask(taskId).filter { it.operation == operation && it.state in ACTIVE && it.inputFingerprint != fingerprint }.forEach { previous ->
                 val old = JSONObject(previous.inputManifestJson)
                 val oldMaterial = if (old.isNull("materialId")) null else old.getLong("materialId")
                 if (oldMaterial == materialId) {
-                    dao.updateJob(previous.copy(state = JobState.CANCELLED, stage = "已由新输入请求替代", updatedAt = now))
-                    previous.serverJobId?.let(superseded::add)
+                    dao.updateJob(previous.copy(state = if (previous.serverJobId != null || previous.stage == "SUBMITTING") JobState.CANCEL_REQUESTED else JobState.CANCELLED, stage = "已由新输入请求替代", updatedAt = now))
                 }
             }
-            dao.jobsForTask(taskId).firstOrNull { it.operation == operation && it.inputFingerprint == fingerprint && it.state in ACTIVE }
-                ?: AnalysisJob(clientRequestId = UUID.randomUUID().toString(), taskId = taskId, operation = operation,
+            val existing = dao.jobsForTask(taskId).firstOrNull { it.operation == operation && it.inputFingerprint == fingerprint && it.state in EXECUTABLE }
+            val prepared = existing ?: AnalysisJob(clientRequestId = UUID.randomUUID().toString(), taskId = taskId, operation = operation,
                     inputFingerprint = fingerprint, inputManifestJson = manifest.toString(), createdAt = now, updatedAt = now)
                     .let { it.copy(id = dao.insertJob(it)) }
+            if (step != null) db.analysisRunDao().updateStep(step.copy(jobId = prepared.id, ownsJob = existing == null,
+                inputFingerprint = fingerprint, state = AnalysisStepState.RUNNING, updatedAt = now))
+            prepared
         }
-        superseded.forEach { id -> runCatching { api().request("POST", "/v1/analysis-jobs/$id/cancel", JSONObject()) } }
-        if (job.serverJobId != null) return job.id
+        return job.id
+    }
+
+    suspend fun executePrepared(actorId: Long, localJobId: Long) {
+        val job = requireNotNull(dao.getJob(localJobId))
+        requireNotNull(dao.ownedTask(actorId, job.taskId))
+        if (job.state !in EXECUTABLE || job.serverJobId != null) return
+        val operation = job.operation
+        val manifest = JSONObject(job.inputManifestJson)
         try {
             if (operation in LOCAL_OPERATIONS) {
                 val result = if (operation == AnalysisOperation.EXPRESSION_STATS) expressionResult(manifest) else interactionResult(manifest)
                 applyResult(actorId, job, result, JobState.SUCCEEDED)
-                return job.id
+                return
             }
             submit(actorId, job)
         } catch (cancelled: CancellationException) { throw cancelled }
         catch (error: Exception) { recordError(job.id, error) }
-        return job.id
     }
 
     /** 进程重启/请求超时重用同一幂等键；成功响应丢失也不会重复产生云任务。 */
     private suspend fun submit(actorId: Long, requested: AnalysisJob) = submissionLocks.getOrPut(requested.id) { Mutex() }.withLock {
             val job = requireNotNull(dao.getJob(requested.id))
-            if (job.state !in ACTIVE || job.serverJobId != null) return@withLock
+            if (job.state !in EXECUTABLE || job.serverJobId != null) return@withLock
             val task = requireNotNull(dao.ownedTask(actorId, job.taskId))
             if (task.analysisCaseId == null) dao.setCaseId(task.id, UUID.randomUUID().toString())
             val caseId = requireNotNull(dao.ownedTask(actorId, job.taskId)?.analysisCaseId)
@@ -83,8 +105,8 @@ class CloudAnalysisPipeline(private val db: AppDatabase, private val context: Co
             }
             val proceed = db.withTransaction {
                 val latest = requireNotNull(dao.getJob(job.id))
-                if (latest.state !in ACTIVE) false else {
-                    dao.updateJob(latest.copy(inputManifestJson = manifest.toString(), updatedAt = System.currentTimeMillis())); true
+                if (latest.state !in EXECUTABLE) false else {
+                    dao.updateJob(latest.copy(inputManifestJson = manifest.toString(), stage = "SUBMITTING", updatedAt = System.currentTimeMillis())); true
                 }
             }
             if (!proceed) return@withLock
@@ -94,25 +116,27 @@ class CloudAnalysisPipeline(private val db: AppDatabase, private val context: Co
             val cancelled = db.withTransaction {
                 val latest = requireNotNull(dao.getJob(job.id))
                 dao.updateJob(latest.copy(serverJobId = serverId, errorCode = null, updatedAt = System.currentTimeMillis()))
-                latest.state == JobState.CANCELLED
+                latest.state in setOf(JobState.CANCELLED, JobState.CANCEL_REQUESTED)
             }
-            if (cancelled) runCatching { api().request("POST", "/v1/analysis-jobs/$serverId/cancel", JSONObject()) }
+            if (cancelled) cancel(actorId, job.id)
     }
 
     private suspend fun recordError(id: Long, error: Exception) = db.withTransaction {
         val job = requireNotNull(dao.getJob(id))
-        if (job.state in ACTIVE) dao.updateJob(job.copy(state = if (error is java.io.IOException) job.state else JobState.FAILED,
-            stage = if (error is java.io.IOException) "连接中断，可刷新继续" else "处理失败，原结果保留",
-            errorCode = error.message?.take(300), updatedAt = System.currentTimeMillis()))
+        val remote = error as? edu.neu.aijiaoxue.data.remote.AnalysisRemoteError
+        val retryable = remote?.retryable ?: (error is java.io.IOException)
+        if (job.state in EXECUTABLE) dao.updateJob(job.copy(state = if (retryable) job.state else JobState.FAILED,
+            stage = if (job.stage == "SUBMITTING" && retryable) "SUBMISSION_PENDING" else if (retryable) "连接中断，可刷新继续" else "处理失败，原结果保留",
+            errorCode = remote?.code ?: error.message?.take(300), errorDetailsJson = remote?.json()?.toString(), updatedAt = System.currentTimeMillis()))
     }
 
     suspend fun refresh(actorId: Long, localJobId: Long): JobState {
         val job = requireNotNull(dao.getJob(localJobId))
         requireNotNull(dao.ownedTask(actorId, job.taskId)) { "无权查看分析任务" }
         if (job.state !in ACTIVE) return job.state
+        if (job.state == JobState.CANCEL_REQUESTED) { cancel(actorId, job.id); return requireNotNull(dao.getJob(job.id)).state }
         if (job.serverJobId == null) {
-            if (job.operation in LOCAL_OPERATIONS) start(actorId, job.taskId, job.operation)
-            else try { submit(actorId, job) } catch (e: CancellationException) { throw e } catch (e: Exception) { recordError(job.id, e) }
+            executePrepared(actorId, job.id)
             return requireNotNull(dao.getJob(job.id)).state
         }
         val response = api().request("GET", "/v1/analysis-jobs/${job.serverJobId}")
@@ -138,10 +162,15 @@ class CloudAnalysisPipeline(private val db: AppDatabase, private val context: Co
             }
         } else db.withTransaction {
             val latest = requireNotNull(dao.getJob(job.id))
-            if (latest.state in ACTIVE) dao.updateJob(latest.copy(state = state,
-                stage = response.optString("stage"), errorCode = response.optJSONObject("error")?.optString("message"), updatedAt = System.currentTimeMillis()))
+            if (latest.state in EXECUTABLE) dao.updateJob(latest.copy(state = state,
+                stage = response.optString("stage"), errorCode = response.optJSONObject("error")?.optString("code"), errorDetailsJson = response.optJSONObject("error")?.toString(), updatedAt = System.currentTimeMillis()))
         }
         return requireNotNull(dao.getJob(job.id)).state
+    }
+
+    suspend fun refreshExistingJob(actorId: Long, localJobId: Long): JobState {
+        val job = requireNotNull(dao.getJob(localJobId)); requireNotNull(dao.ownedTask(actorId, job.taskId))
+        return if (job.serverJobId == null) job.state else refresh(actorId, localJobId)
     }
 
     suspend fun cancel(actorId: Long, id: Long) {
@@ -149,35 +178,51 @@ class CloudAnalysisPipeline(private val db: AppDatabase, private val context: Co
         db.withTransaction {
             val latest = requireNotNull(dao.getJob(id))
             if (latest.state !in ACTIVE) return@withTransaction
-            dao.updateJob(latest.copy(state = JobState.CANCELLED, updatedAt = System.currentTimeMillis()))
+            val neverSubmitted = latest.serverJobId == null && latest.stage !in setOf("SUBMITTING", "SUBMISSION_PENDING")
+            dao.updateJob(latest.copy(state = if (neverSubmitted) JobState.CANCELLED else JobState.CANCEL_REQUESTED,
+                stage = if (neverSubmitted) "已取消，未提交云端" else "后续步骤已停止，云端取消待确认", updatedAt = System.currentTimeMillis()))
         }
-        if (dao.getJob(id)?.state != JobState.CANCELLED) return
-        job.serverJobId?.let { runCatching { api().request("POST", "/v1/analysis-jobs/$it/cancel", JSONObject()) } }
+        if (dao.getJob(id)?.state != JobState.CANCEL_REQUESTED) return
+        job.serverJobId?.let { serverId ->
+            try {
+                val response = api().request("POST", "/v1/analysis-jobs/$serverId/cancel", JSONObject())
+                val remote = JobState.valueOf(response.getString("state"))
+                if (remote !in ACTIVE) db.withTransaction {
+                    val latest = requireNotNull(dao.getJob(id))
+                    if (latest.state == JobState.CANCEL_REQUESTED) dao.updateJob(latest.copy(state = JobState.CANCELLED,
+                        stage = if (remote in setOf(JobState.SUCCEEDED, JobState.PARTIAL)) "服务已结束，取消后的结果未激活" else "已确认取消", updatedAt = System.currentTimeMillis()))
+                }
+            } catch (e: CancellationException) { throw e } catch (_: Exception) { /* Keep durable cancellation pending. */ }
+        }
     }
 
     private suspend fun applyResult(actorId: Long, job: AnalysisJob, result: JSONObject, state: JobState) = db.withTransaction {
         requireNotNull(dao.ownedTask(actorId, job.taskId)) { "分析权限已改变" }
         val latest = requireNotNull(dao.getJob(job.id))
-        if (latest.state !in ACTIVE) return@withTransaction
+        if (latest.state !in EXECUTABLE) return@withTransaction
         val manifest = JSONObject(job.inputManifestJson)
         require(ManifestEvidence.isCurrent(db, job.taskId, manifest)) { "来源版本已改变" }
         val payload = result.getJSONObject("payload")
         val resultState = ResultState.valueOf(result.getString("resultState"))
         val producer = result.optJSONObject("producer") ?: JSONObject().put("provider", "rule").put("model", "expression_exact_v1")
         val materialId = if (manifest.isNull("materialId")) null else manifest.getLong("materialId")
+        var outputCollection: String? = null
+        var output: JSONObject? = null
         when (job.operation) {
             AnalysisOperation.TRANSCRIBE -> {
                 val input = manifest.getJSONArray("inputs").getJSONObject(0)
-                TranscriptRepository(db).saveGenerated(actorId, job.taskId, requireNotNull(materialId), payload.toString(),
+                val id = TranscriptRepository(db).saveGenerated(actorId, job.taskId, requireNotNull(materialId), payload.toString(),
                     input.getJSONObject("sourceRef").getString("contentHash"), producer.optString("provider", "bailian"), producer.optString("model"), "bailian_timestamp_v1", resultState)
+                outputCollection = "transcripts"; output = AnalysisRunInputs.transcript(requireNotNull(dao.transcript(id)))
             }
             AnalysisOperation.IMAGE_TEXT -> {
                 val input = manifest.getJSONArray("inputs").getJSONObject(0)
                 dao.deactivateImageTexts(requireNotNull(materialId))
-                dao.insertImageText(ImageTextVersion(taskId = job.taskId, materialId = materialId, revision = dao.imageTextRevision(materialId) + 1,
+                val id = dao.insertImageText(ImageTextVersion(taskId = job.taskId, materialId = materialId, revision = dao.imageTextRevision(materialId) + 1,
                     fileHash = input.getJSONObject("sourceRef").getString("contentHash"), payloadJson = payload.toString(), contentHash = AnalysisJson.hash(payload.toString()),
                     provider = producer.optString("provider", "deepseek"), model = producer.optString("model"), state = resultState, createdAt = System.currentTimeMillis()))
                 dao.bumpInputRevision(job.taskId)
+                outputCollection = "images"; output = AnalysisRunInputs.image(requireNotNull(dao.imageText(id)))
             }
             else -> {
                 StructuredPayloadValidation.validate(job.operation, payload, payload, manifest, job.taskId)
@@ -191,7 +236,9 @@ class CloudAnalysisPipeline(private val db: AppDatabase, private val context: Co
                 db.aiAnalysisDao().activateBatch(job.taskId, job.operation, listOf(analysis to references))
             }
         }
-        dao.updateJob(latest.copy(state = state, resultJson = result.toString(), stage = "已保存，待人工复核", errorCode = null, updatedAt = System.currentTimeMillis()))
+        val completed = latest.copy(state = state, resultJson = result.toString(), stage = "已保存，待人工复核", errorCode = null, errorDetailsJson = null, updatedAt = System.currentTimeMillis())
+        dao.updateJob(completed)
+        AnalysisRunInputs.recordOutput(db, completed, outputCollection, materialId, output)
     }
 
     private suspend fun expressionResult(manifest: JSONObject): JSONObject {
@@ -239,6 +286,7 @@ class CloudAnalysisPipeline(private val db: AppDatabase, private val context: Co
     companion object {
         private val submissionLocks = ConcurrentHashMap<Long, Mutex>()
         val ACTIVE = setOf(JobState.QUEUED, JobState.RUNNING, JobState.CANCEL_REQUESTED)
+        val EXECUTABLE = setOf(JobState.QUEUED, JobState.RUNNING)
         val LOCAL_OPERATIONS = setOf(AnalysisOperation.EXPRESSION_STATS, AnalysisOperation.INTERACTION_STATS)
     }
 }

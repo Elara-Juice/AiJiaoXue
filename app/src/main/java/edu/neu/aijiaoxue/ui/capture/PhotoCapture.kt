@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectable
@@ -27,6 +28,7 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -52,6 +54,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import edu.neu.aijiaoxue.data.entity.Material
 import edu.neu.aijiaoxue.data.model.MaterialType
+import edu.neu.aijiaoxue.data.repository.MaterialTimeResolver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -80,13 +83,13 @@ fun PhotoCaptureCard(
         uri?.let(onImport)
     }
 
-    Card(Modifier.fillMaxWidth()) {
+    Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("PPT / 板书拍照", style = MaterialTheme.typography.titleMedium)
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 val buttonModifier = Modifier
                     .weight(1f)
-                    .height(48.dp)
+                    .heightIn(min = 52.dp)
                 Button(
                     onClick = {
                         val uri = onPreparePhoto() ?: return@Button
@@ -243,7 +246,8 @@ private fun PhotoImage(material: Material, maxSize: Int, contentScale: ContentSc
 fun photoTimeLabel(m: Material): String {
     val time = SimpleDateFormat("HH:mm:ss", Locale.CHINA).format(Date(m.capturedAt))
     val verb = if (m.isImported) "导入于" else "拍摄于"
-    return "$verb $time · 课堂第 ${formatDuration(m.offsetMs)}"
+    val classroomTime = MaterialTimeResolver.classroomOffsetMs(m)?.let { "课堂第 ${formatDuration(it)}" } ?: "课堂时间未知"
+    return "$verb $time · $classroomTime"
 }
 
 /** 图片解码与导入。按目标尺寸采样，避免大图撑爆内存；按 EXIF 方向旋正。 */
