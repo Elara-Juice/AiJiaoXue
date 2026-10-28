@@ -1,5 +1,7 @@
 package edu.neu.aijiaoxue.navigation
 
+import edu.neu.aijiaoxue.ui.theme.AppBackAction
+
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -21,7 +23,7 @@ fun PendingScreen(title: String, onBack: () -> Unit) {
         topBar = {
             TopAppBar(
                 title = { Text(title) },
-                navigationIcon = { TextButton(onClick = onBack) { Text("返回") } },
+                navigationIcon = { AppBackAction(onBack) },
             )
         },
     ) { innerPadding ->

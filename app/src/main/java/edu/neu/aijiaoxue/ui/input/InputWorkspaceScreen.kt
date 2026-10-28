@@ -1,5 +1,7 @@
 package edu.neu.aijiaoxue.ui.input
 
+import edu.neu.aijiaoxue.ui.theme.AppBackAction
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -22,7 +24,7 @@ fun InputWorkspaceScreen(vm: InputWorkspaceViewModel, onBack: () -> Unit) {
     val material = state.transcripts.firstOrNull { it.materialId == state.editor.selectedMaterialId } ?: state.transcripts.firstOrNull()
     val dirty = material?.let { state.editor.transcripts[it.materialId]?.changes?.size } ?: 0
     Scaffold(
-        topBar = { TopAppBar(title = { Text(if (state.task == null) "课程要求" else "课堂分析资料") }, navigationIcon = { TextButton(onClick = onBack) { Text("返回") } }, actions = { TextButton(onClick = vm::refresh, enabled = !state.busy) { Text("刷新") } }) },
+        topBar = { TopAppBar(title = { Text(if (state.task == null) "课程要求" else "课堂分析资料") }, navigationIcon = { AppBackAction(onBack) }, actions = { TextButton(onClick = vm::refresh, enabled = !state.busy) { Text("刷新") } }) },
         bottomBar = {
             if (state.task != null) Surface(shadowElevation = 3.dp) {
                 Column(Modifier.fillMaxWidth().navigationBarsPadding().imePadding().padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {

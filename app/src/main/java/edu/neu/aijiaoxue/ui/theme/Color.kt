@@ -2,23 +2,17 @@ package edu.neu.aijiaoxue.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-internal val WarmBackground = Color(0xFFFBFAF8)
-internal val BrandOrange = Color(0xFFC2410C)
-internal val PaleOrange = Color(0xFFFFF1E6)
-internal val Ink = Color(0xFF20242C)
-internal val MutedInk = Color(0xFF626873)
-
-@androidx.compose.runtime.Immutable
-data class AppSemanticColors(
-    val accentBright: Color = Color(0xFFFF8A3D),
-    val onAccentBright: Color = Color(0xFF3B1B0B),
-    val success: Color = Color(0xFF166534),
-    val warning: Color = Color(0xFF92400E),
-    val info: Color = Color(0xFF1D4ED8),
-)
-
-internal val LocalAppSemanticColors = androidx.compose.runtime.staticCompositionLocalOf { AppSemanticColors() }
-object AppTheme {
-    val colors: AppSemanticColors
-        @androidx.compose.runtime.Composable get() = LocalAppSemanticColors.current
-}
+// Calm navy and paper-white palette, with a cool mist background for app surfaces.
+val Navy = Color(0xFF163B66)
+val NavyDeep = Color(0xFF102E52)
+val Blue = Color(0xFF2F6FAE)
+val Sky = Color(0xFF5C9DD2)
+val Ink = Color(0xFF172B43)
+val MutedInk = Color(0xFF64758A)
+val Mist = Color(0xFFF3F6FA)
+val PaleBlue = Color(0xFFE8F1FA)
+val Line = Color(0xFFDCE5EF)
+val White = Color(0xFFFFFFFF)
+val Success = Color(0xFF27846D)
+val Warning = Color(0xFFB66A21)
+val Danger = Color(0xFFB64D58)

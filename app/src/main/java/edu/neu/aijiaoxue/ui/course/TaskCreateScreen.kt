@@ -1,5 +1,7 @@
 package edu.neu.aijiaoxue.ui.course
 
+import edu.neu.aijiaoxue.ui.theme.AppBackAction
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,7 +51,7 @@ fun TaskCreateScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     var typeMenu by remember { mutableStateOf(false) }
-    Scaffold(topBar = { TopAppBar(title = { Text("创建督导任务") }, navigationIcon = { TextButton(onClick = onBack) { Text("返回") } }) }) { padding ->
+    Scaffold(topBar = { TopAppBar(title = { Text("创建督导任务") }, navigationIcon = { AppBackAction(onBack) }) }) { padding ->
         Column(
             Modifier.fillMaxSize().padding(padding).padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),

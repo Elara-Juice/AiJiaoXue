@@ -7,6 +7,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import edu.neu.aijiaoxue.ui.theme.AppGlyph
+import edu.neu.aijiaoxue.ui.theme.AppIcon
 
 @Composable
 fun HistoryScreen(viewModel: HistoryViewModel, onBack: () -> Unit, onDetail: (Long) -> Unit) {
@@ -20,7 +22,10 @@ fun HistoryScreen(viewModel: HistoryViewModel, onBack: () -> Unit, onDetail: (Lo
                 DateField("开始日期", state.from, { viewModel.dates(from = it) })
                 DateField("结束日期", state.to, { viewModel.dates(to = it) })
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Button(onClick = viewModel::search) { Text("检索") }
+                    Button(onClick = viewModel::search) {
+                        AppIcon(AppGlyph.SEARCH, tint = MaterialTheme.colorScheme.onPrimary)
+                        Text("检索")
+                    }
                     TextButton(onClick = viewModel::reset) { Text("重置条件") }
                 }
             } }

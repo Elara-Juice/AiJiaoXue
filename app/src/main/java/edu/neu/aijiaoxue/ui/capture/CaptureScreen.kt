@@ -1,5 +1,7 @@
 package edu.neu.aijiaoxue.ui.capture
 
+import edu.neu.aijiaoxue.ui.theme.AppBackAction
+
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -147,7 +149,7 @@ fun CaptureScreen(
         topBar = {
             TopAppBar(
                 title = { Text(state.task?.courseName ?: "课堂督导") },
-                navigationIcon = { TextButton(onClick = leave) { Text("返回") } },
+                navigationIcon = { AppBackAction(leave) },
             )
         },
         snackbarHost = { SnackbarHost(snackbar) },

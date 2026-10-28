@@ -1,5 +1,7 @@
 package edu.neu.aijiaoxue.ui.feedback
 
+import edu.neu.aijiaoxue.ui.theme.AppBackAction
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,7 +36,7 @@ fun FeedbackDetailScreen(taskId: Long, onBack: () -> Unit, onImproveFocus: () ->
         factory = viewModelFactory { initializer { FeedbackDetailViewModel(this[ androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]!!, taskId) } },
     )
     val state by viewModel.uiState.collectAsState()
-    Scaffold(topBar = { TopAppBar(title = { Text("反馈详情") }, navigationIcon = { TextButton(onClick = onBack) { Text("返回") } }) }) { padding ->
+    Scaffold(topBar = { TopAppBar(title = { Text("反馈详情") }, navigationIcon = { AppBackAction(onBack) }) }) { padding ->
         when {
             state.isLoading -> CircularProgressIndicator(Modifier.padding(padding).padding(24.dp))
             state.error != null -> Text(state.error!!, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(padding).padding(20.dp))

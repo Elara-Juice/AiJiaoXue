@@ -1,5 +1,7 @@
 package edu.neu.aijiaoxue.ui.arrange
 
+import edu.neu.aijiaoxue.ui.theme.AppBackAction
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -35,7 +37,7 @@ fun ArrangementScreen(
     viewModel: ArrangementViewModel = viewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
-    Scaffold(topBar = { TopAppBar(title = { Text("督导安排") }, navigationIcon = { TextButton(onClick = onBack) { Text("返回") } }) }) { padding ->
+    Scaffold(topBar = { TopAppBar(title = { Text("督导安排") }, navigationIcon = { AppBackAction(onBack) }) }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 16.dp)) {
                 Checkbox(checked = state.uncoveredOnly, onCheckedChange = viewModel::setUncoveredOnly)

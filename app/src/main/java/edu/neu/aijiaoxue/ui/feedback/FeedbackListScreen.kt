@@ -1,5 +1,7 @@
 package edu.neu.aijiaoxue.ui.feedback
 
+import edu.neu.aijiaoxue.ui.theme.AppBackAction
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -31,7 +33,7 @@ fun FeedbackListScreen(
     viewModel: FeedbackListViewModel = viewModel(),
 ) {
     val rows by viewModel.rows.collectAsState()
-    Scaffold(topBar = { TopAppBar(title = { Text("督导反馈") }, navigationIcon = { TextButton(onClick = onBack) { Text("返回") } }) }) { padding ->
+    Scaffold(topBar = { TopAppBar(title = { Text("督导反馈") }, navigationIcon = { AppBackAction(onBack) }) }) { padding ->
         if (rows.isEmpty()) {
             Text("暂无督导反馈", modifier = Modifier.padding(padding).padding(20.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
         } else {

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
@@ -44,6 +45,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import edu.neu.aijiaoxue.ui.theme.AppGlyph
+import edu.neu.aijiaoxue.ui.theme.AppIcon
 
 /** F0：账号密码登录。成功后由 AppNavHost 按角色跳转首页。 */
 @Composable
@@ -65,7 +68,7 @@ fun LoginScreen(viewModel: LoginViewModel = viewModel()) {
             horizontalAlignment = Alignment.Start,
         ) {
             Surface(color = MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(16.dp)) {
-                Text("教", Modifier.padding(horizontal = 18.dp, vertical = 12.dp), style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
+                AppIcon(AppGlyph.SCHOOL, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(14.dp).size(30.dp))
             }
             Spacer(Modifier.height(24.dp))
             Text("爱教学", style = MaterialTheme.typography.headlineLarge)
@@ -134,6 +137,8 @@ fun LoginScreen(viewModel: LoginViewModel = viewModel()) {
                 if (state.isLoading) {
                     CircularProgressIndicator(Modifier.size(20.dp), color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.dp)
                 } else {
+                    AppIcon(AppGlyph.LOGIN, tint = MaterialTheme.colorScheme.onPrimary)
+                    Spacer(Modifier.width(8.dp))
                     Text("登录")
                 }
             }

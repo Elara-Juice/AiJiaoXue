@@ -22,6 +22,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import edu.neu.aijiaoxue.data.dao.CourseRow
+import edu.neu.aijiaoxue.ui.theme.AppBackAction
+import edu.neu.aijiaoxue.ui.theme.AppGlyph
+import edu.neu.aijiaoxue.ui.theme.AppIcon
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,11 +34,12 @@ fun CourseSearchScreen(
     viewModel: CourseSearchViewModel = viewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
-    Scaffold(topBar = { TopAppBar(title = { Text("课程检索") }, navigationIcon = { androidx.compose.material3.TextButton(onClick = onBack) { Text("返回") } }) }) { padding ->
+    Scaffold(topBar = { TopAppBar(title = { Text("课程检索") }, navigationIcon = { AppBackAction(onBack) }) }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             OutlinedTextField(
                 value = state.keyword,
                 onValueChange = viewModel::onKeywordChange,
+                leadingIcon = { AppIcon(AppGlyph.SEARCH, tint = MaterialTheme.colorScheme.primary) },
                 label = { Text("课程名称、教师姓名或课程编号") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),

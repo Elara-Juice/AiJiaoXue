@@ -1,5 +1,7 @@
 package edu.neu.aijiaoxue.ui.supervisor
 
+import edu.neu.aijiaoxue.ui.theme.AppBackAction
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -30,7 +32,7 @@ fun SupervisorPortalScreen(model: SupervisorPortalViewModel, tab: SupervisorTab,
     val filteredTasks = state.tasks.filter { (taskFilter == null || it.status == taskFilter) && (it.courseName + it.teacherName + it.code).contains(query.trim(), true) }
     val filteredIssues = state.issues.filter { (taskId == null || it.row.taskId == taskId || it.row.id in state.relatedIssueIds) && (issueFilter == null || it.stage == issueFilter) && (it.row.courseName + it.row.teacherName + it.row.description).contains(query.trim(), true) }
     Scaffold(topBar = { TopAppBar(title = { Text(if (taskId != null) "本课堂关联改进" else tab.label) },
-        navigationIcon = { onBack?.let { TextButton(onClick = it) { Text("返回") } } },
+        navigationIcon = { onBack?.let { AppBackAction(it) } },
         actions = { if (tab == SupervisorTab.TASKS) TextButton(onClick = { onNavigate(Routes.COURSE_SEARCH) }) { Text("新建督导") } }) }) { padding ->
         LazyColumn(Modifier.fillMaxSize().padding(padding).testTag("supervisor-${tab.name}"), contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             if (state.loading) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }

@@ -3,9 +3,11 @@ package edu.neu.aijiaoxue.ui.analysis
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
@@ -24,6 +26,8 @@ import edu.neu.aijiaoxue.ui.evaluation.MessageCard
 import edu.neu.aijiaoxue.ui.evaluation.ModulePage
 import edu.neu.aijiaoxue.ui.evaluation.SectionCard
 import edu.neu.aijiaoxue.ui.evidence.EvidencePanel
+import edu.neu.aijiaoxue.ui.theme.AppGlyph
+import edu.neu.aijiaoxue.ui.theme.AppIcon
 
 const val ANALYSIS_PAGE_TAG = "analysis_page"
 
@@ -90,6 +94,8 @@ fun AnalysisScreen(
                             .testTag("analysis-generate")
                             .padding(top = 8.dp)
                     ) {
+                        AppIcon(AppGlyph.ANALYTICS, tint = MaterialTheme.colorScheme.onPrimary)
+                        Spacer(Modifier.width(8.dp))
                         Text(
                             when {
                                 state.analyzing -> "分析中…"
@@ -129,6 +135,8 @@ fun AnalysisScreen(
                         enabled = !state.analyzing,
                         modifier = Modifier.fillMaxWidth().testTag("analysis-review-${result.type.name}")
                     ) {
+                        AppIcon(AppGlyph.EDIT, tint = MaterialTheme.colorScheme.primary)
+                        Spacer(Modifier.width(8.dp))
                         Text(
                             if (result.verified) {
                                 "查看审核记录"
@@ -142,6 +150,8 @@ fun AnalysisScreen(
             if (state.canAnalyze) item {
                 Button(onClick = onEvaluation, enabled = !state.analyzing,
                     modifier = Modifier.fillMaxWidth().testTag("analysis-enter-evaluation")) {
+                    AppIcon(AppGlyph.EDIT, tint = MaterialTheme.colorScheme.onPrimary)
+                    Spacer(Modifier.width(8.dp))
                     Text("进入人工评价")
                 }
             }

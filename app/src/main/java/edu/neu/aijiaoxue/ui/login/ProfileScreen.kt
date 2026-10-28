@@ -1,5 +1,7 @@
 package edu.neu.aijiaoxue.ui.login
 
+import edu.neu.aijiaoxue.ui.theme.AppBackAction
+
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -48,7 +50,7 @@ fun ProfileScreen(onBack: () -> Unit) {
         topBar = {
             TopAppBar(
                 title = { Text("我的") },
-                navigationIcon = { TextButton(onClick = onBack) { Text("返回") } },
+                navigationIcon = { AppBackAction(onBack) },
             )
         },
     ) { innerPadding ->

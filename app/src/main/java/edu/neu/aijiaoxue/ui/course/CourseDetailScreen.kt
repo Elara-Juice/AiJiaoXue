@@ -1,5 +1,7 @@
 package edu.neu.aijiaoxue.ui.course
 
+import edu.neu.aijiaoxue.ui.theme.AppBackAction
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,7 +38,7 @@ fun CourseDetailScreen(
         factory = viewModelFactory { initializer { CourseDetailViewModel(this[ androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]!!, courseId) } },
     )
     val row by viewModel.course.collectAsState()
-    Scaffold(topBar = { TopAppBar(title = { Text("课程详情") }, navigationIcon = { TextButton(onClick = onBack) { Text("返回") } }) }) { padding ->
+    Scaffold(topBar = { TopAppBar(title = { Text("课程详情") }, navigationIcon = { AppBackAction(onBack) }) }) { padding ->
         Column(
             Modifier.fillMaxSize().padding(padding).padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),

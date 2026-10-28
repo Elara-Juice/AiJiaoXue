@@ -10,6 +10,8 @@ import edu.neu.aijiaoxue.data.model.EvalDimension
 import edu.neu.aijiaoxue.data.model.IssueDeclaration
 import edu.neu.aijiaoxue.data.ai.AnalysisJson
 import org.json.JSONObject
+import edu.neu.aijiaoxue.ui.theme.AppGlyph
+import edu.neu.aijiaoxue.ui.theme.AppIcon
 
 @Composable
 fun HistoryDetailScreen(viewModel: HistoryDetailViewModel, onBack: () -> Unit, onEvidence: ((Long) -> Unit)? = null, onParticipation: (() -> Unit)? = null, onImprovement: (() -> Unit)? = null) {
@@ -25,7 +27,10 @@ fun HistoryDetailScreen(viewModel: HistoryDetailViewModel, onBack: () -> Unit, o
             verticalArrangement = Arrangement.spacedBy(16.dp)) {
             if (onImprovement != null) item { SectionCard("报告已发布") {
                 Text("教师可查看本次反馈。正式问题已进入改进跟踪，后续措施和复评会与本报告关联。")
-                Button(onClick = onImprovement, modifier = Modifier.fillMaxWidth()) { Text("查看教师改进与复评") }
+                Button(onClick = onImprovement, modifier = Modifier.fillMaxWidth()) {
+                    AppIcon(AppGlyph.TREND, tint = MaterialTheme.colorScheme.onPrimary)
+                    Text("查看教师改进与复评")
+                }
             } }
             item { SectionCard(frozen("courseName", record.course.name).orEmpty()) {
                 ReadField("课程编号", frozen("courseCode", record.course.code))
@@ -53,7 +58,10 @@ fun HistoryDetailScreen(viewModel: HistoryDetailViewModel, onBack: () -> Unit, o
                 ClassroomReference(record)
             } }
             item { ReviewedAnalysisSection(record.reviewedAnalyses, true, record.publication, record.publishedFacts, record.publishedEvidence, onEvidence) }
-            if (onParticipation != null) item { OutlinedButton(onClick = onParticipation) { Text("课堂参与分析") } }
+            if (onParticipation != null) item { OutlinedButton(onClick = onParticipation) {
+                AppIcon(AppGlyph.COMPARE, tint = MaterialTheme.colorScheme.primary)
+                Text("课堂参与分析")
+            } }
             EvalDimension.entries.forEach { dim -> item { SectionCard("${dim.label} · ${dim.weight}%") {
                 Text("评分：${evaluation.scoreOf(dim)} / 5")
                 ReadField("评语", evaluation.commentOf(dim))

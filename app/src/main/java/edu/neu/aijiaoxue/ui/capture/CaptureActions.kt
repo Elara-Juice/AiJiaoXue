@@ -14,6 +14,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import edu.neu.aijiaoxue.data.model.TaskStatus
+import edu.neu.aijiaoxue.ui.theme.AppGlyph
+import edu.neu.aijiaoxue.ui.theme.AppIcon
 import kotlinx.coroutines.delay
 
 /** The recording controls stay visible while browsing classroom evidence. */
@@ -45,8 +47,14 @@ internal fun CaptureActionBar(
                         color = if (paused) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.labelLarge, fontFamily = FontFamily.Monospace,
                     )
-                    TextButton(onClick = if (paused) onResume else onPause, modifier = Modifier.heightIn(min = 48.dp)) { Text(if (paused) "继续" else "暂停") }
-                    OutlinedButton(onClick = onStop, modifier = Modifier.heightIn(min = 48.dp), shape = MaterialTheme.shapes.small) { Text("结束录音") }
+                    TextButton(onClick = if (paused) onResume else onPause, modifier = Modifier.heightIn(min = 48.dp)) {
+                        AppIcon(if (paused) AppGlyph.PLAY else AppGlyph.EDIT, tint = MaterialTheme.colorScheme.primary)
+                        Text(if (paused) "继续" else "暂停")
+                    }
+                    OutlinedButton(onClick = onStop, modifier = Modifier.heightIn(min = 48.dp), shape = MaterialTheme.shapes.small) {
+                        AppIcon(AppGlyph.SEND, tint = MaterialTheme.colorScheme.primary)
+                        Text("结束录音")
+                    }
                 }
             }
             Button(
@@ -54,7 +62,10 @@ internal fun CaptureActionBar(
                 enabled = !state.isImportingAudio,
                 modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).testTag("capture-finish"),
                 shape = MaterialTheme.shapes.small,
-            ) { Text(if (state.status == TaskStatus.IN_PROGRESS) "结束采集并检查材料" else "AI 课堂分析") }
+            ) {
+                AppIcon(if (state.status == TaskStatus.IN_PROGRESS) AppGlyph.CHECKLIST else AppGlyph.ANALYTICS, tint = MaterialTheme.colorScheme.onPrimary)
+                Text(if (state.status == TaskStatus.IN_PROGRESS) "结束采集并检查材料" else "AI 课堂分析")
+            }
         }
     }
 }
@@ -74,7 +85,10 @@ internal fun AudioImportCard(state: CaptureUiState, onImport: () -> Unit, onCanc
                     TextButton(onClick = onCancel) { Text("取消导入") }
                 }
             } else {
-                OutlinedButton(onClick = onImport, enabled = state.canImportAudio, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).testTag("capture-import-audio"), shape = MaterialTheme.shapes.small) { Text("导入课堂录音") }
+                OutlinedButton(onClick = onImport, enabled = state.canImportAudio, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).testTag("capture-import-audio"), shape = MaterialTheme.shapes.small) {
+                    AppIcon(AppGlyph.PHOTO, tint = MaterialTheme.colorScheme.primary)
+                    Text("导入课堂录音")
+                }
             }
         }
     }

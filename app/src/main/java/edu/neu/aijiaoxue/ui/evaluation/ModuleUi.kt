@@ -1,11 +1,13 @@
 package edu.neu.aijiaoxue.ui.evaluation
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
@@ -13,6 +15,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import edu.neu.aijiaoxue.data.AppDatabase
 import edu.neu.aijiaoxue.data.Session
+import edu.neu.aijiaoxue.ui.theme.AppGlyph
+import edu.neu.aijiaoxue.ui.theme.AppIcon
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -31,24 +35,63 @@ inline fun <reified T : ViewModel> moduleViewModel(crossinline create: (AppDatab
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModulePage(title: String, onBack: () -> Unit, content: @Composable (PaddingValues) -> Unit) {
-    Scaffold(topBar = {
-        TopAppBar(title = { Text(title) }, navigationIcon = { TextButton(onClick = onBack) { Text("返回") } })
-    }) { padding -> content(padding) }
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            TopAppBar(
+                title = { Text(title, style = MaterialTheme.typography.titleLarge) },
+                navigationIcon = {
+                    TextButton(onClick = onBack) {
+                        AppIcon(AppGlyph.BACK, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("返回")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.primary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.primary,
+                ),
+            )
+        },
+    ) { padding -> content(padding) }
 }
 
 @Composable
 fun MessageCard(message: String, error: Boolean = false) {
-    Surface(color = if (error) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.secondaryContainer,
-        shape = MaterialTheme.shapes.medium, modifier = Modifier.fillMaxWidth()) {
-        Text(message, Modifier.padding(12.dp))
+    Surface(
+        color = if (error) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.secondaryContainer,
+        shape = MaterialTheme.shapes.medium,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+            AppIcon(
+                glyph = if (error) AppGlyph.ERROR else AppGlyph.INFO,
+                tint = if (error) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(19.dp),
+            )
+            Text(message, style = MaterialTheme.typography.bodyMedium)
+        }
     }
 }
 
 @Composable
 fun SectionCard(title: String, content: @Composable ColumnScope.() -> Unit) {
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(title, style = MaterialTheme.typography.titleMedium)
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    ) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                Box(Modifier.width(4.dp).height(19.dp).clip(RoundedCornerShape(4.dp))
+                    .background(MaterialTheme.colorScheme.primary))
+                Text(title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+            }
             content()
         }
     }

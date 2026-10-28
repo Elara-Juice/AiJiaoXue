@@ -14,6 +14,8 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import edu.neu.aijiaoxue.data.model.EvalDimension
 import edu.neu.aijiaoxue.data.model.EvalRules
 import edu.neu.aijiaoxue.data.model.IssueDeclaration
+import edu.neu.aijiaoxue.ui.theme.AppGlyph
+import edu.neu.aijiaoxue.ui.theme.AppIcon
 
 @Composable
 fun EvaluationScreen(viewModel: EvaluationViewModel, onBack: () -> Unit, onHistory: () -> Unit, onAnalysis: () -> Unit = {}) {
@@ -51,7 +53,11 @@ fun EvaluationScreen(viewModel: EvaluationViewModel, onBack: () -> Unit, onHisto
             item { Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 ClassroomReference(record)
                 if (!state.readOnly) OutlinedButton(onClick = onAnalysis, enabled = !state.busy,
-                    modifier = Modifier.testTag("evaluation-open-analysis")) { Text("查看与审核分析") }
+                    modifier = Modifier.testTag("evaluation-open-analysis")) {
+                    AppIcon(AppGlyph.ANALYTICS, tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.width(8.dp))
+                    Text("查看与审核分析")
+                }
                 ReviewedAnalysisSection(record.reviewedAnalyses, state.readOnly, record.publication,
                     record.publishedFacts, record.publishedEvidence)
             } }
@@ -96,10 +102,20 @@ fun EvaluationScreen(viewModel: EvaluationViewModel, onBack: () -> Unit, onHisto
                 label = { Text("总体意见（必填）") }, modifier = Modifier.fillMaxWidth()) }
             item { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 state.error?.let { MessageCard(it, true) }
-                if (state.readOnly) Button(onClick = onHistory, modifier = Modifier.fillMaxWidth()) { Text("查看历史归档") }
+                if (state.readOnly) Button(onClick = onHistory, modifier = Modifier.fillMaxWidth()) {
+                    AppIcon(AppGlyph.ARCHIVE, tint = MaterialTheme.colorScheme.onPrimary)
+                    Spacer(Modifier.width(8.dp))
+                    Text("查看历史归档")
+                }
                 else {
-                    OutlinedButton(onClick = { viewModel.persist() }, enabled = enabled, modifier = Modifier.fillMaxWidth()) { Text("保存草稿") }
+                    OutlinedButton(onClick = { viewModel.persist() }, enabled = enabled, modifier = Modifier.fillMaxWidth()) {
+                        AppIcon(AppGlyph.SAVE, tint = MaterialTheme.colorScheme.primary)
+                        Spacer(Modifier.width(8.dp))
+                        Text("保存草稿")
+                    }
                     Button(onClick = { if (viewModel.validate()) confirming = true }, enabled = enabled, modifier = Modifier.fillMaxWidth()) {
+                        AppIcon(AppGlyph.SEND, tint = MaterialTheme.colorScheme.onPrimary)
+                        Spacer(Modifier.width(8.dp))
                         Text(if (state.busy) "正在提交…" else "提交评价")
                     }
                 }

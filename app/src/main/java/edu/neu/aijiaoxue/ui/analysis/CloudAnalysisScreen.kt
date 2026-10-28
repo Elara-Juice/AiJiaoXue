@@ -1,5 +1,7 @@
 package edu.neu.aijiaoxue.ui.analysis
 
+import edu.neu.aijiaoxue.ui.theme.AppBackAction
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -60,7 +62,7 @@ fun CloudAnalysisScreen(vm: CloudAnalysisViewModel, onBack: () -> Unit, onReview
     val pendingReview = currentResults.firstOrNull { !it.verified }
     val listState = rememberLazyListState()
     Scaffold(
-        topBar = { TopAppBar(title = { Text("课堂分析") }, navigationIcon = { TextButton(onClick = onBack) { Text("返回") } },
+        topBar = { TopAppBar(title = { Text("课堂分析") }, navigationIcon = { AppBackAction(onBack) },
             actions = { TextButton(onClick = { showSettings = true }) { Text("服务设置") } }) },
         bottomBar = {
             if (canAnalyze) Surface(shadowElevation = 4.dp) {

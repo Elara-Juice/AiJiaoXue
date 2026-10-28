@@ -37,6 +37,9 @@ import edu.neu.aijiaoxue.data.model.TaskStatus
 import edu.neu.aijiaoxue.navigation.Routes
 import edu.neu.aijiaoxue.ui.components.StatusBadge
 import edu.neu.aijiaoxue.ui.components.SectionHeading
+import edu.neu.aijiaoxue.ui.theme.AppBackAction
+import edu.neu.aijiaoxue.ui.theme.AppGlyph
+import edu.neu.aijiaoxue.ui.theme.AppIcon
 
 /**
  * US07 我的督导任务（Routes.MY_TASKS）。
@@ -56,7 +59,7 @@ fun MyTasksScreen(
         topBar = {
             TopAppBar(
                 title = { Text("我的督导任务") },
-                navigationIcon = { TextButton(onClick = onBack) { Text("返回") } },
+                navigationIcon = { AppBackAction(onBack) },
             )
         },
     ) { innerPadding ->
@@ -138,9 +141,15 @@ internal fun taskCardTag(taskId: Long) = "task-$taskId"
 private fun TaskActions(taskId: Long, status: TaskStatus, onNavigate: (String) -> Unit) {
     val buttonModifier = Modifier.heightIn(min = 52.dp)
     if (status in setOf(TaskStatus.PENDING_EVALUATION, TaskStatus.COMPLETED)) {
-        TextButton(onClick = { onNavigate(Routes.reviewParticipation(taskId)) }) { Text("参与分析与环节定位") }
+        TextButton(onClick = { onNavigate(Routes.reviewParticipation(taskId)) }) {
+            AppIcon(AppGlyph.COMPARE, tint = MaterialTheme.colorScheme.primary)
+            Text("参与分析与环节定位")
+        }
     }
-    TextButton(onClick = { onNavigate(Routes.inputWorkspace(taskId)) }) { Text("课堂输入与补充事实") }
+    TextButton(onClick = { onNavigate(Routes.inputWorkspace(taskId)) }) {
+        AppIcon(AppGlyph.EDIT, tint = MaterialTheme.colorScheme.primary)
+        Text("课堂输入与补充事实")
+    }
     FlowRow(
         Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.End),
@@ -149,35 +158,35 @@ private fun TaskActions(taskId: Long, status: TaskStatus, onNavigate: (String) -
             TaskStatus.NOT_STARTED -> Button(
                 onClick = { onNavigate(Routes.capture(taskId)) },
                 modifier = buttonModifier,
-            ) { Text("开始采集") }
+            ) { AppIcon(AppGlyph.PLAY, tint = MaterialTheme.colorScheme.onPrimary); Text("开始采集") }
 
             TaskStatus.IN_PROGRESS -> Button(
                 onClick = { onNavigate(Routes.capture(taskId)) },
                 modifier = buttonModifier,
-            ) { Text("继续采集") }
+            ) { AppIcon(AppGlyph.PLAY, tint = MaterialTheme.colorScheme.onPrimary); Text("继续采集") }
 
             TaskStatus.PENDING_EVALUATION -> {
                 // 需求 3.3：待评价状态下仍可补充材料、修改互动记录
                 OutlinedButton(
                     onClick = { onNavigate(Routes.capture(taskId)) },
                     modifier = buttonModifier,
-                ) { Text("查看材料") }
+                ) { AppIcon(AppGlyph.PHOTO, tint = MaterialTheme.colorScheme.primary); Text("查看材料") }
                 Button(
                     onClick = { onNavigate(Routes.analysis(taskId)) },
                     modifier = buttonModifier,
-                ) { Text("查看分析") }
-                TextButton(onClick = { onNavigate(Routes.evaluation(taskId)) }, modifier = buttonModifier) { Text("继续评价") }
+                ) { AppIcon(AppGlyph.ANALYTICS, tint = MaterialTheme.colorScheme.onPrimary); Text("查看分析") }
+                TextButton(onClick = { onNavigate(Routes.evaluation(taskId)) }, modifier = buttonModifier) { AppIcon(AppGlyph.EDIT, tint = MaterialTheme.colorScheme.primary); Text("继续评价") }
             }
 
             TaskStatus.COMPLETED -> {
                 Button(
                     onClick = { onNavigate(Routes.historyDetail(taskId)) },
                     modifier = buttonModifier,
-                ) { Text("查看记录") }
+                ) { AppIcon(AppGlyph.BOOK, tint = MaterialTheme.colorScheme.onPrimary); Text("查看记录") }
                 OutlinedButton(
                     onClick = { onNavigate(Routes.analysis(taskId)) },
                     modifier = buttonModifier,
-                ) { Text("AI分析") }
+                ) { AppIcon(AppGlyph.ANALYTICS, tint = MaterialTheme.colorScheme.primary); Text("AI分析") }
             }
         }
     }

@@ -11,6 +11,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import edu.neu.aijiaoxue.ui.course.MyTasksViewModel
 import edu.neu.aijiaoxue.ui.components.StatusBadge
 import edu.neu.aijiaoxue.data.model.TaskStatus
+import edu.neu.aijiaoxue.ui.theme.AppGlyph
+import edu.neu.aijiaoxue.ui.theme.AppIcon
 
 /** F0 角色首页：教学督导 —— 课程检索、我的督导任务、历史记录。 */
 @Composable
@@ -34,7 +36,10 @@ fun SupervisorHomeScreen(onNavigate: (String) -> Unit, viewModel: MyTasksViewMod
                         current == null -> {
                             Text("准备好开始新一堂课了吗？", style = MaterialTheme.typography.titleMedium)
                             Text("从课程检索开始，创建属于本次课堂的督导任务。", style = MaterialTheme.typography.bodyMedium)
-                            Button(onClick = { onNavigate(Routes.COURSE_SEARCH) }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("查找课程") }
+                            Button(onClick = { onNavigate(Routes.COURSE_SEARCH) }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+                                AppIcon(AppGlyph.SEARCH, tint = MaterialTheme.colorScheme.onPrimary)
+                                Text("查找课程")
+                            }
                         }
                         else -> {
                             val row = current.row
@@ -47,7 +52,17 @@ fun SupervisorHomeScreen(onNavigate: (String) -> Unit, viewModel: MyTasksViewMod
                                 TaskStatus.PENDING_EVALUATION -> "查看分析" to Routes.analysis(row.id)
                                 TaskStatus.COMPLETED -> "查看报告" to Routes.historyDetail(row.id)
                             }
-                            Button(onClick = { onNavigate(route) }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text(label) }
+                            Button(onClick = { onNavigate(route) }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+                                AppIcon(
+                                    when (row.status) {
+                                        TaskStatus.NOT_STARTED, TaskStatus.IN_PROGRESS -> AppGlyph.PLAY
+                                        TaskStatus.PENDING_EVALUATION -> AppGlyph.ANALYTICS
+                                        TaskStatus.COMPLETED -> AppGlyph.REPORT
+                                    },
+                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                )
+                                Text(label)
+                            }
                             Text("待处理 ${state.unfinished.size} 项 · 已完成 ${state.completed.size} 项", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
                         }
                     }

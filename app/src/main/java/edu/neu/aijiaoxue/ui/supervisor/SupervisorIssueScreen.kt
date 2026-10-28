@@ -1,5 +1,7 @@
 package edu.neu.aijiaoxue.ui.supervisor
 
+import edu.neu.aijiaoxue.ui.theme.AppBackAction
+
 import android.content.ClipData
 import android.content.Intent
 import androidx.core.content.FileProvider
@@ -24,7 +26,7 @@ fun SupervisorIssueScreen(vm: SupervisorIssueViewModel, onBack: () -> Unit, navi
     val state by vm.uiState.collectAsState()
     val context = LocalContext.current
     val detail = state.detail
-    Scaffold(topBar = { TopAppBar(title = { Text("问题与改进") }, navigationIcon = { TextButton(onClick = onBack) { Text("返回") } }) },
+    Scaffold(topBar = { TopAppBar(title = { Text("问题与改进") }, navigationIcon = { AppBackAction(onBack) }) },
         bottomBar = { detail?.let { data -> Surface(shadowElevation = 3.dp) {
             Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(16.dp)) {
                 val latest = data.tracked.latestReview

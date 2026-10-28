@@ -1,5 +1,7 @@
 package edu.neu.aijiaoxue.ui.arrange
 
+import edu.neu.aijiaoxue.ui.theme.AppBackAction
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -41,7 +43,7 @@ private data class FilterOption(val id: Long?, val label: String)
 fun TaskProgressScreen(onBack: () -> Unit, viewModel: TaskProgressViewModel = viewModel()) {
     val state by viewModel.uiState.collectAsState()
     var selectedTask by remember { mutableStateOf<TaskRow?>(null) }
-    Scaffold(topBar = { TopAppBar(title = { Text("任务进度") }, navigationIcon = { TextButton(onClick = onBack) { Text("返回") } }) }) { padding ->
+    Scaffold(topBar = { TopAppBar(title = { Text("任务进度") }, navigationIcon = { AppBackAction(onBack) }) }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 FilterMenu(
